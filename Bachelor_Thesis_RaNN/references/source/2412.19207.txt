@@ -1,0 +1,1175 @@
+                                                              Overlapping Schwarz Preconditioners for Randomized
+                                                                 Neural Networks with Domain Decomposition
+
+                                                     Yong Shang1 , Alexander Heinlein2 , Siddhartha Mishra3 , and                           Fei Wang4
+
+                                                 Abstract: Randomized neural networks (RaNNs), in which hidden layers remain fixed after ran-
+                                                 dom initialization, provide an efficient alternative for parameter optimization compared to fully
+                                                 parameterized networks. In this paper, RaNNs are integrated with overlapping Schwarz domain
+arXiv:2412.19207v1 [math.NA] 26 Dec 2024
+
+
+
+
+                                                 decomposition in two (main) ways: first, to formulate the least-squares problem with localized ba-
+                                                 sis functions, and second, to construct overlapping preconditioners for the resulting linear systems.
+                                                 In particular, neural networks are initialized randomly in each subdomain based on a uniform
+                                                 distribution and linked through a partition of unity, forming a global solution that approximates
+                                                 the solution of the partial differential equation. Boundary conditions are enforced through a
+                                                 constraining operator, eliminating the need for a penalty term to handle them. Principal com-
+                                                 ponent analysis (PCA) is employed to reduce the number of basis functions in each subdomain,
+                                                 yielding a linear system with a lower condition number. By constructing additive and restricted
+                                                 additive Schwarz preconditioners, the least-squares problem is solved efficiently using the Con-
+                                                 jugate Gradient (CG) and Generalized Minimal Residual (GMRES) methods, respectively. Our
+                                                 numerical results demonstrate that the proposed approach significantly reduces computational
+                                                 time for multi-scale and time-dependent problems. Additionally, a three-dimensional problem
+                                                 is presented to demonstrate the efficiency of using the CG method with an AS preconditioner,
+                                                 compared to an QR decomposition, in solving the least-squares problem.
+                                                 Keywords: Randomized neural networks, domain decomposition, least-squares method, Princi-
+                                                 pal component analysis, overlapping Schwarz preconditioners.
+
+
+
+                                           1     Introduction
+                                               Domain decomposition methods (DDMs) are based on dividing the computational domain into over-
+                                           lapping or non-overlapping subdomains, breaking the problem into smaller subproblems. This allows local
+                                           subproblems to be solved efficiently on multiple processors. DDMs greatly improve the convergence rates
+                                           and computational efficiency of solving partial differential equations (PDEs), making them highly effective
+                                           for a wide range of complex problems. Recently, the combination of DDMs with neural networks for solving
+                                           partial differential equations has attracted significant attention, as it can offer significant computational
+                                           speed-ups robustness and enhanced accuracy for various deep learning models. These hybrid approaches are
+                                           often classified based on the machine learning algorithms they incorporate [18, 25]. In this section, we aim
+                                           to provide a brief overview of combining DDMs with two prominent machine learning models.
+                                              1 School of Mathematics and Statistics, Xi’an Jiaotong University, Xi’an, Shaanxi 710049, P.R. China.           E-mail:
+                                           fsy2503@stu.xjtu.edu.cn
+                                              2 Delft Institute of Applied Mathematics, Faculty of Electrical Engineering, Mathematics and Computer Science, Delft
+
+                                           University of Technology, Mekelweg 4, 2628 CD Delft, Netherlands. E-mail: a.heinlein@tudelft.nl
+                                              3 Seminar for Applied Mathematics, D-MATH, and ETH AI Center, ETH Zürich, Rämistrasse 101, 8092 Zürich, Switzerland.
+
+                                           E-mail: smishra@sam.math.ethz.ch
+                                              4 School of Mathematics and Statistics, Xi’an Jiaotong University, Xi’an, Shaanxi 710049, P.R. China. The work of
+
+                                           this author was partially supported by the National Natural Science Foundation of China (Grant No. 92470115). Email:
+                                           feiwang.xjtu@xjtu.edu.cn
+
+
+                                                                                                       1
+1.1     Physics-informed neural networks
+    In 1994, Dissanayake and Phan-Thien [10] introduced a neural network-based method that transforms
+solving PDEs into an unconstrained minimization problem, offering an efficient solution method. Later,
+Lagaris et al. [26] developed a neural network approach for initial and boundary value problems by designing
+a trial solution that automatically satisfies boundary conditions and optimizes the network to solve the
+differential equation.
+   Based on those pioneering works, Physics-informed neural networks (PINNs) [39] have recently been
+widely used to solve a variety of PDEs by using neural networks. Consider the following generic boundary
+value problem (BVP) on the domain Ω ⊂ Rd ,
+
+                                                    A[u] = f          in Ω,
+                                                                                                                      (1.1)
+                                                    B[u] = g          on ∂Ω,
+
+where u : Ω → R represents the solution, A is a differential operators, B is the boundary conditions operator,
+and f : Ω → R is a given right-hand side function. The regularity of u and f depends on A and B.
+    To solve (1.1) using PINNs, we aim to find a neural network up (x, θ) : Ω → R that approximates the
+solution u. In the case of a fully connected feedforward network, up (x, θ) is given by
+
+                                      up (x, θ) = fn ◦ fn−1 ◦ . . . ◦ fi ◦ . . . ◦ f1 (x, θ),
+
+where fi (x, θi ) = σi (Ai x + bi ) for i = 1, . . . , n − 1 and fn (x, θn ) = An x + bn . Here, Ai ∈ Rdi ×di−1 , bi ∈ Rdi ,
+di is the number of neurons in the i-th layer and σi is the activation function, d0 and dn represent the
+input and output dimensions, respectively, which must align with the dimensions of the problem. Moreover,
+θi = (Ai , bi ) is the set of learnable parameters in the i-th layer, and θ = (θ1 , . . . , θn ) are all learnable
+parameters.
+   By constructing loss functions based on the residual terms of the equations in (1.1), we employ a gradient
+descent method, such as the Adam optimizer, to minimize the loss function. The loss function is a discretized
+version of L(θ),            Z                               Z
+                                                    2                               2
+                    L(θ) =      A[up ](x, θ) − f (x) dx + λ       B[up ](s, θ) − g(s) ds,               (1.2)
+                                  Ω                                       ∂Ω
+where λ > 0 is a scalar weight used to balance the terms in the loss function.
+   Alternatively, the neural network can take the form of the solution ansatz [26, 33, 27, 32]. Take Dirichlet
+boundary conditions as an example. One can adapt the constraining operator C such that
+
+                                             Cup (x, θ) = L(x)up (x, θ) + G(x)                                        (1.3)
+
+satisfies the boundary conditions automatically. Here, L(x) and G(x) are some constructed functions chosen
+such that (1.3) meets the boundary conditions defined in (1.1). For other types of boundary conditions,
+similar constructions can be found in [27, 32]. Then, L(θ) becomes
+                                            Z
+                                                                     2
+                                    L(θ) =      A[Cup ](x, θ) − f (x) dx,                             (1.4)
+                                                     Ω
+
+which eliminates the need for penalty parameter λ in (1.2). However, now the operator C has to be chosen
+appropriately.
+   Extending the idea of PINNs, conservative PINNs [23] adopt a non-overlapping domain decomposition
+method specifically designed for conservation laws by enforcing the flux continuity in the strong form along
+
+
+                                                                2
+the subdomain interfaces. This approach is further developed in [22] as extended PINNs (XPINNs) to han-
+dle general PDEs and arbitrary space-time domains. Furthermore, hp-variational PINNs (hp-VPINNs) [24]
+utilize piecewise polynomials as test functions within each subdomain, thereby improving the precision of
+solutions across the computational domain. Another approach, the deep domain decomposition method
+(DeepDDM) [28], leverages a classical fixed-point Schwarz iteration [40] to decompose the boundary value
+problem. Finite basis PINNs (FBPINNs) were introduced in [35], where overlapping Schwarz domain decom-
+position is used to construct a global solution from localized NN-based functions.. This concept was further
+explored in [11], which applied additive, multiplicative, and hybrid iteration techniques to train FBPINNs.
+To solve problems with high frequency and multi-scale solutions, multilevel FBPINNs were introduced in
+[12], incorporating multiple levels of domain decomposition. Additionally, [17] adopted a similar approach
+and enhanced the efficiency of time-dependent problems, and [19] developed a DDM for Kolmogorov-Arnold
+Networks (KANs), enabling the efficient training of KANs to solve multiscale problems.
+
+
+1.2    Randomized Neural Networks
+   A major advantage of methods based on PINNs is that they provide a mesh-free algorithm, as they do not
+require discretization of the PDEs, and the differential operators in the governing PDEs are approximated
+using automatic differentiation. However, limitations in accuracy and training cost remain due to the non-
+convex optimization problem [3], (which can lead to local minima [23].)
+     For this reason, Pao et al. [37] introduced random vector functional-links (RVFLs), a method for single-
+hidden layer networks where connections to the hidden layer are fixed after random initialization, leaving
+only the output layer weights adjustable. This approach reduces training costs, improves computational
+efficiency [36], and maintains universal approximation capabilities [21]. Extreme Learning Machines (ELMs)
+[20] further advanced this concept by analytically computing output weights through solving a linear system,
+achieving fast learning speeds while maintaining universal approximation properties [29]. A detailed survey
+of randomized neural networks (RaNNs) was later presented in [15].
+   Taking the single-hidden layer as an example, a RaNN ur (x, W ) : Ω → R is given by:
+
+                                        ur (x, W ) = W · σ(Rx + b),                                     (1.5)
+
+where R ∈ Rm×d and b ∈ Rm are randomly generated from a uniform distribution and fixed thereafter, and
+W ∈ Rm is the output weight that needs to be determined. The function σ is the activation function.
+    To solve (1.1) using (1.5), given a set of collocation points {xi }N
+                                                                       i=1 ⊂ Ω, and a constraining operator C
+defined in (1.3), the goal is to find W such that ideally
+                                                 
+                        A[L(xi )W · σ(Rxi + b) + G(xi )] = f (xi ) ∀i ∈ {1, . . . , N }.                (1.6)
+
+If A is a linear operator, then we define matrix E ∈ RN ×m with Eik = A[L(xi )σ(Rk xi + bk )] and a vector
+T ∈ RN with Ti = f (xi ) − A[G(xi )], then the above equation (1.6) can be written as
+
+                                                 EW = T.                                                (1.7)
+
+Here, E is generally not invertible. Instead of using gradient-based algorithms like the Adam optimizer, the
+vector W can be determined by the least-squares solutions of the system (1.7). This approach provides a
+fast alternative to traditional neural network training techniques [20].
+   The integration of local ELMs with DDMs was introduced in [14], offering improvements in both accuracy
+and efficiency. For problems with more complex geometries, a related approach called the random feature
+
+
+                                                     3
+method, which utilizes random feature functions combined with overlapping domain decomposition, was
+developed in [6]. A combination of RaNNs and the discontinuous Galerkin method was presented in [43, 44],
+while the hybrid discontinuous Petrov-Galerkin method was combined with RaNNs in [8].
+
+
+1.3    Singular value decomposition
+    The use of the singular value decomposition (SVD) in neural networks has been explored to reduce the
+model size while keeping the accuracy in recent research. One approach is to examine the SVD of the
+weight matrices in multi-layer neural networks. In [48], the SVD of the weight matrix was analyzed to show
+how the dimension of the weight space changes during backpropagation training. A method for reducing
+redundant hidden units by analyzing the matrix rank of the three-layered feedforward neural network using
+SVD was studied in [45], enabling network simplification without increasing the training error. Then, an
+online algorithm for determining the smallest possible number of neurons based on an SVD was proposed in
+[16]. In [50], for multi-layer neural networks with a large number of parameters, an SVD is applied to the
+weight matrices
+                                                               T
+                                            Ab×c = Ub×e Σe×e Ve×c ,
+decomposing them into two smaller matrices, U and ΣV T thereby reducing the number of parameters from
+bc to (b + c)e when e is generally much smaller than c.
+    On the other hand, once the hidden weights of a neural network are fixed [38], a least-squares problem
+can be formulated to calculate the weights for the output layer, and then the SVD is computed on the hidden
+layer output matrix [38, 2]. Psichogios and Ungar [38] proposed the SVD-NET algorithm to identify and
+eliminate redundant hidden nodes in a single hidden layer network. In [2], the authors find that the number
+of small singular values changes for different initialization of the weights. To address this, they analyzed the
+singular values across various initial weight settings and selected the optimal range of the initial weights.
+Teoh et al. [46] quantified the significance of the number of hidden neurons using SVD and proposed several
+possible methods for selecting the threshold parameter to eliminate the small singular values, illustrating
+that retraining the pruned network by an appropriate threshold would be more efficient than training the
+original network, as the training process aims to maximize the linear independence of the reduced set of
+hidden layer neurons.
+    In this paper, we use RaNNs with domain decomposition to solve PDEs. Overlapping Schwarz DDMs are
+utilized both to construct the global solution using RaNNs and to precondition the least-squares problem.
+In detail, the computational domain is partitioned into several subdomains, with RaNNs generated for each
+subdomain and initialized using a uniform distribution. Local window functions and the constraining oper-
+ator are employed to construct a global approximate solution without the need for additional penalty terms.
+Then, a linear system HW = F is constructed by selecting a set of collocation points within the domain to
+enforce the PDEs at these points. To reduce the condition number of the linear system, cond(H) = σσmax    min
+                                                                                                              ,
+where σmax and σmin represent the maximum and minimum singular values of H, respectively, we aim to
+eliminate small singular values, thereby increasing σmin to improve the conditioning of the system. The maxi-
+mum singular value is bounded in terms of a coloring constant, see, e.g., [49]. Principal Component Analysis
+(PCA) [1] is a statistical method used for dimensionality reduction and data compression by identifying
+principal components, which are linear combinations of the original variables, and eliminating correlations
+between the data. Here, PCA is applied to the hidden layer output matrix of RaNNs using SVD, resulting in
+neural networks that require fewer parameters and significantly eliminate small singular values. Finally, we
+design overlapping Schwarz preconditioners to efficiently solve a least-squares problem using a preconditioned
+iterative method like Conjugate Gradient (CG) and Generalized Minimal Residual (GMRES) method.
+
+
+                                                       4
+    The paper is organized as follows: Section 2 introduces the fundamental concepts of RaNNs integrated
+with overlapping Schwarz DDMs. Section 3 provides a detailed explanation of additive and restricted additive
+Schwarz preconditioners. Section 4 illustrates how the PCA process is formulated for RaNNs. Section 5
+presents numerical results to demonstrate the accuracy and efficiency of the proposed framework. The final
+section concludes the paper with a discussion of the findings and potential future work.
+
+
+2      RaNNs with domain decomposition
+    In overlapping Schwarz domain decomposition methods, the computational domain Ω is divided into J
+overlapping subdomains {Ωj }Jj=1 classically. The global discretization space is often defined first, and then
+the local spaces are constructed as subspaces according to the domain decomposition [42, 47]. Here, we
+define local spaces Vj of neural network functions and construct the global discretization space V from these
+local spaces using window functions.
+     Let uj (x, Wj ) be a RaNN with a fully connected feedforward structure defined on subdomain Ωj given
+by
+                           uj (x, Wj ) = Wj · fjn−1 ◦ . . . ◦ fji ◦ . . . ◦ fj1 (x) := Wj · Φj (x),              (2.8)
+where Φj (x) = fjn−1 ◦ . . . ◦ fji ◦ . . . ◦ fj1 (x) is fixed and contains no learnable parameters. Each layer is
+defined as fji (x) = σi (Ri x + bi ), for i = 1, . . . , n − 1, and Ri , bi are randomly generated from a given uniform
+distribution and remain fixed. Therefore, only Wj ∈ Rm needs to be determined.
+     Then, we can define a function space of RaNNs as follows:
+
+                                            Vj = span{ϕ1j (x), · · · , ϕm
+                                                                        j (x)},                                  (2.9)
+
+where ϕkj (x) denotes the output of the k-th neuron in the n − 1 layer, and they are the components of Φj (x),
+that is, Φj = (ϕ1j , . . . , ϕm      k m
+                              j ). {ϕj }k=1 can be regarded as a set of basis functions. These functions generally
+have global support, hence, we need to localize them using window functions.
+   Therefore, we introduce {ωj }Jj=1 as smooth window functions that form a partition of unity, confining
+the neural networks to their respective subdomains. In particular, we choose ωj such that
+                                                                      J
+                                                                      X
+                                     supp(ωj ) ⊂ Ωj        and                ωj ≡ 1   on Ω.                    (2.10)
+                                                                      j=1
+
+
+     Similar to multilevel FBPINNs paper [12], we can define the global space of RaNN functions as
+                                                                J
+                                                                X
+                                                          V =         Ṽj .                                     (2.11)
+                                                                j=1
+
+Here, the localized neural network function space is defined as
+
+                                            Ṽj = span{ψj1 (x), · · · , ψjm (x)},                               (2.12)
+
+where
+                                  ψjk (x) = ωj ϕkj (x),    j = 1, . . . , J, k = 1, . . . , m.                  (2.13)
+can be regarded as local basis functions. In other words, Ṽj = ωj Vj . An example of window functions ωj
+and local basis functions ψjk is shown in Figure 1.
+
+                                                                5
+   Thus, the approximated solution û(x) in V can be represented as a combination of contributions from
+networks on all subdomains, multiplied by a constraining operator C defined in (1.3) to enforce the boundary
+conditions,
+                  J
+                  X                        J
+                                           X                                  J
+                                                                              X                       
+      û(x) = C         ωj uj (x) = L(x)         ωj Wj · Φj (x) + G(x) =            Wj · L(x)ωj Φj (x) + G(x).   (2.14)
+                  j=1                      j=1                                j=1
+
+where L(x) and G(x) are constructed functions related to the domain Ω, designed such that equation (2.14)
+satisfies the boundary conditions defined in (1.1).
+
+
+
+
+Figure 1: Example of using RaNNs with overlapping Schwarz DDM to solve PDEs in one dimension. The
+domain is divided into four subdomains, and RaNNs with one hidden layer and four hidden nodes are used
+for each subdomain. The window functions wj , each with local support within Ωi , are displayed in the left
+figure. Exemplary local basis functions ψjk (x) for the second subdomain are shown in the right figure.
+
+    By substituting equation (2.14) into (1.1), and selecting a set of collocation points {xi }N
+                                                                                               i=1 ⊂ Ω, we aim
+for the approximated solution û(x) to satisfy the PDEs within the global domain. We need to find Wj ,
+j = 1, . . . , J, such that
+                          J
+                         hX                       i
+                        A   Wj · L(xi )ωj Φj (xi ) = f (xi ) − A[G(xi )],                ∀i ∈ {1, . . . , N }.   (2.15)
+                           j=1
+
+When A is a linear operator, we have
+                         J
+                         X                            
+                               Wj · A L(xi )ωj Φj (xi ) = f (xi ) − A[G(xi )],         ∀i ∈ {1, . . . , N }.     (2.16)
+                         j=1
+
+The above equation yields
+                                        [H1 , H2 , . . . , HJ ](W1 , W2 , . . . , WJ )T = F,                     (2.17)
+where Hj ∈ RN ×m with (Hj )i,k = A[Lωj ϕkj (xi )], and F ∈ RN with f (xi ) − A[G(xi )].
+
+
+                                                                 6
+Remark 2.1 In the case where A is a nonlinear operator, nonlinear iterative methods such as Picard itera-
+tion and Newton’s method can be employed, as discussed in [41]. In each iteration step, a linear least-squares
+problem is solved.
+
+For simplicity, we rewrite the linear system (2.17) as
+
+                                                    HW = F,                                                 (2.18)
+
+where H = [H1 , H2 , . . . , HJ ] and W = (W1T , W2T , . . . , WJT )T . In general, the matrix H is not square (and
+not symmetric), and we solve it using the least-squares method. To solve the least-squares problem
+
+                                                min ∥HW − F ∥22 ,
+
+the first-order optimality condition leads to the normal equation:
+
+                                                H T HW = H T F.                                             (2.19)
+
+Here, H T H ∈ Rp×p is a sparse symmetric matrix, and p = Jm. The condition number of H T H is is given
+by cond(H T H) = cond(H)2 .
+    A large condition number arises from the linear dependencies among the local basis functions ψjk , which
+can result in a rank-deficient matrix. This, in turn, leads to small singular values and an increased squared
+condition number for the normal equations, if used. We propose additive and restricted additive Schwarz
+preconditioners, and use Conjugate Gradient (CG) and Generalized Minimal Residual (GMRES) methods
+to solve the problem, respectively.
+
+
+3     Overlapping Schwarz preconditioners
+     Consider an example using RaNNs with overlapping Schwarz DDM to solve the Laplace equation (5.27)
+in two dimensions. The domain is divided into 16 subdomains, and RaNNs with one hidden layer and m
+hidden nodes are employed on each subdomain. Figure 3 displays the sparsity patterns of the matrix for
+different values of m when using 40 × 40 collocation points, showing that, as more parameters are introduced
+to improve accuracy (i.e., as m increases), the condition number of the matrix H and H T H increases as
+well. The distribution of eigenvalues of the matrix H T H is shown in Figure 3, with the condition number
+being cond(H T H) = 1016 . We can observe that the minimum eigenvalue is around 10−10 and the maxmum
+eigenvalue is around 106 , which would lead to slow convergence for iterative methods like CG and GMRES
+[30]. Therefore, an effective preconditioner is needed to improve the convergence rate and address the
+ill-conditioning of the system.
+    As Chen et al. mentioned in [7], solvers for least-squares problems have not been well-developed, particu-
+larly for ill-conditioned problems with sparse structures. The condition number of the matrix in RaNN-based
+methods is extremely large [41]. Therefore, we propose using preconditioners to accelerate convergence in
+iterative methods such as the CG and GMRES method. Schwarz preconditioners are widely employed in
+DDMs to enhance the efficiency of iterative solvers for PDEs; (see [5, 47] for instance.) Therefore, we focus
+on constructing overlapping Schwarz preconditioners specifically for RaNN-based methods.
+    Based on (2.11) and (2.12),we can define restriction operators
+
+                                                   XJ
+                              Ri : V → Ṽi ,   Ri (   ωj uj ) = ωi ui ,   i = 1, . . . , J,
+                                                   j=1
+
+
+                                                         7
+              (a) m = 16, cond(H T H) = 1012 .                                   (b) m = 32, cond(H T H) = 1016 .
+
+Figure 2: Different values of m are tested in (a) and (b), where the condition numbers are shown for m = 16
+and m = 32, respectively.
+
+
+
+
+               Figure 3: The distribution of all 512 eigenvalues of the matrix H T H is shown.
+
+
+which take a function, expressed as a sum of functions from Ṽi , and maps it onto the term in Ṽi . Similarly,
+extension operators are
+                              RiT : Ṽi → V, RiT (ωi ui ) = ωi ui , i = 1, . . . , J.
+
+   Then, an additive Schwarz (AS) preconditioner for H T H is given by
+                                                          J
+                                                          X
+                                                  −1
+                                                 MAS =             RiT A−1
+                                                                        i Ri ,                                      (3.20)
+                                                          i=1
+
+where Ai = Ri H T HRiT , for i = 1, . . . , J. In practice, let Ri be a q × p Boolean matrix, and let sj denote
+the indices of the local basis functions ψjk (x) that lie within the interior of Ωj . We can construct the matrix
+such that Ri [:, sj ] = Iq , where Iq ∈ Rq×q is the identity matrix, and RiT is constructed analogously.
+    By reducing the communication between different subdomains, a more effective preconditioner called the
+restricted additive Schwarz (RAS) preconditioner was proposed in [4]. After introducing the algebraic parti-
+tion of unity matrix decribed, e.g., in [13], denoted by Di ∈ Rni ×ni , for i = 1, . . . , J, the RAS preconditioner
+can be represented as:
+                                                     XN
+                                               −1
+                                           MRAS    =     RiT Di A−1
+                                                                 i Ri ,                                       (3.21)
+                                                         i=1
+Here, Di is a diagonal nonnegative matrix that satisfies the relation
+                                                  J
+                                                  X
+                                                        RiT Di Ri = Ip .
+                                                  i=1
+
+
+                                                               8
+where Ip ∈ Rp×p is the identity matrix.
+    The inverse A−1
+                 i  is computed using the QR decomposition, which is numerically stable,
+
+                                           Ai = Qi Pi ,         i = 1, . . . , J,
+
+where Qi is an orthogonal matrix with QTi = Q−1
+                                              i and Pi is an upper triangular matrix. Here, we call it Pi
+as we already use the symbol Ri . Then, we have
+
+                                        A−1
+                                         i  = Pi−1 QTi ,           i = 1, . . . , J,
+
+where Pi−1 denotes the inverse of Pi when it is invertible; otherwise, the pseudo-inverse P + is used, with
+both computed using Gaussian elimination.
+
+Remark 3.1 To (naturally) obtain a matrix H with a relatively low condition number, we can select pa-
+rameters that help avoid linear dependencies of ψjk (x), as linear dependencies tend to introduce very small
+eigenvalues, hence increasing the condition number. One effective approach is to decrease the similarity of
+data representations of ψjk (x) in the overlapping regions of subdomains, This can be accomplished by ensuring
+there are more data points N than hidden neurons m.
+    Additionally, combining RaNNs with overlapping Schwarz DDMs results in a sparse matrix as shown in
+Figure 2, which takes the form of a block-sparse matrix. This structure allows us to construct the overlapping
+Schwarz preconditioners in a natural way. Without DDMs, the matrix would be full, making it challenging
+to design an effective preconditioner.
+
+
+4     PCA process
+    The phenomenon known as condensation of neural networks is discussed in [31, 52], where it is observed
+that for networks with random initialization, the weights from an input node to hidden neurons quickly
+converge to similar values after training. This results in multiple hidden neurons can be replaced by an
+effective neuron with low complexity [52].
+    For RaNNs, we apply a PCA process as shown in Figure 4 (b), which preserves the principal components of
+the neural network, and reduces the number of solvable parameters while maintaining much of the network’s
+approximation capability. This approach helps to mitigate linear dependencies within the system, resulting
+in a lower condition number.
+    From the construction of H, we know
+
+                             H = [H1 , H2 , . . . , HJ ],   (Hj )i,k = A[Lωj ϕkj (xi )].                (4.22)
+
+Here, for a given problem (1.1) with operator A, we can either perform an SVD on Hj directly or analyze
+the output matrix of the local basis functions ψjk (x) denoted by
+
+                                        (Ψj )i,k = ψjk (xi ), j = 1, . . . , J.                         (4.23)
+
+The latter approach enables us to focus on the key components in the network output that contribute to the
+solution approximation. It is problem independent and can be done in an offline process, ensuring a more
+efficient solution for different problem settings after initialization of the weights.
+    After performing a reduced singular value decomposition (SVD) on Ψj , we obtain
+
+                                         Ψj = Uj Σj VjT ,         j = 1, . . . , J,
+
+
+                                                            9
+where k = min(N1 , m), Uj ∈ RN1 ×k , Σj ∈ Rk×k , and Vj ∈ Rm×k .
+   Then, we simply select a constant threshold parameter τ to identify the singular values greater than τ ,
+denoting their count as pj on subdomain Ωj . Next, we choose the first pj -th columns of Vj to form the
+truncated matrix Vpj ∈ Rm×pj , respectively.
+   PCA process can be performed based on the SVD of Ψj , and the truncated hidden layer output matrix
+Tj ∈ RN1 ×pj can be obtained by:
+                                    Tj = Ψj Vpj , j = 1, . . . , J.                            (4.24)
+
+   Now, we integrate a PCA process into the original RaNN, and the new output of the RaNN is given by:
+                                                 pj           m
+                                     p
+                                                 X            X
+                                    uj j (x) =         Wpkj         Φij (x)(Vpj )i,k
+                                                 k=1          i=1
+                                                  pj        m
+                                                 X          X
+                                           =           Wpkj   (VpTj )k,i Φij (x)
+                                                 k=1 i=1
+                                                     T
+                                           =Wpj · [Vpj Φj (x)].                                           (4.25)
+
+Here, pj denotes the number of effective neurons, and Wpj ∈ Rpj are the new weights that need to be
+determined, and Wpkj denote the k-th row of Wpj . The total number of parameters to be determined is given
+   PJ
+by    pj , which does not exceed p = mJ.
+   j=1
+
+
+
+
+               (a) Original RaNN                                            (b) RaNN with a PCA process
+
+                                                                                               p
+Figure 4: Network structure of the original RaNN uj : R2 → R and new output uj j after a PCA process,
+the solid blue line represents the parameters of the neural network that are randomly initialized and fixed
+thereafter, and the solid green line represents the PCA process, which involves a matrix multiplication with
+VpTj . The dotted red line indicates the parameters that need to be determined.
+
+   In Figure 4 (a), the network structure of the original RaNN is illustrated, and in Figure 4 (b), the PCA
+process is shown, where Φj (x) represents the output of the nonlinear part. The term VpTj Φj (x) is referred
+to as the PCA layer, which is linear and only involves matrix multiplication, and does not introduce any
+additional unknown parameters.
+
+
+
+
+                                                          10
+    Similar to (2.16), we obtain the following linear system, aiming to find Wpj , j = 1, . . . , J, such that
+                     J
+                     X
+                           Wpj · A Lωj [VpTj Φj (x)] = f (xi ) − A(G(xi )),
+                                                    
+                                                                                  ∀i ∈ {1, . . . , N }.     (4.26)
+                     j=1
+
+Finally, we can construct the AS and RAS preconditioners and use the CG or GMRES method to solve
+(4.26), respectively. The whole algorithm is summarized in Algorithm 1.
+
+Algorithm 1 Overlapping Schwarz preconditioners for RaNNs with domain decomposition.
+
+ Step 1. Use overlapping Schwarz DDM to divide the domain Ω into J overlapping subdomains {Ωj }Jj=1 .
+ Step 2. Initialize J RaNNs with network architecture uj : Ωj → R using a uniform distribution.
+ Step 3. Construct a global approximate solution by applying window functions and a constraint operator.
+ Step 4. Use collocation points {xi }N
+                                     i=1 and threshold parameter τ to perform PCA process.
+ Step 5. Use collocation points {xi }N
+                                     i=1 to assemble the linear system (4.26).
+ Step 6: Construct the AS and RAS preconditioners and solve the problem (4.26) with iterative method.
+                                                        p
+ Step 7. Solve the network parameters Wpj to uj j , j = 1, . . . , J.
+
+
+Remark 4.1 A weight initialization strategy based on frequency information for constructing the initial
+RaNN to solve PDEs with varying solutions is presented in [9]. Additionally, [51] proposes a transferable
+neural network model based on shallow networks, making it easier to adapt the neural feature space across
+different PDEs in various domains. In this paper, since the inputs to each subdomain network are normalized,
+we use a uniform distribution for initialization. Further investigations into various weight initialization
+strategies will be explored.
+    In practice, the PCA process is influenced by various factors, including the initialization of weights in
+neural networks, the number of collocation points and the choice of threshold parameter τ . The impact of these
+factors is to reduce the condition number of the system, further investigation is needed to better understand
+their effects. This is out of the scope of the current work, and will be explored in future investigations.
+
+
+5     Numerical examples
+    All results are obtained using an NVIDIA GeForce RTX 3090 GPU. We use scipy.linalg.lstsq in Python,
+relying on QR decomposition to directly solve the least-squares problem, and adopt the CG method and its
+variants, as well as the GMRES method from scipy.sparse.linalg, to solve the normal equation corresponding
+to the least-squares problem. We average the results over ten experiments for each problem to account for
+the randomness in the methods.
+
+Example 5.1 We consider the multi-scale Laplacian problem from [12] with Dirichlet boundary condition,
+                                            −∆u = f           in Ω = [0, 1]2 ,
+                                                                                                            (5.27)
+                                                u=0           on ∂Ω.
+and the exact solution given by
+                                                        n
+                                                     1X
+                                     u(x1 , x2 ) =         sin(ωi πx1 ) sin(ωi πx2 ),
+                                                     n i=1
+
+
+                                                            11
+                                                                     n
+where n = 1,2,· · · 6, and ωi = 2i , i = 1, 2, · · · n, and f = n2       (ωi π 2 ) sin(ωi πx1 ) sin(ωi πx2 ).
+                                                                     P
+                                                                     i=1
+
+
+   In this example, the domain Ω is divided into J = l×l overlapping subdomains, and a uniform rectangular
+domain decomposition is constructed. Each dimension is defined as follows:
+                                                                  
+                                       (j − 1) − δ/2 (j − 1) + δ/2
+                               Ωj =                 ,                  l ≥ 1,
+                                           l−1            l−1
+
+where δ > 1 is defined as the ratio of the subdomain size and the overlap width between subdomains.
+   Same as in [12], the subdomain window functions are given by
+
+                                   ω̂j
+                            ωj = PJ (l)        where    ωj = Π2i [1 + cos(π(xi − µi )/σi )]2 ,                  (5.28)
+                                     j=1 ω̂j
+
+where µi = (i − 1)/(l − 1) and σi = (δ/2)/(l − 1) represent the center and half-width of each subdomain
+along each dimension, respectively. The constraining operator C is choosen using
+
+                 L(x) = tanh(x1 /ρ) tanh((1 − x1 )/ρ) tanh(x2 /ρ) tanh((1 − x2 )/ρ),                G(x) = 0    (5.29)
+
+with ρ = (1/2)n , ensuring that Cu(x) = L(x)u(x) + G(x) automatically satisfies the boundary condition.
+    First, we consider using a 4 × 4 domain decomposition with 40 × 40 collocation points across the domain
+Ω to sove the problem (5.27) for n = 2. The overlap ratio δ is fixed by 2. RaNNs with one hidden layer and
+16 hidden nodes on each subdomain are initialized by a uniform distribution U(−1, 1) for weights and bias
+parameters. Inputs to each subdomain network are normalized to the range [−1, 1]2 within the respective
+subdomains. The number of parameters that need to be solved is denoted as the degrees of freedom (DoF)
+and is given by DoF = mJ. We first illustrate the performance of the overlapping Schwarz preconditioners
+                                                                                           −1
+without applying the PCA process. We construct the AS preconditioner and denoted as MAS       . For the RAS
+                                                                           −1
+preconditioner, we consider two choices for the coefficients of Di in MRAS : one is to use (Di )jj = 1/Mj
+               −1
+denoted by MSAS     (scaled) [13], where Mj is defined as the number of overlapping subdomains for each node
+                                                             −1
+j; the other is to use a Boolean matrix and denoted by MRAS      (restricted).
+    In Table 1, κ(H T H) and κ(M −1 H T H) denote the condition number of the matrices H T H and M −1 H T H
+for different kinds of preconditioners, σmin and σmax denote the minimum and maximum singular values,
+respectively. and λmin and λmax denote the minimum and maximum real parts of the eigenvalues, respec-
+                                       −1                        −1        −1
+tively. As for the iterative solvers, MAS  is symmetric while MSAS   , MRAS   are not. Therefore, the GMRES
+method is applicable to all of them, as it does not require symmetry. The iteration is stopped when the
+relative residual norm of the solution falls below a fixed tolerance, i.e.,
+
+                              ∥M −1 H T HW − M −1 H T F ∥L2 /∥M −1 H T F ∥L2 ≤ 10−5 .
+
+Then, we report the number of iterations and relative L2 error by iter and eL2 , respectively. In particular, eL2
+is computed approximately on M = 350 × 350 uniformly-spaced test points by ∥û(xi ) − u(xi )∥l2 /∥u(xi )∥l2 .
+From Table 1, we observe that the condition number of the matrix H T H is approximately 1012 , and all
+three preconditioners significantly reduce the condition number around four orders of magnitude, and en-
+able GMRES to converge in siginificantly fewer number of iteration steps compared to the case without
+preconditioning.
+                                                                                −1 T
+   The top of Figure 5 shows the distribution of 256 eigenvalues for H T H and MAS H H, while the bottom
+shows the eigenvalue distribution in the complex plane for different preconditioners. We observe that the
+
+
+                                                            12
+Table 1: Relative L2 error and number of iterations for different preconditioners by GMRES in Example 5.1.
+  DoF      N      κ(H T H)     M −1     κ(M −1 H T H)     σmin    σmax     λmin    λmax     iter      eL 2
+                              N one          1012         10−7     105     10−7     105     2560    8.94e-2
+                                 −1
+                              MAS            108          10−4     104      4.6     16       13     6.44e-3
+  256     1600      1012        −1
+                              MSAS           108          10−5     103      0.5     1.6      10     6.45e-3
+                                −1
+                              MRAS           108          10−5     103      0.1     2.1      31     6.41e-3
+
+
+
+
+Figure 5: The distribution of eigenvalues of the preconditioned matrix with different preconditioners using
+4 × 4 domain decomposition in Example 5.1. The top figure compares the distribution of eigenvalues for the
+AS preconditioner against the distribution without preconditioning ordered in non-decreasing order, while
+the bottom figure illustrates the eigenvalue distributions for various preconditioners in the complex plane.
+
+
+distribution of the eigenvalues of the AS preconditioned matrix becomes more concentrated, effectively shift-
+ing the minimum eigenvalue from 10−7 to 4.6, with the maximum eigenvalue being reduced form 105 to 16.
+In classical DDMs, it is bounded by the maximum number of subdomains a collocation point can belong to,
+which is 4, and because of the least-squares problem, we obtain 42 = 16. This results in a significantly lower
+condition number and GMRES will tend to converge more rapidly. Meanwhile, the largest eigenvalue of the
+SAS preconditioned matrix is much smaller than that of the AS preconditioned matrix, and its distribution
+becomes more concentrated than that of RAS. This is because the RAS preconditioned matrix includes a
+Boolean matrix, which is introduced to reduce communication between different subdomains. However, a
+potential risk for the RaNN-based method is that this may increase linear dependencies between local ba-
+sis functions, as zero values occur in their common region, which may lead to a higher condition number
+than SAS. Consequently, the SAS preconditioner, which avoids this issue, provides better conditioning and
+requires smaller iteration steps to converge.
+   Besides, we try variants of the CG method to solve this problem. In Table 2, both CG and its variants
+
+
+                                                     13
+work with the AS preconditioner, allowing them to utilize fewer number of iteration steps compared to
+GMRES. Additionally, the Conjugate Gradient Squared (CGS) and Biconjugate Gradient (BICG) methods
+are effective with the SAS and RAS preconditioners when CG fails.
+
+
+     Table 2: Relative L2 error and number of iterations for different iterative solvers in Example 5.1.
+      DoF        N        κ(H T H)       M −1       κ(M −1 H T H)        Solver       iter       eL 2
+                                                                          CG         2560      1.95e-2
+                                                                         CGS         2560      2.63e-2
+       256      1600        1012         N one            1012
+                                                                         BICG        2560      1.03e-2
+                                                                        GMRES        2560      8.68e-2
+                                                                          CG            8      5.03e-3
+                                          −1                             CGS            4      5.04e-3
+       256      1600        1012         MAS              108
+                                                                         BICG           8      5.08e-3
+                                                                        GMRES          13      5.07e-3
+                                                                         CGS            6      5.04e-3
+                                          −1
+       256      1600        1012         MSAS             108            BICG          11      5.09e-3
+                                                                        GMRES          11      5.08e-3
+                                                                         CGS           24      5.03e-3
+                                         −1
+       256      1600        1012        MRAS              108            BICG          32      5.05e-3
+                                                                        GMRES          31      5.06e-3
+
+
+    To improve the accuracy, we can either increase the number of hidden nodes or use a larger overlap ratio.
+However, this also increases the condition number. For example, when setting m = 32 and δ = 2, the matrix
+H T H has a large condition number around 1016 , and the relative L2 error can be around 10−5 ; when setting
+m = 32 and δ = 3, the condition number increases further to approximately 1020 , and the relative L2 error
+can be reduced to 10−7 . In this case, H T H would also be rank-deficient, and the preconditioned matrices
+would still exhibit a large condition number. By applying the PCA process, the condition number can then
+be significantly reduced, improving the convergence of the iterative methods.
+    In Table 3, let m = 32 and δ = 2, we then examine how the threshold parameter τ for dropping small
+singular values based on the singular values influences the condition number and accuracy. It is varied from
+10−4 to 10−1 . Within each subdomain Ωj , we apply the same threshold parameter τ to determine the number
+                                                                                                       J
+                                                                                                       P
+of effective neurons pj . Then, the number of parameters that need to be solved is given by DoF =         pj .
+                                                                                                         j=1
+We use the GMRES method without a preconditioner, and compare with the AS and SAS preconditioners.
+We observe that, for both the AS and the SAS preconditioner, as the DoF decreases, the minimum singular
+value of preconditioned matrices grows. This leads to a lower condition number, which enables convergence
+within fewer iteration steps.
+    Additionally, we observe that setting τ = 10−3 helps to lower the condition number without significant
+accuracy loss. Figure 6 illustrates the progression of the condition number and relative L2 error with respect
+to τ , showing a substantial decrease in the condition number. The decrease is approximately two orders of
+magnitude, independent of τ . Meanwhile, the relative L2 error increases gradually, and does not exceed the
+result obtained by solving the problem without a preconditioner.
+
+
+                                                     14
+Table 3: Relative L2 error and number of iterations for different preconditioners by GMRES in Example 5.1.
+          τ       DoF     κ(H T H)      M −1      κ(M −1 H T H)      σmin      σmax      iter        eL2
+                                        N one          1016          10−10      106      5120      3.72e-2
+             −4                            −1
+        10        512       10   16
+                                        MAS            1012          10−6       106       27       5.46e-5
+                                          −1
+                                        MSAS           1012          10−7       105       30       5.49e-5
+                                        N one          1013          10−8       105      4360     3.75e-2
+             −3                            −1
+       10         436       10   13
+                                        MAS            1010          10−5       105       16      1.28e-4
+                                          −1
+                                        MSAS           1010          10−6       104       18      1.28e-4
+                                        N one          1010           10−5      105      3350      4.51e-2
+             −2                            −1
+        10        335       10   10
+                                        MAS            107            10−3      104       14       7.14e-4
+                                          −1
+                                        MSAS           107            10−4      103       13       7.11e-4
+                                        N one           108           10−3      106      2120      5.01e-2
+             −1                            −1
+        10        212        10  8
+                                        MAS             104           10−2      103       12       7.13e-3
+                                          −1
+                                        MSAS            104           10−3      102       11       7.10e-3
+
+
+
+
+Figure 6: The progressive of condition number and relative L2 error via the threshold parameter τ by
+different preconditioners in Example 5.1.
+
+
+    Finally, we consider using an increasing number of subdomains J = 2n × 2n to solve the problem (5.27)
+with higher complexity n, and compare against the results obtained from multilevel FBPINNs [12] with
+the weak scaling test shown in Figure 7, which tested the same model problem. RaNNs with one hidden
+layer and 32 hidden nodes on each subdomain are employed. The number of collocation points is given to
+Nint = (5 × 2n ) × (5 × 2n ), and the overlap ratio is fixed by δ = 2. The threshold parameter τ is fixed by
+10−3 . The normalized L1 test loss eL1 is computed approximately on M = 350 × 350 uniformly-spaced test
+            1
+              PM
+points by M     i=1 ∥û(xi ) − u(xi )∥l1 /γ, where γ is defined as the standard deviation of the true solutions set
+{u(xi )}M
+        i=1 . We use the normalized L1 test loss here to compare with the results in [12].
+    Table 4 shows the normalized L1 test loss and the time for solving the preconditioned system using the
+GMRES method. We observe that both the AS and SAS preconditioners significantly reduce the condition
+number and result in fewer iterations, with the solution time not increasing drastically as the complexity n
+increases. However, the normalized L1 test loss does reduce slightly as the problem complexity increases.
+
+
+                                                        15
+      Table 4: Weak scaling test using GMRES method for different preconditioners in Example 5.1.
+  n         J         DoF           N           M −1        κ(M −1 H T H)    iter        eL 1      Time(s)
+                                               N one            1013         1090      6.81e-2      0.064
+                                                  −1
+  2       2×2          109        20 × 20      MAS               1            1        1.98e-3     0.00040
+                                                 −1
+                                               MSAS              1            1        1.97e-3     0.00033
+                                               N one            1014         4330      2.04e-1       0.81
+                                                  −1
+  3       4×4          436        40 × 40      MAS              109           12       1.28e-2     0.00056
+                                                 −1
+                                               MSAS             109           21       1.27e-2     0.00082
+                                               N one            1014        17060      1.92e-1      7.14
+                                                  −1
+  4       8×8         1706        80 × 80      MAS              1010          38       2.46e-2      0.042
+                                                 −1
+                                               MSAS             1010          52       2.48e-2      0.056
+                                               N one            1014        68110      3.24e-1      116
+                                                  −1
+  5      16 × 16      6811      160 × 160      MAS              1010          51       3.24e-2      0.31
+                                                 −1
+                                               MSAS             1010          60       3.22e-2      0.35
+                                               N one            1014        271470    4.36e-1       2950
+                                                  −1
+  6      32 × 32     27147      320 × 320      MAS              1011         109      6.71e-2       5.35
+                                                 −1
+                                               MSAS             1011          138     6.50e-2       5.67
+
+
+
+
+Figure 7: Weak scaling test using multilevel FBPINNs (taken from [12]) in Example 5.1. The color-coded
+convergence curves and training times for each model are shown, and the color transitions from light to dark
+represent increasing problem complexity, ranging from n = 1 to n = 6.
+
+
+The exact and numerical solutions for n = 2, 3, . . . , 6 are shown in Figure 8. Compared to the weak scaling
+test shown in Figure 7 for the multilevel FBPINNs method, our approach achieves better accuracy with a
+smaller domain decomposition, Specifically, only 32 × 32 subdomains are required to handle a problem with
+complexity n = 6. Meanwhile, the time for solving the parameters of RaNNs using the GMRES method is
+much shorter than the training time for feedforward fully connected networks in multilevel FBPINNs.
+    Figure 9 presents results from a weak scaling test using the AS preconditioner in Example 5.1. In the left
+plot, we observe the progression of the residual ∥H T HW −H T F ∥L1 at each GMRES iteration for the problem
+
+
+                                                       16
+Figure 8: Weak scaling test using GMRES method with AS preconditioner in Example 5.1. The top figure
+shows the exact solution for different problem complexity n, while the bottom figure presents the numerical
+results corresponding to each n.
+
+
+
+
+Figure 9: Weak scaling test for the multi-scale Laplacian problem in Example 5.1. The left figure shows
+the progression of the residual L1 norm with each iteration step when using the GMRES method with
+the AS preconditioner. The middle figure compares the total computation time and test loss for the QR
+decomposition method and GMRES method with the AS preconditioner. The right figure displays the total
+computation time for a different overlap ratio with δ = 2, 3.
+
+
+(5.27) with n = 2, 3, . . . , 6, illustrating the convergence behavior. The middle plot compares the GMRES
+result against the results obtained using QR decomposition to directly solve the least-squares problem. Our
+approach maintains comparable accuracy to solving the least-squares problem using QR decomposition while
+substantially reducing computational time. The right plot displays the results with a larger overlap ratio
+δ = 3, where the normalized L1 test loss is significantly reduced to approximately 10−3 without causing
+a major increase in computation time for each case. The total computational time includes the cost of
+constructing the linear system, building the preconditioner, and solving the preconditioned system using the
+GMRES method, with their respective percentages being approximately 60%, 38%, and 2% for n = 6. The
+primary part (linear system construction) will be further optimized in the future through parallelization.
+
+
+
+                                                    17
+Example 5.2 Given Ω = (−1, 1), we consider a one-dimensional advection-diffusion equation
+
+                                   ∂u ∂u        ∂u2
+                                      +      =κ 2                 in Ω × I,
+                                   ∂t   ∂x      ∂x
+                                    u(−1, t) = u(1, t) = 0        in I,
+                                        u(x, 0) = − sin(πx)       in Ω,
+
+with I = (0, 1). Here, κ = 0.1/π represents the diffusivity coefficient, which complicates the solution near
+the right boundary x = 1 as the no-slip boundary condition is imposed [24].
+
+    We consider this equation as a 2-dimensional problem with a 1-dimensional spatial variable and a 1-
+dimensional temporal variable and solve it in the space-time domain instead of discretizing the temporal
+variable using the finite difference method. We use the Schwarz domain decomposition with J = 4 × 4
+subdomains and compare the results obtained with the hp-VPINNs [24]. The overlap ratio δ is fixed as 2.
+In [24], they employ individual networks in each subdomain with four layers and each with five neurons,
+resulting in 1296 training parameters, and a 4 × 4 domain decomposition was adopted. RaNNs with one
+hidden layer and 81 hidden nodes on each subdomain are used to keep the same total number of parameters,
+and a uniform distribution U(−1, 1) is applied to weights and bias parameters. The number of collocation
+points is set to 160 × 160, and the threshold parameter τ is fixed by 10−3 . The constraining operator is
+chosen as
+
+    Cu(x) = L(x)u(x) + G(x),     where L(x) = tanh(1 + x) tanh(1 − x) tanh(t), G(x) = − sin(πx),        (5.30)
+
+such that the boundary condition and initial condition are satisfied.
+    Figure 10 illustrates the differences between the exact and numerical solutions obtained using various
+methods. The reference solution is calculated using a series summation with 800 terms of the solution
+in [34]. Figure 10(a) presents results computed using hp-VPINNs [24], while Figure 10(b) shows results
+using the penalty method to enforce boundary and initial conditions with a penalty parameter of 100. The
+computation takes 0.12 seconds and yields a relative L2 error of 2.88×10−2 . Figure 10(c) displays the results
+of applying the constraining operator computed via the CG method with an AS preconditioner, completing
+in 0.08 seconds after 138 iterations, and achieving a relative L2 error of 7.40 × 10−4 , around two orders of
+magnitude more accurate than hp-VPINNs and the penalty method. This demonstrates that our approach
+not only achieves higher accuracy and efficiency but also satisfies boundary and initial conditions directly,
+eliminating the need for penalty parameters.
+
+Example 5.3 Given Ω = (0, 1)3 , we consider a three-dimensional problem defined as follows:
+
+                                           −∆u + u = f        in Ω,
+                                                u(x) = g      on ∂Ω.
+
+where the exact solution is given by:
+                                                                        
+                                        cos(2πx1 ) sin(2πx2 ) sin(2πx3 )
+                                   u = sin(2πx1 ) cos(2πx2 ) sin(2πx3 )
+                                        sin(2πx1 ) sin(2πx2 ) cos(2πx3 )
+
+The Dirichlet boundary condition g and the source term f are derived directly from the exact solution.
+
+
+
+                                                       18
+    (a) hp-VPINNs (taken from [24])            (b) Penalty method                  (c) Constraining operator
+
+    Figure 10: Pointwise error of different methods with 4 × 4 domain decomposition in Example 5.2.
+
+    For this problem, we use RaNNs with one hidden layer and three output neurons to approximate u =
+(u1 , u2 , u3 ). The weights and bias parameters of the network are initialized using a uniform distribution
+U(−1, 1). The eL2 error is computed approximately on M = 100 × 100 × 100 uniformly spaced test points.
+The overlap ratio δ is fixed as 2, and the threshold parameter τ is fixed as 10−3 .
+   The constraining operator is chosen as Cu(x) = Lu(x) + G(x), where
+                                                              
+                         L(x)               sin(2πx2 ) sin(2πx3 )
+                L(x) = L(x) , G(x) = sin(2πx1 ) sin(2πx3 ) , and
+                         L(x)               sin(2πx1 ) sin(2πx2 )
+                 L(x) = tanh(x1 ) tanh(1 − x1 ) tanh(x2 ) tanh(1 − x2 ) tanh(x3 ) tanh(1 − x3 ).
+
+    In Table 5, the domain is divided into J = 2 × 2 × 2 and J = 4 × 4 × 4 subdomains, respectively,
+while the number of hidden neurons m is varied as 20, 40, and 80. We compare the results using the direct
+least-squares solver via QR decomposition, using the CG method with no preconditioner, and using the CG
+method with the AS preconditioner. The number of iterations for the CG method is denoted by iter; we
+indicate 0 that represents the QR decomposition method, which does not require iterations.
+    Table 5 illustrates that increasing the number of hidden neurons m and subdomains improves the ac-
+curacy for both QR decomposition and CG method with an AS preconditioner. However, using the CG
+method without a preconditioner may require a large number of iteration steps and often fails to converge
+to a satisfactory result. Meanwhile, the computational time required for the CG method with the AS pre-
+conditioner is significantly lower than that for QR decomposition, particularly as the matrix size increases.
+This highlights the efficiency of the CG method with DD preconditioning in tackling 3-dimensional systems
+while maintaining accuracy.
+    As shown on the left of Figure 11, we display the matrix information for a 4 ×4×4 domain decomposition
+with m = 40 in Example 5.3. To construct the preconditioner for this equation, we simply need to diagonally
+stack the preconditioners constructed for HiT Hi , which corresponds to a scalar problem of the form
+
+                                      −∆ui + ui = fi         in Ω, i = 1, 2, 3,
+                                          ui (x) = gi        on ∂Ω, i = 1, 2, 3.
+
+The overall preconditioner remains a block diagonal matrix. In Figure 11, the right figure displays the
+                                               −1 T
+distribution of all eigenvalues for H T H and MAS H H, while the bottom shows the eigenvalue distribution
+
+
+                                                        19
+            Table 5: Relative L2 error and solving time for different methods in Example 5.3.
+   m         J         DoF            N           M −1     κ(M −1 H T H)      iter       eL 1     Time(s)
+                                                 N one          107            0       1.35e-2      0.41
+   20    2×2×2          480     20 × 20 × 20     N one          107          1151      1.63e-2     0.11
+                                                    −1
+                                                 MAS            101            1       1.35e-2     0.001
+                                                 N one          1011           0       1.23e-3      1.04
+   40    2×2×2          960     20 × 20 × 20     N one          1011         1175      2.98e-3     0.43
+                                                    −1
+                                                 MAS            101            1       1.03e-3     0.003
+                                                 N one          1012            0      8.26e-4      181
+   40    4×4×4         7680     40 × 40 × 40     N one          1012         15236     2.38e-3      385
+                                                    −1
+                                                 MAS            107            10      8.26e-4      0.41
+                                                 N one          1015            0      2.37e-5       958
+   80    4×4×4         15360    40 × 40 × 40     N one          1015         15984     3.02e-4      1069
+                                                    −1
+                                                 MAS            1010           11      2.34e-5      2.21
+
+
+
+
+Figure 11: Matrix information and the distribution of eigenvalues of the preconditioned matrix with the AS
+preconditioner for a 4 × 4 × 4 domain decomposition in Example 5.3. The left figure presents the matrix
+information for H T H and its diagonal part. The top right figure compares the distribution of eigenvalues for
+the AS preconditioner against the distribution without preconditioning. The bottom right figure illustrates
+the eigenvalue distributions for the AS preconditioner in the complex plane.
+
+
+in the complex plane for the AS preconditioner. We observe that the eigenvalue distribution of the AS
+preconditioned matrix becomes more concentrated, effectively shifting the minimum eigenvalue from 10−6 to
+
+
+
+                                                     20
+11, with the maximum eigenvalue being smaller than 64. In classical DDMs, it is bounded by the maximum
+number of subdomains a collocation point can belong to, which is 8. Due to the least-squares problem, this
+number has to be squared, resulting in 82 = 64. This results in a more concentrated distribution and a
+significantly lower condition number.
+
+
+6    Conclusion
+    In this research, we present a new approach for solving PDEs using randomized neural networks across
+overlapping subdomains interconnected by local window functions. By integrating a PCA scheme into
+the neural network structure on the local subdomains, we significantly reduce the number of parameters by
+eliminating less essential information of neural networks, resulting in a system with a lower condition number.
+Furthermore, constructing overlapping Schwarz preconditioners for the resulting system enables the efficient
+solution of the least-squares problem using preconditioned iterative solvers by further reducing the condition
+number. This means that overlapping Schwarz domain decomposition is combined with RaNNs in two
+main ways: first, to formulate the least-squares problem, and second, to efficiently construct preconditioners
+for the resulting linear systems. This is the first paper to demonstrate the application of overlapping
+Schwarz preconditioners for RaNNs with domain decomposition. The main advantage of this method is the
+significant reduction in training time compared to traditional neural network training techniques without
+loss of accuracy.
+    The integration of RaNNs with DDMs demonstrates considerable potential for addressing multi-scale
+problems and time-dependent PDEs, offering a robust and efficient solution. However, to solve more complex
+problems, further investigation into RaNNs combined with multi-level DDM-based architectures is necessary.
+Specifically, the development of two-level or multi-level Schwarz preconditioners should be pursued. To
+manage the increased complexity, parallel methods must be developed to ensure computational efficiency.
+Moreover, careful construction of the corresponding preconditioners is essential, particularly as the system
+may include dense blocks. Future research should also focus on the numerical analysis of this approach to
+further refine its theoretical foundation and practical applicability.
+
+Data Availability Statement. All data, models, or code that support the findings of this study are
+available from the corresponding author upon reasonable request.
+
+
+References
+ [1] H. Abdi and L. J. Williams. Principal component analysis. Wiley interdisciplinary reviews: computa-
+     tional statistics, 2(4):433–459, 2010.
+
+ [2] S. Abid, F. Fnaiech, and M. Najim. A new neural network pruning method based on the singular value
+     decomposition and the weight initialisation. In 2002 11th European Signal Processing Conference, pages
+     1–4. IEEE, 2002.
+
+ [3] S. Anderson, V. Dolean, B. Moseley, and J. Pestana. ELM-FBPINN: efficient finite-basis physics-
+     informed neural networks. arXiv preprint arXiv:2409.01949, 2024.
+
+ [4] X.-C. Cai and M. Sarkis. A restricted additive Schwarz preconditioner for general sparse linear systems.
+     Siam journal on scientific computing, 21(2):792–797, 1999.
+
+
+                                                      21
+ [5] T. F. Chan and T. P. Mathew. Domain decomposition algorithms. Acta numerica, 3:61–143, 1994.
+
+ [6] J. Chen, X. Chi, W. E, and Z. Yang. Bridging traditional and machine learning-based algorithms for
+     solving pdes: the random feature method. J Mach Learn, 1:268–98, 2022.
+
+ [7] J. Chen, W. E, and Y. Sun. Optimization of random feature method in the high-precision regime.
+     Communications on Applied Mathematics and Computation, 6(2):1490–1517, 2024.
+
+ [8] H. Dang and F. Wang. Local randomized neural networks with hybridized discontinuous Petrov–
+     Galerkin methods for Stokes–Darcy flows. Physics of Fluids, 36(8), 2024.
+
+ [9] H. Dang, F. Wang, and S. Jiang. Adaptive growing randomized neural networks for solving partial
+     differential equations. arXiv preprint arXiv:2408.17225, 2024.
+
+[10] M. G. Dissanayake and N. Phan-Thien. Neural-network-based approximations for solving partial dif-
+     ferential equations. Communications in Numerical Methods in Engineering, 10(3):195–201, 1994.
+
+[11] V. Dolean, A. Heinlein, S. Mishra, and B. Moseley. Finite basis physics-informed neural networks
+     as a Schwarz domain decomposition method. In International Conference on Domain Decomposition
+     Methods, pages 165–172. Springer, 2022.
+
+[12] V. Dolean, A. Heinlein, S. Mishra, and B. Moseley. Multilevel domain decomposition-based architec-
+     tures for physics-informed neural networks. Computer Methods in Applied Mechanics and Engineering,
+     429:117116, 2024.
+
+[13] V. Dolean, P. Jolivet, and F. Nataf. An introduction to domain decomposition methods: algorithms,
+     theory, and parallel implementation. SIAM, 2015.
+
+[14] S. Dong and Z. Li. Local extreme learning machines and domain decomposition for solving linear
+     and nonlinear partial differential equations. Computer Methods in Applied Mechanics and Engineering,
+     387:114129, 2021.
+
+[15] C. Gallicchio and S. Scardapane. Deep randomized neural networks. In Recent Trends in Learning From
+     Data: Tutorials from the INNS Big Data and Deep Learning Conference (INNSBDDL2019), pages 43–
+     68. Springer, 2020.
+
+[16] M. Hayashi. A fast algorithm for the hidden units in a multilayer perceptron. In Proceedings of 1993
+     International Conference on Neural Networks (IJCNN-93-Nagoya, Japan), volume 1, pages 339–342.
+     IEEE, 1993.
+
+[17] A. Heinlein, A. A. Howard, D. Beecroft, and P. Stinis. Multifidelity domain decomposition-based
+     physics-informed neural networks for time-dependent problems. arXiv preprint arXiv:2401.07888, 2024.
+
+[18] A. Heinlein, A. Klawonn, M. Lanser, and J. Weber. Combining machine learning and domain de-
+     composition methods for the solution of partial differential equations—a review. GAMM-Mitteilungen,
+     44(1):e202100001, 2021.
+
+[19] A. A. Howard, B. Jacob, S. H. Murphy, A. Heinlein, and P. Stinis. Finite basis kolmogorov-arnold
+     networks: domain decomposition for data-driven and physics-informed problems. arXiv preprint
+     arXiv:2406.19662, 2024.
+
+[20] G.-B. Huang, Q.-Y. Zhu, and C.-K. Siew. Extreme learning machine: theory and applications. Neuro-
+     computing, 70(1-3):489–501, 2006.
+
+
+                                                   22
+[21] B. Igelnik and Y.-H. Pao. Stochastic choice of basis functions in adaptive function approximation and
+     the functional-link net. IEEE transactions on Neural Networks, 6(6):1320–1329, 1995.
+
+[22] A. D. Jagtap and G. E. Karniadakis. Extended physics-informed neural networks (XPINNs): A gener-
+     alized space-time domain decomposition based deep learning framework for nonlinear partial differential
+     equations. Communications in Computational Physics, 28(5), 2020.
+
+[23] A. D. Jagtap, E. Kharazmi, and G. E. Karniadakis. Conservative physics-informed neural networks
+     on discrete domains for conservation laws: Applications to forward and inverse problems. Computer
+     Methods in Applied Mechanics and Engineering, 365:113028, 2020.
+
+[24] E. Kharazmi, Z. Zhang, and G. E. Karniadakis. hp-VPINNs: Variational physics-informed neural
+     networks with domain decomposition. Computer Methods in Applied Mechanics and Engineering,
+     374:113547, 2021.
+
+[25] A. Klawonn, M. Lanser, and J. Weber. Machine learning and domain decomposition methods-a survey.
+     Computational Science and Engineering, 1(1):2, 2024.
+
+[26] I. E. Lagaris, A. Likas, and D. I. Fotiadis. Artificial neural networks for solving ordinary and partial
+     differential equations. IEEE transactions on neural networks, 9(5):987–1000, 1998.
+
+[27] C. Leake and D. Mortari. Deep theory of functional connections: A new method for estimating the
+     solutions of partial differential equations. Machine Learning and Knowledge Extraction, 2(1):37–55,
+     2020.
+
+[28] W. Li, X. Xiang, and Y. Xu. Deep domain decomposition method: Elliptic problems. In Mathematical
+     and Scientific Machine Learning, pages 269–286. PMLR, 2020.
+
+[29] X. Liu, S. Lin, J. Fang, and Z. Xu. Is extreme learning machine feasible? a theoretical assessment (part
+     i). IEEE Transactions on Neural Networks and Learning Systems, 26(1):7–20, 2014.
+
+[30] D. G. Luenberger. Introduction to linear and nonlinear programming. Addison-Wesley Reading, MA,
+     28, 1973.
+
+[31] T. Luo, Z.-Q. J. Xu, Z. Ma, and Y. Zhang. Phase diagram for two-layer ReLU neural networks at
+     infinite-width limit. Journal of Machine Learning Research, 22(71):1–47, 2021.
+
+[32] L. Lyu, K. Wu, R. Du, and J. Chen. Enforcing exact boundary and initial conditions in the deep mixed
+     residual method. arXiv preprint arXiv:2008.01491, 2020.
+
+[33] K. S. McFall and J. R. Mahan. Artificial neural network method for solution of boundary value prob-
+     lems with exact satisfaction of arbitrary boundary conditions. IEEE transactions on neural networks,
+     20(8):1221–1233, 2009.
+
+[34] A. Mojtabi and M. O. Deville. One-dimensional linear advection–diffusion equation: Analytical and
+     finite element solutions. Computers & Fluids, 107:189–195, 2015.
+
+[35] B. Moseley, A. Markham, and T. Nissen-Meyer. Finite basis physics-informed neural networks (fbpinns):
+     a scalable domain decomposition approach for solving differential equations. Advances in Computational
+     Mathematics, 49(4):62, 2023.
+
+[36] Y.-H. Pao, G.-H. Park, and D. J. Sobajic. Learning and generalization characteristics of the random
+     vector functional-link net. Neurocomputing, 6(2):163–180, 1994.
+
+
+                                                     23
+[37] Y.-H. Pao and Y. Takefuji. Functional-link net computing: theory, system architecture, and function-
+     alities. Computer, 25(5):76–79, 1992.
+
+[38] D. C. Psichogios and L. H. Ungar. Svd-net: An algorithm that automatically selects network structure.
+     IEEE Transactions on Neural Networks, 5(3):513–515, 1994.
+
+[39] M. Raissi, P. Perdikaris, and G. E. Karniadakis. Physics-informed neural networks: A deep learning
+     framework for solving forward and inverse problems involving nonlinear partial differential equations.
+     Journal of Computational physics, 378:686–707, 2019.
+
+[40] H. A. Schwarz. Ueber einen Grenzübergang durch alternirendes Verfahren. Zürcher u. Furrer, 1870.
+
+[41] Y. Shang, F. Wang, and J. Sun. Randomized neural network with Petrov-Galerkin methods for solving
+     linear and nonlinear partial differential equations. Communications in Nonlinear Science and Numerical
+     Simulation, 127(Dec.):1.1–1.20, 2023.
+
+[42] B. Smith, P. Bjørstad, and W. Gropp. Domain decomposition, parallel multilevel methods for elliptic
+     partial differential equations,(1996).
+
+[43] J. Sun, S. Dong, and F. Wang. Local randomized neural networks with discontinuous Galerkin methods
+     for partial differential equations. Journal of Computational and Applied Mathematics, 445:115830, 2024.
+
+[44] J. Sun and F. Wang. Local randomized neural networks with discontinuous Galerkin methods for
+     diffusive-viscous wave equation. Computers & Mathematics with Applications, 154:128–137, 2024.
+
+[45] S. Tamura, M. Tateishi, M. Matumoto, and S. Akita. Determination of the number of redundant hidden
+     units in a three-layered feedforward neural network. In Proceedings of 1993 International Conference
+     on Neural Networks (IJCNN-93-Nagoya, Japan), volume 1, pages 335–338. IEEE, 1993.
+
+[46] E. J. Teoh, K. C. Tan, and C. Xiang. Estimating the number of hidden neurons in a feedforward network
+     using the singular value decomposition. IEEE Transactions on Neural Networks, 17(6):1623–1629, 2006.
+
+[47] A. Toselli and O. Widlund. Domain decomposition methods-algorithms and theory, volume 34. Springer
+     Science & Business Media, 2006.
+
+[48] A. S. Weigend and D. E. Rumelhart. The effective dimension of the space of hidden units. In [Proceedings]
+     1991 IEEE International Joint Conference on Neural Networks, pages 2069–2074. IEEE, 1991.
+
+[49] O. B. Widlund. Iterative substructuring methods: Algorithms and theory for elliptic problems in the
+     plane. In First International Symposium on Domain Decomposition Methods for Partial Differential
+     Equations, Philadelphia, PA, pages 113–128, 1988.
+
+[50] J. Xue, J. Li, and Y. Gong. Restructuring of deep neural network acoustic models with singular value
+     decomposition. In Interspeech, pages 2365–2369, 2013.
+
+[51] Z. Zhang, F. Bao, L. Ju, and G. Zhang. Transferable neural networks for partial differential equations.
+     Journal of Scientific Computing, 99(1):2, 2024.
+
+[52] H. Zhou, Z. Qixuan, T. Luo, Y. Zhang, and Z.-Q. Xu. Towards understanding the condensation of
+     neural networks at initial training. Advances in Neural Information Processing Systems, 35:2184–2196,
+     2022.
+
+
+
+
+                                                     24
+

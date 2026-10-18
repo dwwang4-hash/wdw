@@ -1,0 +1,11 @@
+{
+  "migration_scripts_ast_parsed": 6,
+  "existing_tests_ast_count": 18,
+  "fixture_hash_success": true,
+  "fixture_corruption_detected": true,
+  "research_modules_imported": false,
+  "scientific_tests_executed": false,
+  "pde_solves_executed": false,
+  "plots_regenerated": false,
+  "windows_executed": false
+}

@@ -1,0 +1,70 @@
+{
+  "experiment": "exp06_peaks",
+  "widths": [
+    0.12,
+    0.06
+  ],
+  "betas": [
+    [
+      1,
+      1
+    ],
+    [
+      1000,
+      1
+    ]
+  ],
+  "scales": [
+    2,
+    4
+  ],
+  "rounds": [
+    3,
+    6
+  ],
+  "methods": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "D_unused"
+  ],
+  "seeds": [
+    11,
+    23,
+    37,
+    51,
+    71
+  ],
+  "neurons_per_side": 128,
+  "budget_mode": "equations",
+  "final_equations": [
+    1232,
+    1904
+  ],
+  "peak_amplitude": 0.75,
+  "peak_center": [
+    0.46,
+    0.55
+  ],
+  "scaling": "balanced",
+  "interface_weight": 50,
+  "boundary_weight": 50,
+  "rcond": 1e-12,
+  "ridge": 0,
+  "candidate_counts": [
+    2048,
+    2048,
+    1024
+  ],
+  "exploration": 0.2,
+  "fine_validation": "161x161 midpoint per side;521 interface",
+  "coarse_validation": "81x81 midpoint per side",
+  "timing": "point generation,all candidate residuals,allocations and all SVD solves; final validation/plots excluded",
+  "python": "3.12.14",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "numpy": "2.2.6",
+  "scipy": "1.15.3",
+  "matplotlib": "3.10.3",
+  "blas_threads": 1
+}

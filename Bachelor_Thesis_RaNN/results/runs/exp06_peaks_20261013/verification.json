@@ -1,0 +1,17 @@
+{
+  "run": "exp06_peaks_20261013",
+  "observations": 400,
+  "csv_unchanged_after_redraw": true,
+  "existing_run_protected": true,
+  "raw_sha256": {
+    "manufactured_width0.12_beta1000.csv": "0686d4ab4d1dab6bd1f971dff7894e2953a31e10d63f643ad5ca0d16b44823d4",
+    "peaks.csv": "5e9eed72351f9a242ffdab80dafdab64d986b34f2647ad09a78f25b3215db676",
+    "manufactured_width0.06_beta1.csv": "3776fcafcacacc29f1f92cfbfd9f21e41211df410e213b0941e8c49d21eea89c",
+    "manufactured_interface.csv": "c4bfff70a4a81cecbd80962619d6f8147c603cf782f2153eb6f6ecae0307a704",
+    "manufactured_width0.12_beta1.csv": "036ffc80cc82f046f86cdb7260f77083cddd5360e596d819c9b54f2d8ede5470",
+    "manufactured_width0.06_beta1000.csv": "48d48ed68f2bf24e8cc1bd631bf682b3cb4ffc01eef117daaebd67b2cf83a6d2",
+    "allocation_trace.csv": "efcca3d023d70e283be9973b2dc8cd8f55f8dd0e2fd755ecffd110b8827cace2",
+    "representative_grid.csv": "57a7d6e3e5420f748fcb0bf1d225e3ca9cf997b1aa52378f633959816953f4a0"
+  },
+  "case0_reconstruction": true
+}

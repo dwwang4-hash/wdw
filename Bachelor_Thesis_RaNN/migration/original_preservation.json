@@ -1,0 +1,19 @@
+{
+  "checked_research_originals": 500,
+  "changed_paths": [
+    ".gitignore",
+    "README.md"
+  ],
+  "allowed_metadata_changes": [
+    "README.md",
+    ".gitignore"
+  ],
+  "metadata_original_bytes_preserved": {
+    "README.md": true,
+    ".gitignore": true
+  },
+  "missing_paths": [],
+  "read_errors": [],
+  "passed": true,
+  "scientific_sources_data_figures_thesis_unchanged": true
+}

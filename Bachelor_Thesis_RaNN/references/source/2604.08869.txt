@@ -1,0 +1,2082 @@
+                                              ADAPTIVE PHYSICS-INFORMED RANDOMIZED NEURAL
+                                           NETWORKS WITH A PARTITION OF UNITY FOR SOLVING PDES∗
+                                                                          RAN BI† AND WEIBING DENG†
+
+                                               Abstract. This paper establishes an approximation theory and develop an adaptive     computa-
+                                           tional framework for randomized neural networks (RaNNs). For RaNNs of the form N
+                                                                                                                               P
+                                                                                                                                 i=1 Wi σ(Ai ·
+                                           x + Bi ), with hidden parameters uniformly sampled from a bounded set of scale M , we show
+                                           that the choice M ≍ N p/[2((p−1)(d+1)+pη)]     yields an expected W k,p -approximation error of or-
+                                           der O N −pη/[2((p−1)(d+1)+pη)] , where η is associated with the regularity of the target function
+                                                                             
+                                           in a generalized Barron spectral space. This theoretical result demonstrates that lower regularity
+                                           requires a larger sampling range for the hidden parameters. Motivated by the relationship between
+                                           M and η, we introduce an adaptive physics-informed RaNN (PIRaNN) method that which couples
+                                           parameter sampling with an adaptive partition of unity via local aﬃne scaling. Residual-based a
+                                           posteriori error indicators and Dörﬂer marking are used to drive local reﬁnement. Numerical exper-
+                                           iments—including the 1D viscous Burgers’ equation and 2D/3D problems with localized peaks and
+                                           L-shaped corner singularities—demonstrate that our method preferentially reﬁnes regions exhibiting
+arXiv:2604.08869v2 [math.NA] 15 Aug 2026
+
+
+
+
+                                           large gradients and singularities. Compared to standard non-adaptive RaNNs, the adaptive PIRaNN
+                                           eﬀectively captures complex local features with signiﬁcantly enhanced accuracy and eﬃciency.
+
+                                              Key words. Randomized neural networks, Approximation theory, Adaptive algorithm
+
+                                              MSC codes. 68T07, 65N50, 41A25
+
+
+                                                1. Introduction. In recent years, neural networks have garnered signiﬁcant at-
+                                           tention as a promising tool for solving partial diﬀerential equations (PDEs). Unlike
+                                           traditional numerical methods—such as the ﬁnite element and ﬁnite diﬀerence meth-
+                                           ods—which rely on spatial discretization over computational meshes, neural network-
+                                           based approaches seek to approximate PDE solutions directly by training networks
+                                           with strong universal approximation capabilities, thereby eliminating the need for
+                                           mesh generation. Furthermore, these methods can eﬀectively mitigate the curse of di-
+                                           mensionality often encountered in conventional mesh-based schemes. As a result, a va-
+                                           riety of neural network frameworks have been developed, including Physics-Informed
+                                           Neural Networks (PINNs) [32], DeepONet [30], and the Fourier Neural Operator
+                                           (FNO) [27], demonstrating considerable potential in overcoming the limitations of
+                                           classical numerical techniques.
+                                                Theoretical research has extensively demonstrated the powerful function approx-
+                                           imation capabilities of neural networks. For instance, constructive proofs of universal
+                                           approximation theorems for deep neural networks under various activation functions
+                                           have been provided in [20, 8, 29]. For shallow neural networks with simpler architec-
+                                           tures, Ellacott [16] showed that any function deﬁned on a compact set can be approxi-
+                                           mated provided the activation function is non-polynomial. In a seminal work, Barron
+                                           [2] employed statistical arguments to derive an approximation rate of O N −1/2 for
+                                           shallow networks with a sigmoidal activation function, where N denotes the number of
+                                           neurons. Notably, this rate is independent of the input dimension d, oﬀering theoreti-
+                                           cal support for circumventing the curse of dimensionality. This result waslater reﬁned
+                                                                                                                                 
+                                                                                                                           1   1
+                                           by Klusowski and Barron [26], who improved the convergence rate to O N − 2 − d+1
+
+                                             ∗ Submitted to the editors DATE.
+
+                                                Funding: This work was partially supported by the NSF of China grant 12171237, and by the
+                                           Ministry of Science and Technology of China grant 2020YFA0713800.
+                                              † School of Mathematics, Nanjing University, Nanjing 210093, People’s Republic of China
+
+                                           (ranbi@smail.nju.edu.cn, wbdeng@nju.edu.cn).
+                                                                                           1
+2                            RAN BI AND WEIBING DENG
+
+
+using stratiﬁed sampling, thereby introducing dimension dependence. Subsequently,
+E et al. [15, 14] formalized the notion of Barron spaces, which characterize functions
+that can be eﬃciently approximated by shallow ReLU networks. Further extending
+this direction, Xu et al. [34, 35, 40] introduced Barron spectral spaces and derived
+approximation rates for shallow networks with more general activations. Most re-
+cently, Siegel and Xu [36] established sharp approximation bounds for shallow
+                                                                               neural
+                                                                                     
+                                                                                1   pk+1
+networks with the ReLUk activation function, achieving an order of O N − 2 − pd
+in the Lp norm. These theoretical advances underscore the signiﬁcant potential of
+neural network-based approximations, particularly in high-dimensional settings.
+     For PDE computations, optimizing all network parameters usually leads to a high-
+dimensional nonconvex problem. Numerous techniques have been proposed to miti-
+gate this diﬃculty, including trainable activation scalings [23], adaptive loss weighting
+[38, 39], higher-order optimization methods [37, 33], and extended-variable formula-
+tions [21, 3]. Randomized neural networks (RaNNs) take a diﬀerent route: the hidden
+weights and biases are sampled once from a prescribed probability distribution and
+then held ﬁxed, while only the output coeﬃcients are trained. For a linear PDE, the
+resulting physics-informed problem is a linear least-squares problem. This architec-
+ture is closely related to the extreme learning machine (ELM) [22]. Its PDE variants
+include the physics-informed ELM [13], the domain-decomposed local ELM [10], and
+PoU-based random-feature methods [5]. De et al. [7] imposed boundary conditions
+as hard equality constraints in the ELM least-squares formulation. Approximation
+and generalization properties of randomized architectures have also been studied in
+[19, 20, 9, 31, 28, 41].
+     Since the internal parameters of RaNNs are ﬁxed and sampled from a prede-
+termined distribution, classical approximation theorems for general shallow neural
+networks are not directly applicable. In this work, motivated by the analysis in [34],
+where approximation rates were established for shallow networks with polynomially
+decaying non-sigmoidal activations, we extend the deﬁnition of the Barron spectral
+space [35, 34] to a generalized Barron spectral space. We prove that functions belong-
+ing to this space can be approximated by RaNNs whose parameters are generated via
+uniform sampling from a bounded set, and we establish a corresponding convergence
+                    pη
+rate O N − 2[(p−1)(d+1)+pη] in the Sobolev space W k,p for 2 ≤ p < ∞. Our theoretical
+analysis demonstrates that the parameter M , governing the size of the sampling set
+                                                                      p
+for the inner-layer RaNN parameters, should satisfy M ≍ N 2[(p−1)(d+1)+pη] . Here, η is
+associated with the regularity index of the generalized Barron spectral space, and N
+represents the number of neurons (see Theorem 3.7). This scaling exposes an intrin-
+sic dependence between the required sampling range and the regularity of the target
+function: for a ﬁxed number of neurons, less smooth functions require a larger range
+to attain better approximation.
+     Leveraging the established relationship between the parameter sampling range
+and the target function’s smoothness, we construct a PoU over the physical domain
+of the PDEs. The parameters of the RaNNs are ﬁrst generated on a reference element
+and are then mapped to each physical subdomain via an aﬃne transformation. This
+construction eﬀectively couples the range of the sampled parameters to the local size
+of the PoU elements. In particular, a ﬁner partition (smaller element size) corresponds
+to a locally enlarged eﬀective sampling range for the RaNN parameters within that
+element. Motivated by strategies widely used in adaptive ﬁnite element methods
+[11, 4, 24], we employ residual-based a posteriori error estimates to identify which
+elements require reﬁnement. This leads to an adaptive physics-informed randomized
+                ADAPTIVE PIRANNS WITH A POU FOR SOLVING PDES                           3
+
+neural network (PIRaNN) framework, where the network parameter distribution and
+the physical discretization are co-adapted to eﬃciently resolve local solution features.
+The novelty and main contributions of this work are summarized as follows:
+      1. We establish W k,p (2 ≤ p < ∞) approximation estimates for RaNNs whose
+         hidden weights and biases are sampled uniformly from a bounded parameter
+         set. The estimates separate the parameter-truncation error from the stochas-
+         tic sampling error and analyze their dependence on the size of the sampling
+         set, network size, spatial dimension, and the generalized Barron regularity
+         of the target function. We further derive an improved convergence rate for
+         stratiﬁed uniform sampling.
+      2. Guided by the established scaling relationship between the required sampling
+         range M and the optimal approximation error, we introduce an aﬃne PoU
+         construction that maps random features generated on a common reference
+         element to local physical subdomains. Consequently, local reﬁnement enlarges
+         the eﬀective hidden-parameter range in physical coordinates, thus providing a
+         theory-guided mechanism to enhance the representation of localized solution
+         features without requiring subdomain-speciﬁc sampling distributions.
+      3. We develop a residual-based adaptive PIRaNN algorithm using a posteriori
+         error indicators and Dörﬂer marking. The numerical experiments show that
+         the method preferentially reﬁnes regions containing sharp localized peaks,
+         corner singularities, and steep solution fronts, thereby enabling the RaNN to
+         eﬀectively capture local features.
+The remainder of this paper is organized as follows. Section 2 introduces the basic
+frameworks of RaNNs and PIRaNNs, followed by the deﬁnition of the proposed gener-
+alized Barron spectral space. Section 3 establishes a convergence analysis in Sobolev
+spaces for approximating functions in this generalized Barron space using RaNNs.
+Section 4 details the proposed adaptive PIRaNN algorithm. In Section 5, compre-
+hensive numerical experiments are presented to validate the theoretical analysis of
+Section 3 and to demonstrate the robust approximation capabilities of the adaptive
+PIRaNN method. Finally, conclusions are presented in Section 6.
+    2. Preliminaries. In this section, we ﬁrst brieﬂy introduce the framework of
+RaNNs and the PIRaNN method for solving PDEs. Then, to facilitate the subsequent
+theoretical analysis, we extend the deﬁnitions of the Barron spectral norms and the
+corresponding function spaces, motivated by the ideas in [40, 34].
+     2.1. Randomized neural networks. We consider a single-hidden-layer feed-
+forward network (SLFN) [22] with randomly generated hidden weights. More specif-
+ically, given a probability distribution ρ, the random function can be deﬁned as
+                                   N
+                                   X
+                      A,B
+(2.1)                UW   (x) :=         Wi σ (Ai · x + Bi ) ,   x ∈ Rd ,
+                                   i=1
+
+where (A1 , B1 ), ..., (AN , BN ) are i.i.d. Rd+1 -valued random vectors drawn from ρ,
+σ : R → R is a ﬁxed activation function and the weights W1 , ..., WN ∈ C can
+                                    A,B
+be chosen freely such that UW            is a good approximation of the target function
+u. In fact, the SLFN can be interpreted as generating a family of basis functions
+                                            N
+{φi (x) = σ (Ai · x + Bi ) , (Ai , Bi ) ∼ ρ}i=1 according to ρ. This family of functions
+spans a linear space HN = span {φ1 , φ2 , ..., φN } whose properties critically depend on
+the choice of the probability distribution ρ. We note that one can also add an output
+bias W0 to (2.1).
+4                                 RAN BI AND WEIBING DENG
+
+
+    2.2. PIRaNNs for solving PDEs. The PIRaNN method combines the struc-
+ture of RaNNs (2.1) with physics-based residual minimization principles. This ap-
+proach circumvents the mesh dependency of traditional numerical methods and the
+complex nonconvex optimization challenges encountered in deep feedforward neural
+network training.
+    Consider a general PDE deﬁned on a domain Ω ⊂ Rd with boundary ∂Ω and
+d ≥ 1:
+                         (
+                           D [u] (x) = f (x),   in Ω,
+(2.2)
+                           B [u] (x) = g(x),    on ∂Ω,
+
+where D is a potentially linear (or nonlinear) diﬀerential operator and B represents
+the boundary operator. The PIRaNN approach seeks the optimal parameters W ∗ =
+      N              A,B
+{Wi∗ }i=1 such that UW ∗ approximates the solution of (2.2). This is achieved using a
+
+collocation method based on residual minimization of (2.2). Let KΩ and K∂Ω denote
+the numbers of collocation points in Ω and ∂Ω, respectively. We deﬁne two sets of
+collocation points:
+                                   ΩK                             K
+                     CΩ = {xΩ,j }j=1 ⊂ Ω,                         ∂Ω
+                                                  C∂Ω = {x∂Ω,j }j=1  ⊂ ∂Ω.
+
+By enforcing (2.2) at each collocation point, we deﬁne the corresponding loss function
+as follows:
+                              KΩ
+                              X                                         2
+                                             A,B
+                    L(W ) =         λ2Ω,j D[UW   ](xΩ,j ) − f (xΩ,j )
+                              j=1
+                                  K
+                                  X ∂Ω
+                                                                            2
+                                                   A,B
+                              +          λ2∂Ω,j B[UW   ](x∂Ω,j ) − g(x∂Ω,j ) ,
+                                  j=1
+
+
+where {λΩ,j } and {λ∂Ω,j } are the corresponding weight parameters.
+                                                             N
+    When D is a linear operator and the basis functions {φi }i=1 are linearly indepen-
+                                    A,B   PN     ∗
+dent, we can obtain the solution UW ∗ = i=1 Wi σ(Ai · x + Bi ) by
+
+(2.3)                                        W ∗ = H † T,
+
+where
+                                                                                     
+             [λΩ,j D [σ (Ai · xΩ,j + Bi )]]KΩ ×N                  [λΩ,j f (xΩ,j )]KΩ ×1
+        H=                                          ,       T =                           ,
+           [λ∂Ω,j B [σ (Ai · x∂Ω,j + Bi )]]K∂Ω ×N               [λ∂Ω,j g(x∂Ω,j )]K∂Ω ×1
+
+and H † is the Moore-Penrose generalized inverse of H. Similarly, when D is a non-
+linear diﬀerential operator, one can formulate a nonlinear least-squares problem (see
+[10]).
+    2.3. Generalized Barron spectral spaces. For a real-valued function f de-
+ﬁned on a bounded domain Ω ⊂ Rd , its approximation by single-hidden-layer neural
+networks was ﬁrst characterized by Barron using a Fourier representation of f under
+suitable smoothness assumptions, thereby establishing a theoretical approximation
+rate [2, 25]. Subsequently, the Barron spectral space was deﬁned by Xu et al. [40, 35]
+to characterize the regularity (or smoothness) of functions. Consider all extensions
+                ADAPTIVE PIRANNS WITH A POU FOR SOLVING PDES                         5
+
+fe : Rd → R and deﬁne the Barron spectral norm for s ≥ 1:
+                                     Z
+                                          (1 + |ξ|) |fbe (ξ)|dξ,
+                                                   s
+(2.4)               kf kBs(Ω) = inf
+                                    fe |Ω =f   Rd
+
+and the Barron spectral space
+                                
+                        Bs (Ω) = f : Ω → R kf kBs(Ω) < ∞ .
+The Barron spectral norm (2.4) can be interpreted as a weighted L1 norm of the
+Fourier transform fbe in the frequency domain, which eﬀectively describes the decay
+behavior of fbe and hence the smoothness of the original function f . To support the
+subsequent analysis of the approximation properties of RaNNs, we now introduce a
+generalized version of the Barron spectral norm. For k ≥ 0, s ≥ 1, p ∈ [1, ∞) and a
+                                                               Pd
+multi-index α = (α1 , α2 , . . . , αd ) with αi ≥ 0 and |α| = i=1 αi , we deﬁne
+                                                                              1/p
+                                         X Z                            p
+(2.5)       kf kBsk,p (Ω) = inf                  (1 + |ξ|)s ∂ξα fbe (ξ)    dξ  .
+                         fe |Ω =f           Rd
+                                    |α|≤k
+
+The corresponding generalized Barron spectral space is
+                               n                           o
+                    Bsk,p (Ω) = f : Ω → C kf kBsk,p (Ω) < ∞ .
+
+For simplicity, we write Bsp (Ω) = Bs0,p (Ω) when k = 0. It can be observed that the
+generalized Barron spectral norm corresponds to the weighted Sobolev W k,p norm
+of fbe in the frequency domain. Similarly to the Barron spectral norm, the norm
+deﬁned in (2.5) can characterize the smoothness of the function f . The key diﬀerence
+lies in its dependence on the derivatives of fbe . From the properties of the Fourier
+                                                                               \
+transform [18], we recall that when xα fe ∈ L1 (Rd ), the identity ∂ξα fbe = (−ix) αf
+                                                                                      e
+holds. This implies that the extension fe must satisfy more stringent decay conditions;
+i.e., xα fe ∈ L1 (Rd ).
+    3. Approximation properties for RaNNs in Sobolev norms. Since our
+objective is to solve PDEs using RaNNs, it becomes necessary to characterize the
+approximation of the unknown solution u : Ω → C and its derivatives by RaNNs—
+speciﬁcally, their approximation properties in Sobolev spaces. This requires establish-
+ing a theoretical connection between the Sobolev space and our deﬁned generalized
+Barron spectral space. For simplicity, in this section, we use the shorthand notation
+A . B for the inequality A ≤ CB, where C > 0 is a generic constant independent of
+the number of neurons in the RaNNs.
+    Our analysis is based on the Fourier representation of the solution function u,
+and we require the activation function σ to have localized properties (in contrast to
+commonly used globally deﬁned activation functions). We thus need the following
+assumptions:
+   Assumption 3.1. Let ue : Rd → C be a global extension of u such that ue ∈
+L (Rd ) and its Fourier transform c
+ 1
+                                  ue ∈ L1 (Rd ).
+    Assumption 3.2. Let k ≥ 0 be an integer and r > 1 be a real number. The
+activation function σ ∈ W k,∞ (R) is assumed to be nonzero. Furthermore, for every
+integer ν with 0 ≤ ν ≤ k, σ (ν) satisﬁes the polynomial decay condition
+(3.1)                          |σ (ν) (x)| ≤ Cr (1 + |x|)−r ,
+6                               RAN BI AND WEIBING DENG
+
+
+where Cr > 0 is a constant depending on r, σ and ν.
+    Remark 3.3. A variety of activation functions satisfy Assumption 3.2, such as the
+Gaussian kernel function and the function tanh(x + 0.5) − tanh(x − 0.5) constructed
+as the diﬀerence of two shifted tanh activations.
+    Under the above assumptions, Siegel and Xu [34] established an approximation
+result for SLFNs. Speciﬁcally, let Ω ⊂ Rd be a bounded domain and ε > 0. Consider
+the class of functions representable by a network with N hidden neurons,
+                           (N                                           )
+                             X
+                   d                                      d
+                 ΣN (σ) =        wi σ(ξi · x + si ) ξi ∈ R , si , wi ∈ R .
+                                i=1
+
+If the activation function σ satisﬁes Assumption 3.2, then for any function u belonging
+                1
+to the space Bk+1+ε   (Ω) and fulﬁlling Assumption 3.1, the following error estimate
+holds:
+                                                 1       1         η
+(3.2)          inf       ku − uN kH k (Ω) . |Ω| 2 N − 2 − (2+η)(d+1) kukBk+1+ε
+                                                                         1     (Ω) ,
+            uN ∈Σd
+                 N (σ)
+
+
+where η = min(r − 1, ε).
+     However, this approximation result cannot be directly applied to the RaNNs de-
+ﬁned in (2.1). Although RaNNs are structurally similar to single-hidden-layer neural
+networks, a crucial diﬀerence lies in the treatment of internal parameters: in RaNNs,
+the weights and biases of the hidden layer are randomly sampled from a prescribed
+probability distribution ρ and remain ﬁxed during training, whereas in conventional
+networks these parameters are optimized. Moreover, the proof of (3.2) relies on the
+existence of a probability distribution over parameters that is linked to the Barron
+spectral norm kukBs1 . In practice, however, the smoothness properties of the target
+function u are often unknown, making it diﬃcult to design such a distribution a priori.
+In the RaNN setting, the most commonly used sampling distributions are uniform and
+Gaussian. In what follows, we present an approximation theorem for RaNNs based
+on uniform sampling.
+     Under Assumption 3.2, the activation function σ belongs to L1 (R). Consequently,
+its Fourier transform σb is well-deﬁned and continuous, and there exists some a 6= 0
+such that σb(a) 6= 0. Without loss of generality, we assume a > 0 and a = O(1). By a
+change of variables, we obtain the representation
+                                        Z
+                           iaξ·x     1
+(3.3)                    e       =         σ(ξ · x + s)e−ias ds.
+                                   b (a) R
+                                   σ
+Applying the Fourier inversion theorem together with Assumption 3.1, the following
+identity holds almost everywhere in Ω:
+                                                     Z
+                                            1
+(3.4)                     u(x) = ue (x) =                    eiξ·x c
+                                                                   ue (ξ)dξ.
+                                          (2π)d      Rd
+
+   To quantify the approximation error of RaNNs, we ﬁrst establish several auxiliary
+lemmas.
+     Lemma 3.4. Let Ω ⊂ Rd be a bounded domain and let the activation function σ
+satisfy Assumption 3.2. Then for any l ≥ 1, the following integral estimate holds:
+                      Z                   l
+                         σ (ν) (ξ · x + s) ds ≤ CR (1 + |aξ|) ,
+                           R
+               ADAPTIVE PIRANNS WITH A POU FOR SOLVING PDES                                         7
+
+where R = maxx∈Ω |x| ≥ 1 and C > 0 is a constant.
+    Proof. By the triangle inequality and the boundedness of Ω, we have
+
+                            |ξ · x + s| ≥ max (0, |s| − R|ξ|) .
+Combining this with Assumption 3.2 yields
+                                                                                 −r
+                  σ (ν) (ξ · x + s) ≤ Cr (1 + max (0, |s| − R|ξ|))                    .
+                                                                            −r
+For simplicity, we denote h(ξ, s) = (1 + max (0, |s| − R|ξ|)) . The decay rate of the
+function h is suﬃciently fast for it to be integrable in s. For l ≥ 1, the following
+estimate holds:
+    Z                    l
+                                   Z
+        σ (ν) (ξ · x + s) ds ≤ Crl    h(ξ, s)l ds
+      R                             R
+                                     Z             Z                           !
+                            = Crl                  1 ds +                  (1 + |s| − R|ξ|)−lr ds
+                                        |s|≤R|ξ|                |s|>R|ξ|
+                                                           
+                                                      2
+                            ≤ Crl 2R|ξ| +                       ≤ C(l, r, a)R (1 + |aξ|) .
+                                                   lr − 1
+This completes the proof.
+    Deﬁne the bounded parameter sets
+                                    
+                          d      M                             
+          Gξ (M ) := ξ ∈ R |ξ| ≤       ,             Gs (M ) := s ∈ R |s| ≤ M ,
+                                 2R
+where M > 0 is a constant to be chosen later. In the following, we assume R = O(1).
+By translating Ω if necessary, we may assume that the origin is located at the center
+of Ω. Consequently, R is comparable to the radius of Ω and |Ω| = O(1).
+                                                                         p
+    Lemma 3.5. Suppose that Assumptions 3.1 and 3.2 hold. Let u ∈ Bk+m       (Ω) for
+                                                 p−1
+p ≥ 2, m ≥ 0, and an integer k ≥ 0, where m > p d. Deﬁne the truncated function
+uM by restricting the integration domain of the parameters to Gξ (M ) × Gs (M ):
+                             Z      Z
+                    M
+(3.5)              u (x) :=                β(ξ, s)σ(ξ · x + s)dsdξ,
+                               Gξ (M)     Gs (M)
+
+where
+
+                                           ad
+                            β(ξ, s) =              ue (aξ)e−ias .
+                                                   c
+                                        (2π)d σ
+                                              b(a)
+Then, the following estimate holds:
+(3.6)                u − uM W k,p (Ω) . M −η kukBp (Ω) ,
+                                                 k+m
+                           
+                 p−1
+where η = min m − p d, r − 1 .
+    Proof. We ﬁrst introduce a band-limited approximation of ue deﬁned by
+                                     Z
+                         M       1
+(3.7)                   ue :=                eiξ·x c
+                                                   ue (ξ)dξ.
+                               (2π)d |ξ|≤ aM
+                                          2R
+
+
+The proof proceeds by estimating the W k,p (Ω) error in two steps as follows.
+8                                        RAN BI AND WEIBING DENG
+
+
+     Step 1: Estimate of u − uM e W k,p (Ω)
+                                            .. For any multi-index α with |α| ≤ k, it
+follows from (3.4) and (3.7) that
+                                                                Z             Y
+                                                                               d                 
+                                                       1
+                    ∂xα ue (x) − uM
+                                  e (x) =                                                (iξi )αi eiξ·x c
+                                                                                                        ue (ξ)dξ.
+                                                      (2π)d      |ξ|> aM
+                                                                      2R           i=1
+
+Applying Hölder’s inequality, we obtain
+                                                  Z                                                          !p
+                                                                                         m
+                                                                              |α| |ξ|
+              |∂xα (ue (x) − uM      p
+                              e (x))| .                         (1 + |ξ|)                      |c
+                                                                                                ue (ξ)| dξ
+                                                    |ξ|> aM
+                                                         2R
+                                                                                    |ξ|m
+                                 Z                            ! pq Z
+                                                  −qm                                             p(|α|+m)          p
+                          ≤                 |ξ|          dξ                         (1 + |ξ|)                 |c
+                                                                                                               ue (ξ)| dξ
+                                  |ξ|> aM
+                                       2R                             |ξ|> aM
+                                                                           2R
+
+                                 Z                            ! pq
+                                                  −qm
+                          ≤                 |ξ|          dξ          kukpBp          (Ω)
+                                                                                           ,
+                                  |ξ|> aM
+                                       2R
+                                                                             |α|+m
+
+
+
+where q is the conjugate exponent of p (i.e. 1/p + 1/q = 1). For m > dq = p−1
+                                                                           p d, we
+have
+                Z                      Z ∞
+                        |ξ|−qm dξ = ωd      r−qm+d−1 dr . M −qm+d .
+                          |ξ|> aM
+                               2R
+                                                                aM
+                                                                2R
+
+
+Consequently, summing over all |α| ≤ k yields the desired estimate in W k,p (Ω):
+                                                                             p−1
+(3.8)                            u − uM
+                                      e W k,p (Ω)
+                                                  . M −m+ p d kukBk+m
+                                                                  p
+                                                                      (Ω) .
+
+      Step 2: Estimate of uM − uM
+                                e W k,p (Ω)
+                                            .. Using the representation (3.3) in the
+deﬁnition of uM                   M
+              e , we can rewrite ue in a form similar to u :
+                                                            M
+
+                           Z       Z
+                     uM
+                      e  =           β(ξ, s)σ (ξ · x + s) dsdξ.
+                                              M
+                                         |ξ|≤ 2R        R
+
+Consequently, the diﬀerence uM
+                             e −u
+                                  M
+                                    involves only the tail of the s-integration:
+                                                  Z             Z
+                      uM        M
+                       e (x) − u (x) =                                       β(ξ, s)σ(ξ · x + s)dsdξ.
+                                                           M
+                                                      |ξ|≤ 2R       |s|>M
+
+For any multi-index α with |α| ≤ k, we have
+                                            Z            Z                                                                    !p
+                              p
+    ∂xα   u   M
+                  (x) − uM
+                         e (x)       .                                |aξ|   |α|
+                                                                                   |c
+                                                                                    ue (aξ)| σ     (|α|)
+                                                                                                           (ξ · x + s) dsdξ        .
+                                                 M
+                                            |ξ|≤ 2R         |s|>M
+
+Notice that in the integration domain of the above equation, we have |s|−R|ξ| ≥ M/2.
+Using the decay property of σ, it follows that
+     Z                                 Z
+                                                           −r
+              σ (|α|) (ξ · x + s) ds .     (1 + |s| − R|ξ|) ds . (1 + M/2)1−r .
+          |s|>M                                         |s|>M
+
+Thus, for M ≥ 2, we have
+                       Z
+                                                  σ (|α|) (ξ · x + s) ds . M 1−r .
+                                     |s|>M
+                ADAPTIVE PIRANNS WITH A POU FOR SOLVING PDES                             9
+
+Therefore, it follows from Hölder’s inequality and the fact that m > dq that
+                                              Z                      !p
+         |∂xα (uM (x) − uM      p
+                         e (x))| . M
+                                     p(1−r)
+                                                           |aξ||α| |c
+                                                                    ue (aξ)|dξ
+                                                      M
+                                                 |ξ|≤ 2R
+                                   Z                                             !p
+                         p(1−r)          (1 + |aξ|)m           |α|
+                    .M                             m
+                                                     (1 + |aξ|) |c ue (aξ)|dξ
+                                      M (1 + |aξ|)
+                                 |ξ|≤ 2R
+                              Z                      p/q
+                                               −qm
+                    .M p(1−r)
+                                    (1 + |aξ|)     dξ      kukpBp    (Ω)
+                                                                       |α|+m
+                                 Rd
+                    .M p(1−r)
+                              kukpBp     (Ω)
+                                             .
+                                   |α|+m
+
+
+
+Summing over all |α| ≤ k, we obtain
+
+(3.9)                    uM − uM
+                               e W k,p (Ω)
+                                           . M 1−r kukBk+m
+                                                       p
+                                                           (Ω) .
+
+
+Thus, combining (3.8) and (3.9) via the triangle inequality, we conclude the estimate
+(3.6) immediately.
+     Lemma 3.6. Let (Ω, F , µ) be a bounded measure space and (D, B, P) be a prob-
+ability space. Let Xi : D × Ω → C, (i = 1, . . . , N ) be i.i.d. random ﬁelds which are
+measurable with respect to the product σ-algebra B ⊗ F . Assume that for each x ∈ Ω,
+the maps Xi (·, x) :hD → C, i =i 1, . . . , N are i.i.d. random variables on (D, B, P), and
+                                                                  R
+for p ∈ [2, ∞), E kX1 kpLp (Ω) < ∞, where kX1 kpLp (Ω) = Ω |X1 (·, x)|p dµ(x). Then
+the following estimate holds:
+                                        
+                        XN                           Z                              p1
+                     1                       Cp                           p
+       E E [X1 ] −          Xi              ≤ 1/2         E [|E [X1 ] − X1 | ] dµ(x)     ,
+                      N i=1       p
+                                              N         Ω
+                                  L (Ω)
+
+where Cp > 0 depends only on p.
+    The proof of Lemma 3.6 can be found in Appendix A. Based on the lemmas
+and assumptions established above, we now establish the following approximation
+theorem:
+    Theorem 3.7. Suppose that Assumptions 3.1 and 3.2 hold, and assume that the
+                     p
+target function u ∈ Bk+m (Ω) for p ≥ 2, m ≥ 0 and an integer k ≥ 0, with m >
+                                                                        p
+p−1
+ p d.   Then, when the truncation parameter M ≍ N 2[(p−1)(d+1)+pη] , the following
+error estimate holds:
+                 h                   i                         pη
+                       A,B                            − 2[(p−1)(d+1)+pη]
+(3.10)         E ku − UW   kW k,p (Ω) . kukBk+m
+                                            p
+                                                (Ω) N                    ,
+
+         A,B
+where UW      is deﬁned in (2.1) with parameters (Ai , Bi ), i = 1, . . . , N , sampled
+i.i.d. from
+            the  uniform distribution over the bounded set Gξ (M ) × Gs (M ), and
+η = min m − p−1
+             p d, r − 1 .
+
+    Proof. First, we reformulate the truncated function uM deﬁned in (3.5) as an
+expectation with respect to a probability measure:
+
+(3.11)                      uM (x) = Eπe [f (ξ, s)σ(ξ · x + s)] ,
+10                               RAN BI AND WEIBING DENG
+
+
+where πe denotes the uniform probability measure on the set Gξ (M ) × Gs (M ), πM is
+the corresponding uniform probability density function, i.e.,
+
+                                                      1             2d−1 Γ(d/2 + 1) Rd
+     de
+      π (ξ, s) = πM dξds with πM =                                =                      ,
+                                              |Gξ (M )| |Gs (M )|         π d/2    M d+1
+
+
+and the coeﬃcient function is given by
+
+                                      f (ξ, s) = β(ξ, s)/πM .
+
+
+Deﬁne the random vector
+                                                                    1
+                          W = (W1 , . . . , WN ),          Wi =       f (Ai , Bi ).
+                                                                    N
+
+
+Then the corresponding RaNN function is given by
+                                                  N
+                                                  X
+                                A,B
+                               UW   (x) =               Wi σ(Ai · x + Bi ).
+                                                  i=1
+
+
+
+For each ﬁxed x ∈ Ω, deﬁne the random variables
+
+                      Xi (x) := f (Ai , Bi )σ(Ai · x + Bi ),                i = 1, . . . , N.
+
+
+For all multi-indices α with |α| ≤ k, the Xi (x) are i.i.d. and satisfy
+
+                                     E [∂xα Xi (x)] = ∂xα uM (x).
+
+
+Then it follows from Lemma 3.6 that
+
+
+                                                           Z         h                       i     1/p
+                               A,B                  Cp                                      p
+(3.12)   E       ∂xα uM − ∂xα UW                  ≤ 1/2             E       ∂xα uM − ∂xα X1         dx     .
+                                     Lp (Ω)        N            Ω
+
+
+
+To bound the right-hand side, we ﬁrst estimate the pointwise expectation. By Jensen’s
+inequality, we have
+
+                  h                p
+                                     i                                     
+                 E ∂xα uM − ∂xα X1     ≤ 2p−1 E |∂xα uM |p + E [|∂xα X1 |p ]
+(3.13)                                                                  p
+                                           = 2p−1 (|E[∂xα X1 ]| + E [|∂xα X1 |p ])
+                                           ≤ 2p E [|∂xα X1 |p ] .
+                  ADAPTIVE PIRANNS WITH A POU FOR SOLVING PDES                                                          11
+
+Further, from Lemma 3.4 with l = p and the fact that 1 < pm, it follows that
+    E [|∂xα X1 |p ] = E [|f (ξ, s) ∂xα σ(ξ · x + s)|p ]
+                        "               d
+                                                          !                     p#
+                                       Y    −αi        αi     (|α|)
+                    = E f (ξ, s)          a     (aξi )      σ       (ξ · x + s)
+                                          i=1
+                      Z          Z                                                          p
+                  .                             f (ξ, s)(1 + |aξ|)|α| σ (|α|) (ξ · x + s) πM ds dξ
+                       Gξ (M )       Gs (M )
+                            Z             Z                                                        p
+                     1−p
+                  = πM                                  (1 + |aξ|)|α| β(ξ, s)σ (|α|) (ξ · x + s)       ds dξ
+                                Gξ (M )       Gs (M )
+                            Z                                             Z                                 p
+                     1−p
+                  . πM                    (1 + |aξ|)p|α|+1 |c
+                                                            ue (aξ)|p                 σ (|α|) (ξ · x + s)       ds dξ
+                             Gξ (M )                                        Gs (M )
+                            Z
+                     1−p
+                  . πM                    (1 + |aξ|)p|α|+pm |c
+                                                             ue (aξ)|p dξ
+                             Gξ (M )
+
+                  . M (p−1)(d+1) kukpBp                  (Ω)
+                                                               .
+                                                 |α|+m
+
+
+Therefore, integrating (3.13) over Ω and taking the p-th root gives
+             Z       h                 i 1/p
+                                      p           (p−1)(d+1)
+                     E ∂xα uM − ∂xα X1 dx      .M     p      kukB|α|+m
+                                                                 p
+                                                                       (Ω) .
+                 Ω
+
+Thus, summing over all multi-indices with |α| ≤ k and combining with (3.12) yields
+                                    
+                                            (p−1)(d+1)     1
+                 M      A,B
+            E u − UW                   .M       p      N − 2 kukBk+m
+                                                                 p
+                                                                     (Ω) .
+                                               W k,p (Ω)
+
+Finally, applying Minkowski’s inequality and Lemma 3.5 yields the estimate
+                                                                              
+                 A,B                     M                    M   A,B
+       E u − UW                  ≤ ku − u kW k,p (Ω) + E u − UW
+                     W k,p (Ω)                                         W k,p (Ω)
+                                            (p−1)(d+1)     1
+                                                              
+                                 . M −η + M        p    N − 2 kukBk+m
+                                                                  p
+                                                                      (Ω) .
+
+                                                                                                            p
+Balancing the two terms by choosing M optimally, i.e., M ≍ N 2[(p−1)(d+1)+pη] , we
+obtain the ﬁnal error estimate (3.10).
+    Corollary 3.8. Let Ω be a bounded Lipschitz domain in Rd and suppose that
+the same assumptions as in Theorem 3.7 hold. Then we have the following estimate:
+                                   
+                                                           η
+                           A,B
+                 E u − UW        k
+                                      . kukH k+m (Ω) N − d+2η+1 ,
+                                                  H (Ω)
+
+       A,B                                                    
+where UW   is deﬁned as in Theorem 3.7, η = min m − d2 , r − 1 and m > d2 .
+   Proof. By the deﬁnition of the generalized Barron spectral norm (2.5) and the
+Extension Theorem (see [1]), we have
+                                   Z                             
+                                                             2
+               kuk2B2 (Ω) = inf          (1 + |ξ|)k+m |c
+                                                       ue (ξ)| dξ
+                          k+m               ue |Ω =u       Rd
+                                        .       inf kue k2H k+m (Rd ) . kuk2H k+m (Ω) .
+                                            ue |Ω =u
+
+The desired estimate then follows directly from Theorem 3.7 with p = 2.
+12                          RAN BI AND WEIBING DENG
+
+
+    In the following theorem, we establish an improved convergence rate over Theo-
+rem 3.7 by employing a stratiﬁed sampling strategy. Compared with Theorem 3.7, the
+argument requires stronger regularity of both the target function and the activation
+function. In particular, one additional order of regularity and decay is imposed on
+the activation function. The precise assumptions are stated explicitly in the theorem
+below.
+                                                                     1,p
+     Theorem 3.9. Suppose that Assumption 3.1 holds and that u ∈ Bk+m    (Ω), where
+                                             p−1
+p ∈ [2, ∞), k ≥ 0 is an integer, and m > p d. Let σ : R → R be a nonzero
+activation function. Assume that, for some r > 1, σ ∈ W k+1,∞ (R), and that there
+exists a constant Cr > 0 such that σ (ν) (t) ≤ Cr (1 + |t|)−r for every integer 0 ≤
+                                                    p(d+3)
+ν ≤ k + 1. Then, if the parameter M ≍ N 2(d+1)[(p−1)(d+1)+p+pη] , there exists a RaNN
+approximation U[
+               A,B
+                 W   whose parameters are sampled from the bounded set G (M ) ×  ξ
+Gs (M ) and which satisﬁes the following estimate:
+                                    
+                       [                                      pη(d+3)
+(3.14)        E ku − UW kW k,p (Ω) . kukB1,p (Ω) N − 2(d+1)[(p−1)(d+1)+p+pη] ,
+                        A,B
+                                              k+m
+
+
+                              
+where η = min m − p−1
+                   p  d, r − 1  .
+    The proof of this theorem is similar to that of Theorem 3.7. The proof is provided
+in Appendix B for the convenience of the reader.
+    Remark 3.10. The approximation theorems established in Theorems 3.7 and 3.9
+exhibit a complex dependence on multiple parameters, such as the decay rate r of the
+activation function and the smoothness of the target function u, which is characterized
+by the generalized Barron spectral norm (2.5). Taking p = 2 and letting η → ∞ (i.e.,
+assuming that u is suﬃciently smooth and the activation function σ decays rapidly),
+we obtain the following asymptotic rates:
+                                                                          
+        Theorem 3.7: O N −1/2       and Theorem 3.9: O N −1/2−1/(d+1) .
+
+This result demonstrates that the obtained rates match the optimal approximation
+rates established in the seminal works of Barron and Xu et al. for SLFNs (see [34]).
+This implies that for suﬃciently smooth functions, restricting the sampling set and
+directly approximating the truncated function uM is justiﬁed. However, if the target
+function u lacks suﬃcient smoothness, the approximation by RaNNs under uniform
+sampling will inevitably deteriorate and further suﬀer from the curse of dimensionality
+through the explicit dependence on d.
+    Remark 3.11. Theorems 3.7 and 3.9 explain the relationship between the sam-
+pling set Gξ (M ) × Gs (M ) and the target function u for achieving optimal approxi-
+mation when using RaNNs. Taking Theorem 3.7 as an example, the optimal rate is
+attained when
+                                             p
+                               M ≍ N 2[(p−1)(d+1)+pη] .
+For a ﬁxed RaNN architecture (i.e., for a ﬁxed number of neurons N ), the smaller
+η is, the larger M must be, implying that less smooth functions require a broader
+parameter sampling set to achieve optimal approximation. This provides practical
+guidance for tailoring the sampling strategy to the inherent regularity of the target
+function u.
+                 ADAPTIVE PIRANNS WITH A POU FOR SOLVING PDES                               13
+
+    4. Adaptive RaNN method. As noted in Remark 3.11, approximating non-
+smooth target functions u with RaNNs requires both a suﬃciently large parameter
+sampling range (i.e., a suﬃciently large M ) and a suﬃciently large number of neurons
+N to achieve satisfactory accuracy. However, many functions exhibit strong local
+features—such as regions with sharp gradients—where globally increasing the number
+                                                     N
+of uniformly sampled random basis functions {φi }i=1 is computationally ineﬃcient.
+Inspired by adaptive ﬁnite element methods, which reﬁne local meshes to eﬀectively
+capture local solution characteristics, we develop in this section an adaptive RaNN-
+based algorithm for accurately solving PDEs.
+     4.1. RaNNs with PoU. To enable the RaNNs to eﬀectively capture local fea-
+tures of the target function u, we introduce a PoU. Speciﬁcally, for a bounded domain
+Ω ⊂ Rd that can be covered by the closures of a ﬁnite collection of non-overlapping
+                        n                          n
+open cubes Pn = {ωj }j=1 , we deﬁne a PoU {ψj }j=1 as follows. For any point x ∈ Ω,
+            
+let I(x) = j x ∈ ωj be the set of indices of cubes whose closures contain x. Then
+we set
+                           
+                            1 ,         if j ∈ I(x),
+(4.1)             ψj (x) = #I(x)                      j = 1, 2, . . . , n.
+                           
+                             0,          otherwise,
+
+We then introduce a reference element ωref = [−1, 1]d, which induces an aﬃne trans-
+formation Tj mapping each physical element ωj to ωref . On the reference element, we
+                                          N
+generate a family of basis functions {φi }i=1 by sampling from a probability distribu-
+tion ρ. The resulting RaNNs with PoU can be written as
+
+                             XX         n     N
+                    U]
+                     A,B
+                     W (x) =    Wi,j ψj (x)φi (Tj (x))
+                                    j=1 i=1
+(4.2)
+                                    n X
+                                    X N
+                                =                 Wi,j ψj (x)σ (Ai · Tj (x) + Bi ) .
+                                    j=1 i=1
+
+Alternatively, one may generate independent parameter sets for each subdomain, lead-
+ing to the more general expression
+
+                            XX      n       N
+(4.3)              U]
+                    A,B
+                    W (x) =    Wi,j ψj (x)σ (Ai,j · Tj (x) + Bi,j ) ,
+                                j=1 i=1
+
+
+where (Ai,j , Bi,j ), i = 1, . . . , N , j = 1, . . . , n, are uniformly sampled from Gξ (M ) ×
+Gs (M ) for each i, j.
+                                                                           Sn
+    Given a partition Pn of Ω, we set Ωj = ωj ∩ Ω, so that Ω = j=1 Ωj . The RaNNs
+with PoU thus deﬁne a piecewise function on Ω. To later assess the continuity and
+regularity across subdomain interfaces, we introduce the following notation: let E I
+denote the set of interior edges (or faces) between adjacent subdomains Ωj within Ω,
+and let E D denote the set of boundary edges where ∂Ω ∩ ∂Ωj 6= ∅. For an interior
+edge Γ ∈ E I shared by Ω1 and Ω2 , the jump of a function v across Γ is deﬁned as
+
+                   [v]Γ (x) =           lim       v(y) −     lim      v(y),   x ∈ Γ.
+                                y→x,y∈Ω1                   y→x,y∈Ω2
+14                                RAN BI AND WEIBING DENG
+
+                                                                        ψj (x)ϕi (j (x))
+
+
+
+                                 j (x)       ωj
+                 ωref
+
+                                                                                   ωj
+
+     Fig. 1. Schematic diagram of two-dimensional local basis functions for the PoU-based RaNN.
+
+
+    4.2. Adaptive PIRaNNs for solving PDEs. For the RaNNs with a PoU
+(4.3), the basis functions
+
+                                 {ψj (x)σ (Ai,j · Tj (x) + Bi,j )}
+
+are generated on the reference element ωref , where the parameters are drawn uniformly
+from the given set
+                          (Ai,j , Bi,j ) ∼ U (Gξ (M ) × Gs (M )) .
+On the physical element ωj , the inner-layer parameters of the basis functions take the
+form
+                    Ai,j · Tj (x) + Bi,j = Ai,j · (Aj x + bj ) + Bi,j ,
+where Aj ∈ Rd×d and bj ∈ Rd are associated with the aﬃne mapping Tj . Conse-
+quently, (4.3) can be rewritten as follows:
+                                 n X
+                                 X N                            
+                        ]A,B                       g         g
+(4.4)                   UW (x) =     Wi,j ψj (x)σ Ai,j · x + Bi,j ,
+                                    j=1 i=1
+
+
+where (A g      g
+          i,j , Bi,j ) = (Ai,j ·Aj , Bi,j + Ai,j ·bj ). When the physical element ωj is smaller
+                                                        
+than the reference element, the parameters (A             g     g
+                                                          i,j , Bi,j ) are eﬀectively scaled and
+shifted relative to the original sampling set. This implies that a ﬁner partition (i.e.,
+one yielding smaller physical subdomains) corresponds to a locally enlarged eﬀective
+sampling range for the RaNN basis functions. This mechanism perfectly aligns with
+the theoretical ﬁndings presented in Section 3, which demonstrate that resolving fea-
+tures with lower regularity—such as large local gradients or singularities—inherently
+requires a broader sampling range. The construction of the local basis functions is
+illustrated in Fig. 1.
+     Therefore, in regions where the target function u exhibits limited local smooth-
+ness, reﬁning the PoU enables the RaNNs to resolve local features more eﬀectively.
+This reformulation transforms the original challenge—namely, how to construct ap-
+propriate local basis functions under a uniform sampling distribution that must adapt
+to the smoothness of u—into the more tractable problem of designing a suitable par-
+tition of the domain Ω. The latter is considerably more straightforward to implement
+in practice. Moreover, the construction of the PoU can be informed by a posteriori
+error estimates of the approximate solution, thereby providing a foundation for an
+adaptive computational strategy.
+    Remark 4.1. We emphasize that although the analysis in Section 3 elucidates the
+dependence of the sampling parameter M on the smoothness of the target function,
+                ADAPTIVE PIRANNS WITH A POU FOR SOLVING PDES                            15
+
+it does not provide an explicit criterion for selecting M . To address this, here we
+establish a link between the eﬀective sampling range and the mesh size of the PoU
+grid. In doing so, the local sampling parameter M is determined adaptively as a
+consequence of adaptive mesh reﬁnement.
+    To introduce the adaptive method, we need to assume that there exist local error
+indicators {ηj }nj=1 , computable from the numerical solution on each subdomain Ωj ,
+                                                                              ]A,B
+j = 1, · · · , n. The indicators provide an upper bound for the error e = u − UW   in
+the normed space X. Speciﬁcally, there exists a constant C > 0, depending only on
+the partition, such that
+                                  n
+                                  X                n
+                                                   X
+(4.5)                                   kekX ≤ C         ηj .
+                                  j=1              j=1
+
+    Based on the above assumption, the standard adaptive ﬁnite element method for
+solving PDEs proceeds through iterations of the form
+
+(4.6)                     Solve → Estimate → Mark → Reﬁne.
+
+    Following this paradigm, we propose an adaptive PIRaNN algorithm, detailed
+below. The procedure begins with an initial, uniform partition of unity P0 . For each
+adaptive iteration k = 0, 1, 2, . . . , the following steps are performed:
+      • Solve: Construct and train a PIRaNN approximation uk on the current
+         partition Pk by solving the PDE.
+      • Estimate: Compute local error indicators ηj for each element Ωj derived
+         from the numerical solution uk .
+      • Mark: Identify a set of elements Pbk ⊆ Pk to be reﬁned. In this work, we
+         employ the Dörﬂer marking strategy [11]: given a parameter 0 < θ ≤ 1, mark
+         elements such that
+                                               ηPbk ≥ θ ηPk ,
+                      P                            P|Pk |
+         where ηPbk = ωj ∈Pbk ηj and ηPk = j=1            ηj .
+      • Reﬁne: Bisect (or otherwise reﬁne) all marked elements in P        bk to generate a
+         new, ﬁner partition Pk+1 .
+This iterative process is repeated until a stopping criterion is met. The result is
+an automatically adapted PoU that dynamically aligns with the regularity of the
+PDE solution u, enabling the PIRaNN to eﬃciently and accurately capture its local
+features.
+    Remark 4.2. To illustrate the adaptive PIRaNN algorithm in a concrete setting,
+we consider the following Poisson equation with a Dirichlet boundary condition:
+
+                                  −∆u = f,         in Ω,
+(4.7)
+                                    u = g,         on ∂Ω,
+
+where Ω ⊂ Rd is a bounded Lipschitz domain. For a given partition Pn of the domain
+Ω, the global problem (4.7) is equivalent to solving the following Poisson equation
+locally on each Ωj :
+
+                                −∆uj = f,          in Ωj ,
+(4.8)
+                                  uj = gj ,        on ∂Ωj ,
+16                               RAN BI AND WEIBING DENG
+
+
+where the boundary data gj is given by
+                                  (
+                                    g,                  on ∂Ω,
+(4.9)                        gj =
+                                    γvj ,               otherwise,
+
+where γ is the trace operator and vj represents the solution function on the subdo-
+mains adjacent to Ω . Let e = u − U]
+                         j
+                                       A,B
+                                           . Substituting e into (4.8) and applying
+                                                  W
+standard energy estimates, we readily obtain the following local energy estimate:
+                                                                          !
+(4.10)       kek 1    ≤C      f + ∆U ] A,B
+                                                  + g −U   ] A,B
+                                                                             .
+                    H (Ωj )                       W                        j        W
+                                                        L2 (Ωj )                        H 1/2 (∂Ωj )
+
+Therefore, summing the local estimates over all elements according to the deﬁnition
+of gj in (4.9), we obtain the global piecewise energy estimate as follows:
+              n
+              X                      n
+                                     X                                    X ]    
+                    kekH 1 (Ωj ) .         f + ∆U]
+                                                 A,B
+                                                 W                      +     A,B
+                                                                             UW
+              j=1                    j=1                     L2 (Ωj )     Γ∈E I             Γ H 1/2 (Γ)
+(4.11)
+                                               X
+                                           +           U]
+                                                        A,B
+                                                        W   −g                      .
+                                               Γ∈E D                    H 1/2 (Γ)
+
+
+Inequality (4.11) implies that the piecewise H 1 error of the neural network approxi-
+mation vanishes as its right-hand side tends to zero. This makes the right-hand side
+of (4.11) naturally suitable as an a posteriori error estimator. We thus deﬁne the
+local error indicator ηj as
+                                                                                 !
+                     ] A,B
+                                     X       ] A,B                   ]A,B
+(4.12) ηj = f + ∆UW              +          JUW KΓ          + β J∇UW KΓ            ,
+                               L2 (Ωj )    Γ∈∂Ωj                         L2 (Γ)                        L2 (Γ)
+
+
+where
+                                      
+                                       ]A,B
+                                      UW − g,                      Γ ⊂ ∂Ω,
+                              ]
+(4.13)                       JUW KΓ := 
+                               A,B            
+                                       U]
+                                         A,B
+                                          W     ,                   otherwise.
+                                                         Γ
+
+We substitute the H 1/2 (Ωj ) norm with the L2 (Γ) norm of the derivatives within the
+local error indicator ηj , given the computational challenges associated with evaluating
+fractional-order Sobolev norms. Moreover, to mitigate the excessive dominance of the
+  J∇U]
+     W
+       A,B
+          ΓK        in the a posteriori error estimate, we introduce a scaling factor
+              L2 (Γ)
+β = diam(Ωj ) as a penalty parameter for Γ ∈ E I .
+     5. Numerical results. In this section, we present several numerical examples
+to validate the theoretical ﬁndings and demonstrate the performance of the adaptive
+PIRaNN method for solving PDEs. The linear least-squares problem arising from (2.3)
+is solved using the lsqminnorm function in MATLAB, while the Levenberg–Marquardt
+algorithm is employed for nonlinear cases. All computations are performed on a single
+                                                                             A,B
+Intel Core i7-8700 CPU (3.20 GHz). The errors of the numerical solutions UW      (2.1)
+or U]A,B
+         (4.4) obtained using the PIRaNN method, as well as the local error indicators
+     W
+                ADAPTIVE PIRANNS WITH A POU FOR SOLVING PDES                                       17
+
+ηj , are evaluated numerically using a 10 × 10-point Gaussian quadrature rule for two-
+dimensional examples, and a 5 × 5 × 5-point rule for three-dimensional ones. For the
+Poisson equation, we employ (4.12) as the a posteriori error indicator. The deﬁnition
+of the loss function for solving PDEs (2.2) with (4.4) is given by
+                           2                                            2
+                   ]A,B                                           ]A,B
+         L(W ) = D UW     −f                         + λ∂Ω      B UW     −g
+                                          L2 (Ω)                                 L2 (∂Ω)
+(5.1)                 X                             2                           2        
+                  +           λΓ,1        U]
+                                           A,B
+                                           W                    + λΓ,2        ]A,B
+                                                                             ∇UW               ,
+                      Γ∈E I                          Γ L2 (Γ)                        Γ L2 (Γ)
+
+
+where λ∂Ω , λΓ,1 and λΓ,2 are penalty parameters. For the linear case, the penalty
+parameters can be chosen following [5] in general. In the nonlinear case considered
+here, we set λ∂Ω = λΓ,1 = 100 and λΓ,2 = 10.
+    For all subsequent numerical examples, the function tanh(x + 0.5) − tanh(x − 0.5)
+is employed as the activation function. The RaNN local basis functions {φi }N     i=1 in
+(4.2) are generated on the reference element ωref exactly as described in Section 3. We
+                            d
+set R = 1, i.e., Gξ (M ) = BM/2 (0) and Gs (M ) = [−M, M ]. To sample the parameters
+     N                           d
+{Ai }i=1 uniformly on the ball BM/2  (0), we utilize the standard Gaussian distribution
+in R . The complete sampling procedure can be expressed as
+     d
+
+
+
+                                     M 1/d Yi
+(5.2)                     Ai =        r         ,            i = 1, . . . , N,
+                                     2 i kYi k2
+
+where Yi are i.i.d. standard Gaussian samples in Rd , and ri are i.i.d. uniform samples
+on [0, 1]. This sampling scheme ensures that each Ai is distributed uniformly on the
+       d
+ball BM/2  (0).
+   Example 1. Consider the following 2D Helmholtz equation deﬁned in the domain
+Ω = [−0.5, 0.5]2 with an impedance boundary condition:
+
+                               −∆u − k 2 u = f,                  in Ω,
+(5.3)                           ∂u
+                                   − iku = g,                    on ∂Ω,
+                                ∂ν
+            √
+where i = −1 denotes the imaginary unit and ν denotes the unit outward normal
+to ∂Ω. The source term f and boundary condition g are chosen such that the exact
+solution is
+                              cos(kr)    cos(k) + i sin(k)
+(5.4)                  u=             −                      J0 (kr),
+                                 k      k (J0 (k) + iJ1 (k))
+                                                                            p
+where Ja denotes the Bessel function of the ﬁrst kind of order a, and r = x2 + y 2 .
+For every ﬁxed k, the exact solution is analytic in Ω. Increasing k therefore increases
+the oscillation frequency.
+     We ﬁrst examine the inﬂuence of the truncation parameter M across two wavenum-
+bers, k = 16 and k = 32, and two network sizes, N = 500 and N = 1000. To account
+for random initializations, we perform 10 independent numerical experiments using
+diﬀerent random seeds. Figure 2 displays the error and residual curves from these ten
+trials as functions of the truncation parameter M for diﬀerent wavenumbers k and
+18                             RAN BI AND WEIBING DENG
+
+
+
+
+                     (a)                                             (b)
+
+
+
+
+                     (c)                                             (d)
+     Fig. 2. Error and residual curves as functions of the truncation parameter M for diﬀerent
+wavenumbers k and numbers of neurons N , without the use of a PoU. Left column: N = 500; right
+column: N = 1000. Top row: k = 16; bottom row: k = 32. The curves show the means over ten
+independent numerical experiments, and the shaded regions indicate one standard deviation.
+
+
+
+numbers of neurons N , without using a PoU. As shown in Fig. 2, the RaNN achieves
+its best approximation accuracy only for an appropriately chosen M ; moving away
+from this favorable range degrades performance. The location of this range depends
+on both the oscillatory scale of the target function and the number of neurons. For
+k = 16 and N = 500, the best-performing value is approximately M = 1.2 (Fig. 2(a)),
+whereas increasing the wavenumber to k = 32 shifts it to approximately M = 1.7
+(Fig. 2(c)). Increasing the network size to N = 1000 further shifts the favorable value
+upward, to approximately M = 1.5 for k = 16 (Fig. 2(b)) and to a correspondingly
+larger value for k = 32 (Fig. 2(d)). These results show that, within this analytic fam-
+ily of solutions, the eﬀective sampling range depends jointly on the spectral content
+of the target function and the network size.
+     We next assess the eﬃcacy of the PoU augmentation strategy proposed in Sec-
+tion 4.2. Here, RaNN basis functions are generated on a reference element ωref with
+a ﬁxed sampling parameter M and mapped aﬃnely to each physical subdomain. For
+k = 32, using a 2 × 2 PoU in conjunction with the RaNN deﬁned in (4.3), the favor-
+able local truncation parameter is reduced to M ≈ 1 (see Fig. 3). This observation
+supports the aﬃne-scaling mechanism described in Section 4.2: reducing the phys-
+                 ADAPTIVE PIRANNS WITH A POU FOR SOLVING PDES                                 19
+
+
+
+
+    Fig. 3. Error and residual curves for diﬀerent truncation parameters M with a 2 × 2 PoU. The
+curves show the means over ten independent numerical experiments, and the shaded regions indicate
+one standard deviation.
+
+
+ical element size enlarges the eﬀective local parameter range. It therefore provides
+numerical motivation for controlling the local approximation scale through adaptive
+reﬁnement of the PoU.
+    Example 2. Consider a two-dimensional Poisson equation posed on the domain
+Ω = [0, 1]2 . The exact solution is as follows:
+                                                              
+(5.5)               u(x, y) = exp −1000 (x − 0.5)2 + (y − 0.5)2 .
+
+      In this example, we adopt the Dörﬂer marking strategy to drive the adaptive
+reﬁnement. The Poisson equation is solved using adaptive PIRaNNs with a ﬁxed
+sampling parameter M = 2 and N = 100 basis functions on the reference element
+ωref . The initial PoU is chosen as a uniform 4 × 4 grid. To assess the stability of the
+algorithm, we test three diﬀerent marking parameters: θ = 0.6, 0.7, and 0.8. The
+parameter θ primarily inﬂuences the rate at which the mesh is reﬁned, with larger
+values leading to more aggressive reﬁnement.
+      The numerical results are presented in Fig. 4. Subﬁgures (a) and (b) correspond
+to θ = 0.6, showing the error convergence curve and the resulting adapted PoU grid,
+respectively. Subﬁgures (c) and (d) show the results for θ = 0.7, whereas subﬁgures
+(e) and (f) show those for θ = 0.8. As expected, the adapted grids exhibit strong
+local reﬁnement near the point (0.5, 0.5), consistent with observations from adaptive
+ﬁnite element methods. This behavior aligns with our earlier analysis: regions where
+the solution u has large local gradients can be eﬀectively resolved by reﬁning the PoU
+locally, enabling the RaNN to capture ﬁne-scale features more accurately.
+      An interesting distinction between the proposed RaNN-based approach and tradi-
+tional adaptive ﬁnite elements lies in the convergence behavior. In Fig. 4, we observe
+that the convergence rates of the L2 (Ω) and H 1 (Ω) errors are nearly identical. This
+is consistent with the theoretical analysis in Section 3. In contrast, standard ﬁnite
+element approximations, which rely on piecewise polynomial bases, typically exhibit
+a reduction in convergence order when approximating derivatives. The RaNN, em-
+ploying non-polynomial representations, avoids such order reduction and maintains
+uniform convergence rates across diﬀerent Sobolev norms.
+      Because the approximation space employed by the PIRaNN method is linear,
+the adaptive algorithm only requires solving a linear least-squares problem at each
+iteration. This fundamentally circumvents the computationally expensive nonlinear
+20                                                                RAN BI AND WEIBING DENG
+
+                                                                                                                    Adaptive PoU
+      4                                                                                              1
+                                                                          L2 error
+                                                                                                    0.9
+                                                                          H1 error
+      2                                                                   Residual
+                                                                                                    0.8
+                                                                          Error indicator
+
+                                                                                                    0.7
+      0
+                                                                                                    0.6
+
+
+
+
+                                                                                                Y
+      -2                                                                                            0.5
+
+                                                                                                    0.4
+      -4
+                                                                                                    0.3
+
+                                                                                                    0.2
+      -6
+                                                                                                    0.1
+
+      -8                                                                                             0
+           1   2           3            4       5        6            7                8    9             0   0.2   0.4       0.6   0.8   1
+                                       Number of iterations                                                               X
+
+
+                                            (a)                                                                       (b)
+
+                                                                                                                    Adaptive PoU
+      4                                                                                              1
+                                                                          L2 error
+                                                                                                    0.9
+      2                                                                   H1 error
+                                                                          Residual
+                                                                                                    0.8
+                                                                          Error indicator
+      0                                                                                             0.7
+
+                                                                                                    0.6
+      -2
+                                                                                                Y
+
+
+
+
+                                                                                                    0.5
+      -4
+                                                                                                    0.4
+
+      -6                                                                                            0.3
+
+                                                                                                    0.2
+      -8
+                                                                                                    0.1
+
+     -10                                                                                             0
+           1       2           3            4        5            6                7        8             0   0.2   0.4       0.6   0.8   1
+                                       Number of iterations                                                               X
+
+
+                                            (c)                                                                       (d)
+
+                                                                                                                    Adaptive PoU
+      4                                                                                              1
+                                                                          L2 error
+                                                                           1                        0.9
+      2                                                                   H error
+                                                                          Residual
+                                                                                                    0.8
+                                                                          Error indicator
+      0                                                                                             0.7
+
+                                                                                                    0.6
+      -2
+                                                                                                Y
+
+
+
+
+                                                                                                    0.5
+      -4
+                                                                                                    0.4
+
+      -6                                                                                            0.3
+
+                                                                                                    0.2
+      -8
+                                                                                                    0.1
+
+     -10                                                                                             0
+           1           2           3            4             5                6            7             0   0.2   0.4       0.6   0.8   1
+                                       Number of iterations                                                               X
+
+
+                                            (e)                                                                       (f)
+     Fig. 4. Convergence curves and adaptive PoUs for the adaptive PIRaNNs. (a), (b): θ = 0.6;
+(c), (d): θ = 0.7; (e), (f ): θ = 0.8.
+
+
+
+
+optimization procedures typically required by standard PINNs. Consequently, the
+primary computational costs per iteration consist of assembling the global matrix H
+and vector T , solving the resulting linear least-squares system, computing the local
+error indicators ηj , and executing the local mesh reﬁnement alongside topological
+updates. In terms of memory overhead, the primary footprint arises from storing
+                  ADAPTIVE PIRANNS WITH A POU FOR SOLVING PDES                                     21
+
+H and T , in addition to the memory allocated by the solver during the solution
+of the least-squares problem (2.3). Crucially, the integration of the PoU strategy
+ensures that the global coeﬃcient matrix H is highly sparse, which inherently keeps
+the peak memory consumption strictly manageable. For this example, the wall-clock
+computational times for the ﬁrst six iterations, using a reﬁnement parameter θ = 0.8,
+are detailed in Table 1 (in seconds).
+
+                                         Table 1
+    Example 2: Number of elements and computational time (in seconds) for each iteration of the
+adaptive PIRaNN.
+
+   No. of Iter    No. of elements      Assembly      Solve    Indicator    Reﬁnement       Total
+         1                16              0.21       0.23        0.06          0.17         0.67
+         2                28              0.11       0.39        0.02          0.10         0.62
+         3                43              0.15       0.68        0.02          0.03         0.88
+         4                67              0.26       1.23        0.04          0.06         1.59
+         5               109              0.45       2.14        0.05          0.12         2.76
+         6               202              0.81       4.88        0.09          0.45         6.23
+
+
+
+
+      Fig. 5. Convergence histories of the errors and residuals with respect to the number of degrees
+of freedom (DoFs) for the Adaptive PIRaNN, Fixed PIRaNN, and Uniform PIRaNN methods.
+
+
+    To demonstrate the computational eﬃciency of the adaptive PIRaNN method in
+resolving problems with steep local gradients or localized singularities, we compare it
+against two non-adaptive baselines:
+      • Fixed PIRaNN: Employs a ﬁxed 4×4 PoU mesh while progressively increasing
+        the number of local basis functions per element.
+      • Uniform PIRaNN: Applies uniform mesh reﬁnement across the entire com-
+        putational domain while keeping the number of basis functions per element
+        constant.
+22                                       RAN BI AND WEIBING DENG
+
+
+The decay curves of the errors and residuals with respect to the number of degrees of
+freedom (DoFs) for all three methods are illustrated in Fig. 5. As can be observed,
+the adaptive PIRaNN method yields the highest accuracy for the same number of
+DoFs, which implies that it can eﬀectively reduce computational costs to reach a
+target accuracy. Notably, for the method with the ﬁxed mesh, the error increases
+instead of decreasing. This is because an excessive number of local basis functions
+with poor orthogonality leads to a rapid growth in the condition number of the matrix
+H, ultimately inducing numerical instability. Furthermore, the sampling range of the
+                                      N
+hidden-layer parameters {(Ai , Bi )}i=1 is too narrow, causing the basis functions to
+fail to capture features with large local gradients. This phenomenon is consistent with
+the theoretical analysis in Section 3 and aligns with Example 1.
+    Example 3. Consider a three-dimensional Poisson equation posed on Ω = [0, 0.5]3
+whose exact solution is
+                                                                     
+(5.6)      u(x, y, z) = exp −1000 (x − 0.5)2 + (y − 0.5)2 + (z − 0.5)2 .
+     In this test, we again employ the Dörﬂer marking strategy with a reﬁnement pa-
+rameter θ = 0.7. The number of basis functions generated on the reference element is
+ﬁxed at N = 200, and the initial PoU is taken as a uniform 2 × 2 × 2 grid. The numer-
+ical results are presented in Fig. 6. As shown, the PoU grid becomes highly reﬁned
+near the point (0.5, 0.5, 0.5). Notably, the observed convergence rate is lower than that
+observed in the two-dimensional example (Fig. 4), suggesting that the performance of
+uniformly sampled PIRaNNs may be inﬂuenced by the dimension d. This observation
+is consistent with the theoretical expectation that higher-dimensional problems pose
+challenges for approximation, even within the RaNN framework. As established in
+Theorems 3.7 and 3.9, the exponent in the convergence rate with respect to the num-
+ber of neurons N scales as O(1/d) with respect to the spatial dimension d. However,
+for functions with suﬃcient smoothness, the adverse eﬀect of dimensionality on the
+convergence rate is signiﬁcantly alleviated, as shown in Remark 3.10.
+
+     2
+                                             L2 error
+     1                                       H1 error
+                                             Residual
+     0                                       Error indicator
+
+
+     -1
+
+     -2
+
+     -3
+
+     -4
+
+     -5
+
+     -6
+
+     -7
+          1   2            3             4                     5
+                  Number of iterations
+
+
+                       (a)                                               (b)
+    Fig. 6. Convergence curve and adaptive PoU of Example 3 obtained using the adaptive PIRaNN
+method.
+
+
+    Example 4. Consider the Poisson equation posed on the L-shaped domain Ω
+depicted in Fig. 7, with Dirichlet boundary conditions chosen such that the exact
+solution is given by
+(5.7)                                              u = r2/3 sin(2θ/3).
+                      ADAPTIVE PIRANNS WITH A POU FOR SOLVING PDES                                                              23
+
+The primary challenge of this problem stems from the nonconvex corner at the origin,
+where the solution exhibits singular behavior due to reduced local regularity.
+
+
+                                                                                                       Adaptive PoU
+     0                                                                                1
+                                                         L2 error
+   -0.5                                                                             0.8
+                                                         H1 error
+                                                         Residual
+    -1                                                                              0.6
+                                                         Error indicator
+
+   -1.5                                                                             0.4
+
+    -2                                                                              0.2
+
+
+
+
+                                                                                Y
+   -2.5                                                                               0
+
+    -3                                                                              -0.2
+
+   -3.5                                                                             -0.4
+
+    -4                                                                              -0.6
+
+   -4.5                                                                             -0.8
+
+    -5                                                                               -1
+          1   2   3   4        5       6         7   8          9          10              -1   -0.5        0         0.5   1
+                          Number of iterations                                                              X
+
+
+                               (a)                                                                      (b)
+    Fig. 7. Convergence curve and adaptive PoU of Example 4 obtained using the adaptive PIRaNN
+method.
+
+
+    In this test, we set θ = 0.7, λ∂Ω = λΓ,1 = 100, λΓ,2 = 10, and the RaNN
+parameters are the same as in Example 2. The left panel of Fig. 7 displays the
+convergence curves of the error, residual, and error indicator, while the right panel
+shows the adapted PoU. The adaptive mesh is reﬁned near the origin to better capture
+the local solution behavior, owing to the singularity that degrades the regularity of
+u in that region. As predicted by the theory, this local reﬁnement eﬀectively reduces
+the approximation error. However, precisely because of the limited regularity of u,
+the convergence rate of the error in the H 1 (Ω) norm is lower than that in the L2 (Ω)
+norm, and consequently does not achieve the same rate as that observed in Example 2.
+This behavior is consistent with the theoretical results in Section 3, which indicate
+that convergence rates in stronger norms are more sensitive to the smoothness of the
+target function.
+    Example 5. Consider the following one-dimensional viscous Burgers’ equation
+
+                                    ut + uux = νuxx ,                                in (0, T ) × D,
+(5.8)                                            u = 0,                              on (0, T ) × ∂D,
+                                           u(0, x) = sin(2πx),                       in D,
+
+where the viscous coeﬃcient ν = 0.01/π, the spatial domain D = (0, 1) and the ﬁnal
+time is T = 1.
+    For this nonlinear PDE, we employ a space-time formulation of PIRaNNs, treat-
+ing the time variable as an additional coordinate on an equal footing with the spatial
+variables. Hence, the computational domain is Ω = (0, T ) × D and the RaNN param-
+eters are the same as in Example 2. It has been shown in [42] that the L2 error for
+the Burgers’ equation can be bounded by the residuals of the PDE, initial condition,
+and boundary conditions. Based on this theoretical result, we deﬁne a local error
+indicator ηj on each subdomain Ωj (with j = 1, . . . , n) for the RaNN approximation
+24                               RAN BI AND WEIBING DENG
+
+
+with a PoU:
+                                                    
+              ηj =    U]
+                       A,B
+                       W     + ]
+                               U A,B
+                                 W    U]A,B
+                                        W     − ν  U]A,B
+                                                     W
+                                 t                      x                xx L2 (Ωj )
+(5.9)                                                                               !
+                          X
+                     +               JU]
+                                       A,B
+                                       W KΓ            + βΓ    J∇U]
+                                                                  A,B
+                                                                  W KΓ                  ,
+                         Γ∈∂Ωj                L2 (Γ)                       L2 (Γ)
+
+
+where the jump term is deﬁned according to the type of interface Γ:
+(5.10)       
+             
+             
+             
+              U]A,B
+                 W (0, x) − sin(2πx),    Γ ⊂ D (initial condition),
+             
+             ]
+   JU]
+     A,B       U A,B (t, x),
+     W KΓ :=  W
+                                         Γ ⊂ [0, T ] × ∂D (boundary condition),
+                      
+             
+                ]A,B
+             
+              UW         ,              Γ ∈ E I (interior interface).
+                            Γ
+
+The penalty parameter βΓ is set as
+                              (
+                                 diam(Ωj ),                 Γ ∈ EI ,
+(5.11)                  βΓ =
+                                 0,                         otherwise.
+
+ To generate a high-ﬁdelity reference solution for the Burgers’ equation, we employ
+the Chebfun package [12] with a Fourier spectral discretization in space and a fourth-
+order exponential time-diﬀerencing scheme [6] with a time step of 10−4 . Temporal
+snapshots of the solution are saved every ∆t = 0.01, yielding a total of 101 snapshots.
+The reference solution is evaluated on a 201 × 101 spatio-temporal grid, providing a
+suﬃciently accurate baseline for error assessment.
+     The numerical results are illustrated in Figures 8 and 9. The adaptive parameter
+is set to θ = 0.6. As shown in Fig. 8(a), both the L2 error and the residual of the
+numerical solution decrease steadily throughout the adaptive iterations, conﬁrming
+the eﬀectiveness of the adaptive reﬁnement strategy. The ﬁnal adapted mesh obtained
+from this process is presented in Fig. 8(b). It is evident that the mesh is reﬁned
+preferentially in the vicinity of the developing shock, enabling the RaNN to capture
+the sharp front with improved accuracy. Fig. 9 displays the numerical solution and
+the corresponding absolute error at selected iterations. Initially, the coarse mesh is
+insuﬃcient for the RaNN to resolve the shock, leading to signiﬁcant errors in the
+shock region. As the adaptive process proceeds and the mesh is locally reﬁned, the
+shock is captured with increasing precision, and the overall error is substantially
+reduced. These results demonstrate the capability of the adaptive PIRaNN framework
+to automatically detect and resolve localized solution features in nonlinear, time-
+dependent problems.
+     6. Conclusion. In this paper, we have developed a comprehensive theoretical
+and algorithmic framework for solving PDEs using RaNNs. We introduced a gener-
+alized Barron spectral space Bsk,p (Ω) to characterize functions that can be eﬃciently
+approximated by RaNNs whose hidden-layer parameters are uniformly sampled from
+a bounded set. For functions in this space, we established explicit convergence rates in
+Sobolev norms, revealing a fundamental relationship between the required sampling
+range and the smoothness of the target function. Speciﬁcally, we showed that less
+smooth functions necessitate a larger sampling range to achieve optimal approxima-
+tion, a result that provides theoretical guidance for parameter selection in practice.
+                             ADAPTIVE PIRANNS WITH A POU FOR SOLVING PDES                                                                                                      25
+
+                                                                                                                                 Adaptive PoU
+     1                                                                                                   1
+                                                                  L2 error
+                                                                  Residual                              0.9
+     0                                                            Error indicator
+                                                                                                        0.8
+
+                                                                                                        0.7
+    -1
+                                                                                                        0.6
+
+    -2                                                                                                  0.5
+
+
+
+
+                                                                                                    t
+                                                                                                        0.4
+    -3
+                                                                                                        0.3
+
+                                                                                                        0.2
+    -4
+                                                                                                        0.1
+
+    -5                                                                                                   0
+         1   2           3         4            5         6           7             8                           0       0.2       0.4            0.6         0.8       1
+                               Number of iterations                                                                                        x
+
+
+                                    (a)                                                                                                (b)
+    Fig. 8. Convergence curve and adaptive PoU of Example 5 obtained using the adaptive PIRaNN
+method.
+
+                                   Step 1.                                                     Step 5.                                                  Step 8.
+                 1                                                   1          1                                         1       1
+
+
+             0.8                                                              0.8                                                0.8
+                                                                     0.5                                                  0.5                                                  0.5
+
+             0.6                                                              0.6                                                0.6
+Numerical                                                            0                                                    0                                                    0
+
+ solution 0.4                                                                 0.4                                                0.4
+
+                                                                     -0.5                                                 -0.5                                                 -0.5
+             0.2                                                              0.2                                                0.2
+
+
+                 0                                                              0                                         -1      0
+                     0   0.2      0.4    0.6        0.8       1                     0   0.2   0.4       0.6   0.8   1                  0       0.2     0.4     0.6   0.8   1
+
+
+
+                 1                                                              1                                                                                              10-4
+                                                                                                                                  1
+                                                                      0.4                                                 0.07                                                 6
+             0.8                                                              0.8
+                                                                                                                          0.06   0.8                                           5
+                                                                      0.3
+             0.6                                                              0.6                                         0.05
+                                                                                                                                                                               4
+ Absolute                                                                                                                 0.04
+                                                                                                                                 0.6
+                                                                      0.2                                                                                                      3
+  error 0.4                                                                   0.4                                         0.03   0.4
+                                                                                                                          0.02                                                 2
+             0.2                                                      0.1     0.2
+                                                                                                                                 0.2
+                                                                                                                          0.01                                                 1
+
+                 0                                                              0                                                 0
+                     0   0.2      0.4     0.6       0.8       1                     0   0.2   0.4       0.6   0.8   1                  0       0.2     0.4    0.6    0.8   1
+
+
+    Fig. 9. Numerical results obtained using the adaptive PIRaNN method for Example 5. The top
+                                   ^A,B
+row shows the numerical solution UW     , and the bottom row shows the absolute error between the
+numerical and reference solutions.
+
+
+
+     Motivated by this insight, we integrated a PoU with RaNNs to develop an adap-
+tive PIRaNN method. By linking the parameter sampling range to the local element
+size via aﬃne mappings, the PoU framework eﬀectively translates the challenge of
+generating appropriate basis functions into the more tractable task of designing a
+solution-adaptive partition. We further incorporated a posteriori error estimates and
+the Dörﬂer marking strategy to drive adaptive reﬁnement, enabling the network to
+automatically concentrate computational resources in regions where the solution ex-
+hibits limited regularity.
+     A series of numerical experiments validated both the theoretical analysis and
+the practical eﬀectiveness of the proposed approach. The results conﬁrmed that the
+convergence rate of RaNNs depends critically on the sampling range relative to the
+smoothness of the solution, and that the adaptive PIRaNN method successfully cap-
+tures localized features such as singularities and shocks. Extensions to the viscous
+26                              RAN BI AND WEIBING DENG
+
+
+Burgers’ equation further demonstrated the applicability of the framework to nonlin-
+ear, time-dependent problems.
+     There are several directions for future work. Currently, our research is largely
+conﬁned to the uniform sampling of parameters; future studies should explore alter-
+native sampling distributions and more complex sampling strategies. This includes
+establishing the corresponding approximation theorems and examining whether they
+can eﬀectively improve the approximation rate of RaNN. Additionally, the theoretical
+analysis could be broadened to encompass deeper architectures and more general acti-
+vation functions. Another key direction is to reﬁne the adaptive algorithmic strategies
+and establish rigorous convergence theorems for them. Ultimately, we intend to tackle
+high-dimensional and more complex PDEs.
+
+                                         REFERENCES
+
+ [1] R. A. Adams and J. J. Fournier, Sobolev spaces, vol. 140, Elsevier, 2003.
+ [2] A. R. Barron, Universal approximation bounds for superpositions of a sigmoidal function,
+         IEEE Transactions on Information theory, 39 (2002), pp. 930–945.
+ [3] R. Bi, W. Deng, and Y. Zhu, Extended interface physics-informed neural networks method
+         for moving interface problems, arXiv preprint arXiv:2508.01463, (2025).
+ [4] J. M. Cascon, C. Kreuzer, R. H. Nochetto, and K. G. Siebert, Quasi-optimal convergence
+         rate for an adaptive ﬁnite element method, SIAM Journal on Numerical Analysis, 46 (2008),
+         pp. 2524–2550.
+ [5] J. Chen, X. Chi, W. E, and Z. Yang, Bridging traditional and machine learning-based al-
+         gorithms for solving pdes: the random feature method, Journal of Machine Learning, 1
+         (2022), pp. 268–298.
+ [6] S. M. Cox and P. C. Matthews, Exponential time diﬀerencing for stiﬀ systems, Journal of
+         Computational Physics, 176 (2002), pp. 430–455.
+ [7] D. E. De Falco, E. Schiassi, and F. Calabrò, Least squares with equality constraints extreme
+         learning machines for the resolution of pdes, Journal of Computational Physics, 547 (2026),
+         p. 114553.
+ [8] T. De Ryck, S. Lanthaler, and S. Mishra, On the approximation of functions by tanh neural
+         networks, Neural Networks, 143 (2021), pp. 732–750.
+ [9] T. De Ryck, S. Mishra, Y. Shang, and F. Wang, Approximation theory and applica-
+         tions of randomized neural networks for solving high-dimensional pdes, arXiv preprint
+         arXiv:2501.12145, (2025).
+[10] S. Dong and Z. Li, Local extreme learning machines and domain decomposition for solving lin-
+         ear and nonlinear partial diﬀerential equations, Computer Methods in Applied Mechanics
+         and Engineering, 387 (2021), p. 114129.
+[11] W. Dörfler, A convergent adaptive algorithm for poisson’s equation, SIAM Journal on Nu-
+         merical Analysis, 33 (1996), pp. 1106–1124.
+[12] T. A. Driscoll, N. Hale, and L. N. Trefethen, Chebfun guide, 2014.
+[13] V. Dwivedi and B. Srinivasan, Physics informed extreme learning machine (pielm)–a rapid
+         method for the numerical solution of partial diﬀerential equations, Neurocomputing, 391
+         (2020), pp. 96–118.
+[14] W. E, C. Ma, and L. Wu, A priori estimates of the population risk for two-layer neural
+         networks, Communications in Mathematical Sciences, 17 (2019), pp. 1407–1425.
+[15] W. E, C. Ma, and L. Wu, The barron space and the ﬂow-induced function spaces for neural
+         network models, Constructive Approximation, 55 (2022), pp. 369–406.
+[16] S. Ellacott, Aspects of the numerical analysis of neural networks, Acta Numerica, 3 (1994),
+         pp. 145–202.
+[17] L. C. Evans, Partial diﬀerential equations, vol. 19, American Mathematical Society, 2022.
+[18] G. B. Folland, Real analysis: modern techniques and their applications, John Wiley & Sons,
+         1999.
+[19] L. Gonon, Random feature neural networks learn black-scholes type pdes without curse of
+         dimensionality, Journal of Machine Learning Research, 24 (2023), pp. 1–51.
+[20] I. Gühring and M. Raslan, Approximation rates for neural networks with encodable weights
+         in smoothness spaces, Neural Networks, 134 (2021), pp. 107–130.
+[21] W.-F. Hu, T.-S. Lin, and M.-C. Lai, A discontinuity capturing shallow neural network for
+         elliptic interface problems, Journal of Computational Physics, 469 (2022), p. 111576.
+                  ADAPTIVE PIRANNS WITH A POU FOR SOLVING PDES                                    27
+
+[22] G.-B. Huang, Q.-Y. Zhu, and C.-K. Siew, Extreme learning machine: theory and applica-
+         tions, Neurocomputing, 70 (2006), pp. 489–501.
+[23] A. D. Jagtap, K. Kawaguchi, and G. E. Karniadakis, Adaptive activation functions acceler-
+         ate convergence in deep and physics-informed neural networks, Journal of Computational
+         Physics, 404 (2020), p. 109136.
+[24] O. A. Karakashian and F. Pascal, Convergence of adaptive discontinuous galerkin approxi-
+         mations of second-order elliptic problems, SIAM Journal on Numerical Analysis, 45 (2007),
+         pp. 641–665.
+[25] J. M. Klusowski and A. R. Barron, Risk bounds for high-dimensional ridge function com-
+         binations including neural networks, arXiv preprint arXiv:1607.01434, (2016).
+[26] J. M. Klusowski and A. R. Barron, Uniform approximation by neural networks activated
+         by ﬁrst and second order ridge splines, arXiv preprint arXiv:1607.07819, (2016).
+[27] Z. Li, N. Kovachki, K. Azizzadenesheli, B. Liu, K. Bhattacharya, A. Stuart, and
+         A. Anandkumar, Fourier neural operator for parametric partial diﬀerential equations,
+         in International Conference on Learning Representations, 2021.
+[28] X. Liu, T. Mao, and J. Xu, Integral representations of sobolev spaces via reluk activation func-
+         tion and optimal error estimates for linearized networks, arXiv preprint arXiv:2505.00351,
+         (2025).
+[29] J. Lu, Z. Shen, H. Yang, and S. Zhang, Deep network approximation for smooth functions,
+         SIAM Journal on Mathematical Analysis, 53 (2021), pp. 5465–5506.
+[30] L. Lu, P. Jin, G. Pang, Z. Zhang, and G. E. Karniadakis, Learning nonlinear operators
+         via deeponet based on the universal approximation theorem of operators, Nature Machine
+         Intelligence, 3 (2021), pp. 218–229.
+[31] A. Neufeld and P. Schmocker, Universal approximation property of banach space-valued
+         random feature models including random neural networks, The Annals of Applied Proba-
+         bility, (2024).
+[32] M. Raissi, P. Perdikaris, and G. E. Karniadakis, Physics-informed neural networks: A deep
+         learning framework for solving forward and inverse problems involving nonlinear partial
+         diﬀerential equations, Journal of Computational physics, 378 (2019), pp. 686–707.
+[33] P. Rathore, W. Lei, Z. Frangella, L. Lu, and M. Udell, Challenges in training pinns:
+         A loss landscape perspective, in Forty-ﬁrst International Conference on Machine Learning,
+         2024.
+[34] J. W. Siegel and J. Xu, Approximation rates for neural networks with general activation
+         functions, Neural Networks, 128 (2020), pp. 313–321.
+[35] J. W. Siegel and J. Xu, High-order approximation rates for shallow neural networks with
+         cosine and reluk activation functions, Applied and Computational Harmonic Analysis, 58
+         (2022), pp. 1–26.
+[36] J. W. Siegel and J. Xu, Sharp bounds on the approximation rates, metric entropy, and n-
+         widths of shallow neural networks, Foundations of Computational Mathematics, 24 (2024),
+         pp. 481–537.
+[37] S. Wang, B. Li, P. Perdikaris, et al., Gradient alignment in physics-informed neural net-
+         works: A second-order optimization perspective, Advances in Neural Information Process-
+         ing Systems, 38 (2026), pp. 168482–168532.
+[38] S. Wang, Y. Teng, and P. Perdikaris, Understanding and mitigating gradient ﬂow patholo-
+         gies in physics-informed neural networks, SIAM Journal on Scientiﬁc Computing, 43
+         (2021), pp. A3055–A3081.
+[39] S. Wang, X. Yu, and P. Perdikaris, When and why pinns fail to train: A neural tangent
+         kernel perspective, Journal of Computational Physics, 449 (2022), p. 110768.
+[40] J. Xu, The ﬁnite neuron method and convergence analysis, Communications in Computational
+         Physics, 28 (2020), pp. 1707–1745.
+[41] Z. Zhang, F. Bao, L. Ju, and G. Zhang, Transferable neural networks for partial diﬀerential
+         equations, Journal of Scientiﬁc Computing, 99 (2024), p. 2.
+[42] Y. Zhu, W. Deng, and R. Bi, A two-stage adaptive lifting pinn framework for solving viscous
+         approximations to hyperbolic conservation laws, arXiv preprint arXiv:2511.04490, (2025).
+
+
+
+
+    Appendix A. Proof of Lemma 3.6.
+28                                      RAN BI AND WEIBING DENG
+
+
+    Proof. By the Fubini-Tonelli theorem, we have
+                                                   "                    p#
+                          XN       p           Z                     N
+                       1                                       1 X
+           E E [X1 ] −        Xi            =      E E [X1 ] −         Xi    dµ(x)
+                       N i=1                    Ω               N i=1
+                                   Lp (Ω)
+(A.1)                              " N                     p#
+                             Z        X
+                          −p
+                     =N          E         (E [X1 ] − Xi )    dµ(x).
+                                              Ω           i=1
+
+Applying the Marcinkiewicz-Zygmund inequality, we obtain
+                   " N                            p#
+                                                                                                  !p/2 
+                    X                                                   N
+                                                                        X                        2
+(A.2)          E               (E [X1 ] − Xi )            ≤ Cp E                |E [X1 ] − Xi |        .
+                         i=1                                            i=1
+
+
+Consequently, it follows from the Minkowski’s inequality in the probability space and
+the fact that Xi , i = 1, . . . , N , are i.i.d. that
+                                         !p/2 2/p
+                   N
+                   X                                    N  
+                                                        X                      p/2 2/p
+        E                              2                                 2
+                         |E [X1 ] − Xi |              ≤    E |E [X1 ] − Xi |
+                   i=1                                                i=1
+                                                                                                      p    2/p
+                                                                   = N (E [|E [X1 ] − X1 | ])                    ,
+
+which, when combined with (A.1) and (A.2), yields
+                                                             
+                                     N            p                         Z                                   
+                                   1 X                         ≤ Cp
+(A.3)        E  E [X1 ] −                  Xi                                        E [|E [X1 ] − X1 |p ] dµ(x) .
+                                  N i=1                          N p/2            Ω
+                                                  Lp (Ω)
+
+
+Further, via Jensen’s inequality we obtain
+                                                                                                      p
+                                                                                                                     1/p
+                                 N                                                       N
+                               1 X                                                     1 X
+        E  E [X1 ] −                Xi                ≤ E  E [X1 ] −                         Xi                  
+                           N i=1                                                       N i=1
+                                            Lp (Ω)                                                        Lp (Ω)
+                                                                  1/p Z                                  1/p
+                                                              Cp                                  p
+                                                          ≤                     E [|E [X1 ] − X1 | ] dµ(x)     .
+                                                              N 1/2         Ω
+
+This completes the proof.
+
+     Appendix B. Proof of Theorem 3.9.
+     Proof. From Lemma 3.5, we have
+                                                  
+                                  ∂xα u − uM              Lp (Ω)
+                                                                   . M −η kukB1,p             (Ω) .
+                                                                                      |α|+m
+
+
+
+Denote SM = Gξ (M ) × Gs (M ) and partition SM into mutually disjoint convex (or
+uniformly shape-regular Lipschitz) subdomains {Si }N
+                                                   i=1 satisfying
+
+                                            |SM |                                      M
+                                  |Si | ≃         ,           diam(Si ) .                       .
+                                             N                                    N 1/(d+1)
+                 ADAPTIVE PIRANNS WITH A POU FOR SOLVING PDES                                                      29
+
+Using this partition, we can rewrite the truncated function uM from (3.5) as
+                                     N Z
+                                     X
+                      M                               |Si |
+                     u (x) =                                   f (ξ, s)σ(ξ · x + s) dξ ds
+                                     i=1       Si |S i | |SM |
+(B.1)
+                                     N
+                                     X
+                                 =         e(Si ) Eπei [f (ξ, s)σ(ξ · x + s)] ,
+                                           π
+                                     i=1
+
+      ei denotes the uniform probability measure on Si , i.e.,
+where π
+                                                                            1
+                            de
+                             πi (ξ, s) = πi (ξ, s) dξ ds =                       dξ ds.
+                                                                           |Si |
+Let ci = ⌈e
+          π (Si )N ⌉ be the number of samples drawn from Si . Then
+                                     N
+                                     X
+                                               ci = O(N )          and ci ≥ 1
+                                      i=1
+     P
+        e(Si ) = 1 and the partition {Si }N
+since i π                                 i=1 is quasi-uniform. We now construct a
+RaNN function based on this stratiﬁed sampling strategy:
+
+                         X        N                       ci
+                                    1 X
+                U[
+                 A,B
+                 W (x) =     e(Si )
+                             π             f (Ai,j , Bi,j ) σ(Ai,j · x + Bi,j )
+                         i=1
+                                    ci j=1
+
+                                 X ci
+                                 N X
+                                      e(Si )
+                                      π
+                            =                              f (Ai,j , Bi,j ) σ(Ai,j · x + Bi,j )
+                                 i=1 j=1
+                                                    ci
+
+                                  X ci
+                                  N X
+                            =:                     Wi,j σ(Ai,j · x + Bi,j ),
+                                  i=1 j=1
+
+where, for each Si , the parameters {(Ai,j , Bi,j )}cj=1
+                                                      i
+                                                         are independently and identically
+distributed according to the uniform distribution over Si . Deﬁne the corresponding
+random variables Xi,j (x) = f (Ai,j , Bi,j ) σ(Ai,j ·x+Bi,j ). The samples associated with
+diﬀerent strata are generated independently; hence, the corresponding random ﬁelds
+are mutually independent. For any multi-index α with |α| ≤ k, using (B.1) and (A.3)
+we obtain
+             "                            #
+                                   p
+                 α M       α[ A,B
+           E ∂x u − ∂x UW
+                                                Lp (Ω)
+                Z "X
+                   N
+                                                                                           #p/2
+                     e(Si )2
+                     π                                                          2/p
+(B.2)       .                          (Eπei [|Eπei (∂xα Xi,1 ) − ∂xα Xi,1 |p ])
+                 Ω   i=1
+                             ci
+                           N
+                           X                            p2 Z                                            
+                 p/2−1                     p       1                                                   p
+            .N                   e(Si )
+                                 π                                 Eπei [|Eπei (∂xα Xi,1 ) − ∂xα Xi,1 | ] dx   .
+                           i=1
+                                                   ci          Ω
+
+Here, the last step utilizes the algebraic inequality
+
+                             N
+                                          !p/2                     N
+                             X                                     X  p/2
+                                                           p/2−1
+                                     ai             ≤N               ai ,         p ≥ 2.
+                             i=1                                    i=1
+30                                 RAN BI AND WEIBING DENG
+
+                                                       p
+     Deﬁne Vα,p
+              i  := Eπei [|Eπei (∂xα Xi,1 ) − ∂xα Xi,1 | ] . By the local Poincaré inequality
+[17], we have
+                             Z                       Z                    p
+                         1                       1
+                Vα,p =             ∂ α
+                                       X i,1 −            ∂ α
+                                                              X i,1 dξ ds   dξ ds
+                 i
+                       |Si | Si x               |Si | Si x
+                                      p Z
+                         1        M                               p
+                     .               1           ∂(ξ,s) ∂xα Xi,1 dξ ds.
+                       |Si | N d+1           Si
+
+Consequently,
+        "                            #
+                              p
+           α M       α[A,B
+      E ∂ u −∂ U
+            x          x    W
+                                   Lp (Ω)
+                  N
+                  X            p2                 p Z Z
+         p/2−1             p  1         1       M                              p
+      .N             e(Si )
+                     π                            1             ∂(ξ,s) ∂xα Xi,1 dξ ds dx
+                 i=1
+                              c i     |S i |   N d+1      Ω Si
+          p−(d+1) Z Z
+        M                                                     p
+      .    p    p
+             + d+1
+                             ∂(ξ,s) ∂xα [f (ξ, s)σ(ξ · x + s)] dξ ds dx.
+        N  2         Ω SM
+
+From the deﬁnition of f (ξ, s) in Theorem 3.7, we have
+
+          ∂(ξ,s) ∂xα [f (ξ, s)σ(ξ · x + s)]
+                     " d                  !                           #
+                         Y
+          = ∂(ξ,s)           a−αi (aξi )αi σ (|α|) (ξ · x + s)f (ξ, s)
+                           i=1
+                h
+                 d+1
+          .M     (1 + |aξ|)|α|−1 σ (|α|) (ξ · x + s) |cue (aξ)|
+                                                                      
+            + (1 + |aξ|)|α| σ (|α|+1) (ξ · x + s) + σ (|α|) (ξ · x + s) |c
+                                                                         ue (aξ)|
+                                                           i
+            +(1 + |aξ|)|α| σ (|α|) (ξ · x + s) |∂ξ c
+                                                   ue (aξ)| .
+
+Using Lemma 3.4 and the fact that 1 < mp, we integrate over SM to obtain
+         Z
+                                              p
+             ∂(ξ,s) ∂xα [f (ξ, s)σ(ξ · x + s)] dξ ds . M p(d+1) kukpB1,p (Ω) .
+            SM                                                            |α|+m
+
+
+Therefore, applying Jensen’s inequality yields
+             "                          #
+                 α M     α[  A,B            M (1−1/p)(d+1)+1
+           E ∂x u − ∂x UW                 .                  kukB1,p (Ω) .
+                                 Lp (Ω)       N 1/2+1/(d+1)      |α|+m
+
+
+
+Summing over all multi-indices with |α| ≤ k gives
+             "                          #
+                  M     [A,B                M (1−1/p)(d+1)+1
+           E u − UW                       .                  kukB1,p (Ω) .
+                              W k,p (Ω)      N 1/2+1/(d+1)       k+m
+
+
+
+Finally, applying the triangle inequality, we obtain
+         "                   #                         "                                 #
+                [A,B                                         [A,B
+      E u − UW                           M
+                                ≤ ku − u kW k,p (Ω) + E uM − UW
+                           W k,p (Ω)                                         W k,p (Ω)
+                                                                
+                                                M (1−1/p)(d+1)+1
+                                       . M −η +                    kukB1,p (Ω) .
+                                                 N 1/2+1/(d+1)         k+m
+                ADAPTIVE PIRANNS WITH A POU FOR SOLVING PDES                         31
+
+The optimal approximation is achieved by balancing the two terms, i.e., choosing
+               p(d+3)
+M ≍ N 2(d+1)[(p−1)(d+1)+p+pη] , which yields the ﬁnal estimate (3.14) immediately.
+

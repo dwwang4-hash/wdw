@@ -1,0 +1,16 @@
+{
+  "source": "results/runs/exp03_sampling_20261013/raw/sampling.csv",
+  "sha256": "ac24eb7bdee3523ae146a6acdd3123f9d42c1c83a523c7b83604fe514eda5cad",
+  "source_runs": 180,
+  "multimetric_runs": 60,
+  "groups": 12,
+  "seeds_checked": [
+    11,
+    23,
+    37,
+    51,
+    71
+  ],
+  "equations_checked": 1232,
+  "new_numerical_solves": 0
+}

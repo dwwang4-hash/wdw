@@ -1,0 +1,71 @@
+{
+  "experiment": "exp02_interface",
+  "seeds": [
+    11,
+    23,
+    37,
+    51,
+    71
+  ],
+  "betas": [
+    [
+      1,
+      1
+    ],
+    [
+      10,
+      1
+    ],
+    [
+      100,
+      1
+    ],
+    [
+      1000,
+      1
+    ],
+    [
+      1,
+      10
+    ],
+    [
+      1,
+      100
+    ],
+    [
+      1,
+      1000
+    ]
+  ],
+  "variants": [
+    "continuous",
+    "jumps"
+  ],
+  "neurons_per_side": 128,
+  "scale": 2,
+  "interior_per_side": 512,
+  "interface_points": 80,
+  "boundary_per_segment": 40,
+  "scaling": [
+    "raw",
+    "balanced"
+  ],
+  "boundary_weight": 50,
+  "interface_weight": 50,
+  "ridge": 0,
+  "rcond": 1e-12,
+  "poisson_limit_neurons": [
+    64,
+    128
+  ],
+  "validation_grid_per_side": "83x83 midpoint",
+  "interface_validation": 257,
+  "acceptance": "analytic-basis assembly/derivative tests first; balanced cases relative L2,value RMS,boundary RMS each <1e-2; physical flux reported without assuming high-contrast uniform accuracy",
+  "timing": "solve_seconds=assembly, SVD solve and SVD diagnostic; validation excluded",
+  "python": "3.12.14",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "numpy": "2.2.6",
+  "scipy": "1.15.3",
+  "matplotlib": "3.10.3",
+  "blas_threads": 1
+}

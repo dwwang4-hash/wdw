@@ -1,0 +1,16 @@
+{
+  "files_scanned": 528,
+  "historical_zip_entries_scanned": 1697,
+  "historical_archives": {
+    "Bachelor_Thesis_RaNN_startup.zip": 110,
+    "Bachelor_Thesis_RaNN_stage2.zip": 170,
+    "Bachelor_Thesis_RaNN_stage3.zip": 223,
+    "Bachelor_Thesis_RaNN_draft.zip": 313,
+    "Bachelor_Thesis_RaNN_revised_v2.zip": 381,
+    "DLUT_Math_Thesis_v3_20261016.zip": 500
+  },
+  "findings": [],
+  "errors": [],
+  "passed": true,
+  "method": "sensitive filenames and common credential patterns; no matching values logged; not an exhaustive guarantee for arbitrary custom secrets"
+}

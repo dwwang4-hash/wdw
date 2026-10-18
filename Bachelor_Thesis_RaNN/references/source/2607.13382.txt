@@ -1,0 +1,2114 @@
+                                           Residual-Christoffel Sampling for Random Feature
+                                           Collocation of Linear PDEs
+
+                                           Jiale Linghu · Yangshuai Wang
+
+
+
+
+                                           Abstract Random feature collocation fixes a randomly generated trial space
+                                           and determines its coefficients from a linear least-squares system. Stability
+                                           then depends on whether the sampled residual equations represent the ge-
+arXiv:2607.13382v1 [math.NA] 15 Jul 2026
+
+
+
+
+                                           ometry induced by the differential operator. We construct an operator-aware
+                                           discretization in which the operator-applied features determine both the col-
+                                           location measure and a coefficient whitening map. The randomized scheme
+                                           combines a residual-Christoffel density with inverse-density weights, while
+                                           a deterministic scalar-row alternative maximizes successive regularized log-
+                                           determinant increments. Conditional on the realized trial space, the sampled
+                                           whitened interior Gram is a spectral approximation to the reference Gram
+                                           on the retained residual space, with sample complexity linear in the retained
+                                           dimension up to a logarithmic factor. For uniformly analytic residual kernels,
+                                           the associated operator has stretched-exponentially decaying eigenvalues and
+                                           ridge effective dimension that is polylogarithmic in the inverse ridge scale. Ex-
+                                           periments on scalar and vector equations, varied geometries, and one to three
+                                           spatial dimensions show that residual-space sampling and whitening produce
+                                           numerically full-rank transformed systems with substantially smaller condi-
+                                           tion numbers and iteration counts. The deterministic construction attains
+                                           the lowest errors at the smallest scalar sample sizes. Residual-space geome-
+                                           try therefore yields a principled design for stable strong-form random feature
+                                           collocation.
+
+                                           Keywords random feature method · operator-residual sampling · Christoffel
+                                           sampling · partial differential equation collocation · randomized numerical
+                                           linear algebra · effective dimension
+
+                                           J. Linghu
+                                           School of Mathematics and Statistics, Xidian University, Xi’an, China
+                                           Y. Wang
+                                           Department of Mathematics, National University of Singapore, Singapore
+                                           E-mail: yswang@nus.edu.sg
+2                                                           J. Linghu and Y. Wang
+
+
+Mathematics Subject Classification (2020) 65N35 · 65F35 · 62K05 ·
+65D15 · 68W20
+
+
+1 Introduction
+
+Random feature method (RFM) collocation converts a linear partial differen-
+tial equation (PDE) into a linear least-squares problem once the trial functions
+have been drawn. The fixed trial space makes the coefficient solve explicit,
+but it also exposes a discretization question: which residual equations repre-
+sent the action of the differential operator on that space? Geometric coverage
+of the domain can miss weakly observed residual directions and produce a
+poorly conditioned empirical norm. We address this problem by constructing
+the collocation measure, equation weights, and coefficient coordinates from the
+geometry of the operator-applied trial functions.
+    Let Ω be the computational domain, L the interior differential operator,
+B the boundary operator, and f and g the corresponding data in Lu = f in
+Ω and Bu = g on ∂Ω. For fixed random trial functions {φm }M    m=1 , write
+
+                   M
+                   X                                                    ⊤
+        uM (x) =         cm φm (x),   ψ(x) = Lφ1 (x), . . . , LφM (x)        ,
+                   m=1
+
+where M is the number of features, cm are the unknown coefficients, x ∈ Ω,
+and ⊤ denotes transpose. An interior point xi contributes the row ψ(xi )⊤ ;
+boundary rows are obtained by applying B at points on ∂Ω. The Gram matrix
+generated by ψ describes the residual directions that the collocation equations
+must resolve.
+    RFM collocation has been developed for stationary and time-dependent
+PDEs [9, 10]. Related fixed-feature solvers include physics-informed extreme
+learning machines (ELMs) [14], local and high-dimensional ELMs [13, 31],
+and local randomized neural-network discontinuous Galerkin methods [27].
+Strong-form RFM also shares fixed trial functions and collocated operator
+evaluations with Kansa-type and radial-basis-function methods [16, 19, 20].
+Across these settings, stable coefficient recovery requires the discrete residual
+norm to capture the relevant trial-space directions.
+    More broadly, operator- and regime-adapted classical solvers show how
+numerical performance can improve when the discretization reflects the PDE
+structure, as in uniformly accurate treatments of highly oscillatory Dirac equa-
+tions and nonuniform-FFT methods for nonlocal Schrödinger interactions [4–
+6]. Our construction brings the same design principle to the selection and
+scaling of residual equations in fixed random-feature spaces.
+    Existing point-selection methods encode different information. Geomet-
+ric and low-discrepancy rules cover the physical domain. Residual-adaptive
+physics-informed neural network (PINN) methods refine regions where the
+current approximation violates the equation [17, 23, 33]. PDE-greedy kernel
+methods select operator functionals through power-function or current-error
+Residual-Christoffel Sampling for RFM Collocation                              3
+
+
+criteria [32]. Optimal weighted least squares and Christoffel sampling pro-
+vide trial-space-aware designs for regression [1, 11, 18, 25]. The Christoffel
+Sampling for Machine Learning (CS4ML) framework further permits general
+linear observations, including differential observations, and develops Christof-
+fel adaptive sampling for PINNs [8]. Christoffel adaptive sampling has also
+been paired with sparse random-feature expansions for multivariate function
+approximation, where the sampling density is formed from the feature values
+and the features are subsequently sparsified [2].
+    The fixed linear structure of RFM collocation permits a direct operator-
+residual construction. In the PINN realization of CS4ML, the computable sur-
+rogate used for interior sampling omits the differential operator [8]. Here every
+feature Lφm is explicit, so a reference quadrature determines the operator-
+residual Gram, its retained eigenspace, and the associated leverage scores be-
+fore the coefficient solve. The same Gram defines a residual-Christoffel sam-
+pling density and a coefficient whitening map. This coupling targets the refer-
+ence residual norm over all retained directions and yields a sampling measure
+that can be reused for right-hand sides sharing the operator, domain, and fixed
+trial space. Randomized least-squares preconditioners, including count-sketch
+preconditioning of the random-feature system itself, instead act on an assem-
+bled row set with a fixed point set [3, 24, 28], while feature filtering changes
+the retained columns and hence the approximation space [7].
+    For a reference probability measure µ on Ω, define
+
+               G = Eµ [ψ(x)ψ(x)⊤ ],         L
+                                           KM (x) = ψ(x)⊤ G†r ψ(x),
+
+where Eµ denotes expectation with respect to µ, G is the population residual
+Gram, r is the retained residual rank, G†r is its rank-r truncated spectral in-
+             L
+verse, and KM   is the residual-Christoffel function. The randomized method
+                            L
+samples from the density KM   /r relative to µ and uses inverse-density weights
+together with the whitening map derived from G. For scalar residual rows, a
+deterministic companion selects the candidate giving the largest regularized
+log-determinant increment. The analysis establishes retained-space Gram con-
+centration and conditioning. For uniformly analytic residual kernels, it further
+connects the effective residual dimension to spectral decay of the associated
+random-feature operator.
+    The main contributions are as follows.
+1. We construct residual-Christoffel sampling, inverse-density weighting, and
+   a matching whitening map from the fixed operator-residual features, to-
+   gether with deterministic leverage-greedy selection.
+2. We prove retained-space Gram concentration and conditioning, and relate
+   the sampling dimension to the spectrum and ridge effective dimension of
+   the random-feature residual-kernel operator.
+3. Numerical experiments across scalar and vector PDEs, varied geometries,
+   and one to three dimensions demonstrate improved conditioning, faster
+   iterative solution, and the lowest small-sample errors from greedy selection
+   in the scalar tests.
+4                                                             J. Linghu and Y. Wang
+
+
+    The remainder of this paper is organized as follows. Section 2 formulates the
+residual-space discretization, Section 3 develops the sampling algorithms, and
+Section 4 gives the conditioning and spectral analysis. Section 5 presents the
+numerical experiments, followed by the conclusions and outlook in Section 6.
+
+
+2 Problem formulation and residual-space discretization
+
+We distinguish the reference residual Gram, sampled interior Gram, boundary-
+augmented least-squares system, and coefficient map because they govern sam-
+pling, assembly, and solver coordinates separately.
+
+
+2.1 Model problem and fixed-feature trial space
+
+Let Ω ⊂ Rd be a bounded computational domain, where R denotes the real
+numbers and d is the spatial dimension, and let L and B be linear interior and
+boundary operators, respectively. We consider
+                     Lu = f     in Ω,      Bu = g   on ∂Ω,                     (1)
+for the unknown solution u, using scalar notation. Systems of equations are
+handled by stacking component equations and their coefficient blocks, so one
+physical point may contribute several equation rows, as in the elasticity ex-
+periments. Let µ be a reference probability measure on Ω and let ν be a
+reference probability measure on ∂Ω. Unless stated otherwise, these are nor-
+malized volume and boundary reference measures. The positive integer M is
+the number of realized trial functions, and the analysis is conditional on the
+fixed realization {φm }M                               2
+                        m=1 . We assume that Lφm ∈ L (µ) and Bφm ∈ L (ν),
+                                                                           2
+
+with pointwise representatives on the collocation sets, and that the data f
+and g can be evaluated at the corresponding points. Here L2 (µ) and L2 (ν) are
+the usual spaces of square-integrable functions with respect to the indicated
+measures.
+    Throughout, ∥ · ∥2 denotes the Euclidean norm for vectors and the spectral
+norm for matrices; ⊤ denotes transpose, Ik denotes the k × k identity matrix,
+and E and Pr denote expectation and probability.
+    In computations, µ is represented by a probability-normalized quadrature
+                                                                   Q
+P Q nodes x̃q and nonnegative weights wq , Q = {(x̃q , wq )}q=1 , where
+with
+Pq wq = 1, so that, for an integrable function h, Eµ h(x) is approximated by
+   q wq h(x̃q ). When a boundary Gram is required, an independent quadrature
+with Qb boundary nodes ỹq and weights wqb represents ν: Qb = {(ỹq , wqb )}Q b
+                                                                             q=1
+      P b
+with q wq = 1. All expectations below are over spatial variables after the
+feature realization has been fixed.
+    The RFM trial space is
+                                                       M
+                                                       X
+            VM = span{φ1 , . . . , φM },    uM (x) =         cm φm (x).        (2)
+                                                       m=1
+Residual-Christoffel Sampling for RFM Collocation                              5
+
+
+For the fixed trial space (2), define the operator-residual feature vector
+                                                        ⊤
+                         ψ(x) = Lφ1 (x), . . . , LφM (x) .                   (3)
+
+
+2.2 Interior residual Gram and sampling objective
+
+For symmetric matrices C and D, write C ⪯ D when D − C is positive
+semidefinite (PSD). The interior residual Gram associated with (3) is
+
+                           G := Ex∼µ [ψ(x)ψ(x)⊤ ] ⪰ 0.                       (4)
+
+The Gram in (4) is the default object used for residual-space sampling. Bound-
+ary information forms a separate block, and the augmented Gram below pro-
+vides full interior-plus-boundary conditioning. Assume G ̸= 0, and let (λj , vj )
+denote its eigenpairs, ordered so that the eigenvectors are orthonormal and
+λ1 ≥ · · · ≥ λM ≥ 0. The zero-Gram case contains no interior residual infor-
+mation and is excluded.
+   The analysis allows any fixed retained rank r satisfying 1 ≤ r ≤ rank(G).
+This rank is chosen after the feature realization and reference Gram are fixed
+but before the collocation rows are sampled. In the computations, the following
+gap-aware numerical rule is used. First set
+
+           r0 = #{j : λj > 10−10 λ1 },
+                
+       J (r0 ) = j : max(1, r0 − 4) ≤ j ≤ min(M − 1, r0 + 4), λj > 0 ,
+                min arg max λj , 2 ≤ r0 ≤ M − 1,
+                                                                            (5)
+            r=         j∈J (r0 ) λj+1
+                                       r0 ∈ {1, M }.
+                
+                  r0 ,
+
+Here # denotes the cardinality of a finite set. When λj > 0 = λj+1 , the ratio
+in (5) is interpreted as +∞. The minimum fixes a tie convention. The analysis
+requires a fixed r with λr > 0. For M = 1, the second branch gives r = 1.
+After the rank is chosen, define the truncated inverse and whitening map by
+                                r
+                                X
+                        G†r =         λ−1     ⊤
+                                       j vj v j ,
+                                j=1
+                                  p                 p                        (6)
+                        Tr = [v1 / λ1 , . . . , vr / λr ] ∈ RM ×r ,
+                    ψ ⊥ (x) = Tr⊤ ψ(x) ∈ Rr .
+
+Then G†r = Tr Tr⊤ and Tr⊤ GTr = Ir , so Eµ [ψ ⊥ ψ ⊥⊤ ] = Ir in the retained
+eigencoordinates. The corresponding residual-Christoffel function is
+             L
+            KM (x) = ψ(x)⊤ G†r ψ(x) = ∥ψ ⊥ (x)∥22 ,              L
+                                                            Eµ [KM ] = r.    (7)
+
+The randomized sampling rule uses (7) directly. The deterministic rule uses
+the same operator-residual rows but updates their leverage metric as points
+6                                                                  J. Linghu and Y. Wang
+
+                               L
+are selected. Points where KM     = 0 contain no information in the retained
+coordinates and receive zero probability in the randomized rule.
+   For a system with total coefficient dimension Msys and s equation rows
+per physical point, collect the residual rows in Ψ (x) ∈ Rs×Msys . The same
+construction applies after replacing ψψ ⊤ by Ψ ⊤ Ψ in G and replacing KM
+                                                                       L
+                                                                         by
+                  L
+                       (x) = tr Ψ (x)G†r Ψ (x)⊤ = ∥Ψ (x)Tr ∥2F ,
+                                               
+                KM,sys
+
+where ∥ · ∥F is the Frobenius norm. In particular,
+                              L
+                         Eµ [KM,sys ] = tr(Tr⊤ GTr ) = r.
+
+Sampling a point assigns the same inverse-Christoffel weight to all of its equa-
+tion rows, and its empirical Gram contribution is
+
+                              ωi Tr⊤ Ψ (xi )⊤ Ψ (xi )Tr .
+
+The resulting point contribution is PSD and its spectral norm is bounded by
+its trace, so the concentration argument below retains the same r/N sum-
+mand bound. This block formulation is used for the elasticity experiment,
+where Msys = 2M and s = 2. The population and finite-candidate formulas
+below apply unchanged after replacing each scalar outer product by its block
+counterpart.
+    For selected interior points or point blocks {(xi , ωi )}N
+                                                             i=1 , let ωi > 0 denote
+                                                               i
+
+
+the sampling weight before the common assembly normalization introduced
+below. The empirical whitened Gram is
+                                 Ni
+                                 X
+                          b⊥ =
+                          G            ωi ψ ⊥ (xi )ψ ⊥ (xi )⊤ .                     (8)
+                                 i=1
+
+
+The sampling target is therefore G b ⊥ ≈ Ir on the retained operator-residual
+coordinates. Thus row selection constructs a weighted empirical approximation
+of the reference residual Gram rather than only a geometric covering of Ω. The
+immediate objective is algebraic conditioning on the retained interior block.
+Solution accuracy is evaluated separately. The concentration analysis uses the
+sampling weights ωi ; the normalized weights ω̄i below are reserved for the
+assembled PDE objective.
+
+
+2.3 Boundary block and assembled least-squares system
+
+The actual PDE discretization also contains boundary equations. For interior
+points {xi }N
+            i=1 with Ni ≥ 1, normalize the sampling weights by
+              i
+
+
+
+                                                  Ni
+                                 ωi               X
+                         ω̄i = PNi         ,            ω̄i = 1.
+                                  s=1 ωs          i=1
+Residual-Christoffel Sampling for RFM Collocation                                                7
+
+
+Let {yj }N
+         j=1 , with Nb ≥ 1, be the boundary points and let ηj > 0 satisfy
+          b
+
+PNb
+  j=1 ηj = 1. The assembled objective is
+
+                 Ni                                        Nb
+                 X                               2        X                          2
+       min             ω̄i LuM (xi ) − f (xi )        +β         ηj BuM (yj ) − g(yj ) ,
+       c∈RM
+                 i=1                                       j=1
+                                                                                            (9)
+                          M
+                          X
+                uM =           cm φm .
+                         m=1
+
+Here β > 0 is the total boundary weight relative to the unit-normalized interior
+block. Uniform and greedy rules use constant unnormalized interior weights,
+whereas the randomized rule uses inverse-Christoffel weights. The normaliza-
+tion from ωi to ω̄i does not change the condition number of the interior block
+because it is a uniform scalar rescaling, but it fixes the interior scale relative
+to the boundary block.
+    Define
+ Ai (i, m) = Lφm (xi ),         Ai ∈ RNi ×M , Ab (j, m) = Bφm (yj ),             Ab ∈ RNb ×M ,
+ Ω̄i = diag(ω̄1 , . . . , ω̄Ni ),                Ωb = diag(η1 , . . . , ηNb ).
+                                                                                       (10)
+Here diag forms a diagonal matrix from the listed entries. Define the sampled
+data vectors fi := (f (x1 ), . . . , f (xNi ))⊤ and gb := (g(y1 ), . . . , g(yNb ))⊤ . The
+corresponding base weighted least-squares problem is
+                                    "             #          "                #
+                                          1/2                        1/2
+                  2                     Ω̄i Ai                   Ω̄i fi
+     min ∥Ac − b∥2 ,      A := √             1/2    ,    b := √          1/2     ,     (11)
+    c∈RM                                β Ωb Ab                  β Ωb gb
+
+Here A ∈ R(Ni +Nb )×M and b ∈ RNi +Nb .
+   Whitening or preconditioning introduces a full-column-rank coefficient map
+Pcoef ∈ RM ×mtr , where mtr is the dimension of the transformed coefficient
+                                                         c ∈ Rmtr :
+space, and solves for the transformed coefficient vector e
+
+                                       c − b∥22 ,
+                           min ∥APcoef e                     c = Pcoef e
+                                                                       c.                  (12)
+                          c∈Rmtr
+                          e
+
+For retained residual whitening, Pcoef = Tr and mtr = r. Because Tr is rect-
+angular when r < M , this choice restricts the coefficient vector to range(Tr )
+as well as whitening that subspace. An untransformed solve in the full coeffi-
+cient space based on a singular value decomposition (SVD) uses Pcoef = IM ,
+where IM is the M × M identity matrix; an invertible full-rank Pcoef changes
+only the coefficient coordinates. Full-rank ridge and boundary-aware trans-
+forms are identified explicitly where they are used. Reported condition num-
+bers and LSQR iterations refer to the matrix APcoef actually passed to the
+solver. Experiments that isolate point selection hold Pcoef fixed, whereas com-
+bined stabilization results are labeled as sampling plus whitening. Within each
+collocation-sampling comparison, the boundary points, ηj , and β are shared.
+8                                                         J. Linghu and Y. Wang
+
+
+Remark 1 (Interior and full-system conditioning) The default sampling rule
+and the concentration result below use the interior residual Gram G. For the
+condition number of the full interior-plus-boundary matrix, whitening can in-
+stead be based on the coefficient-space Gram induced by a weighted augmented
+reference measure. For a whitening parameter ϑ ≥ 0, define
+                                                     ⊤
+                      χ(y) = Bφ1 (y), . . . , BφM (y) ,
+                       Gb = Ey∼ν [χ(y)χ(y)⊤ ],                            (13)
+                       aug
+                      Gϑ = G + ϑGb .
+
+Both terms in (13) are quadratic forms in the same coefficient vector. If the
+augmented reference Gram is chosen to match the population counterpart of
+(9) under the same normalized reference measures, then ϑ = β. The ablation
+also uses the proportional normalized mixture
+
+                   ϑ                                   1
+           α :=       ,     Gα := (1 − α)G + αGb =       Gaug ,
+                  1+ϑ                                 1+ϑ ϑ
+whose global factor does not affect a condition number. A whitening trans-
+form constructed from G targets the interior quadratic form only. A transform
+constructed from Gaug
+                    ϑ  targets the combined reference form, but conditioning
+of a finite assembled matrix additionally depends on how accurately the sam-
+pled interior and boundary blocks approximate their reference Grams. The
+concentration theorem below treats the default retained interior block.
+
+    Thus the reference Gram and sampling weights determine the interior dis-
+cretization, whereas β and Pcoef determine boundary scaling and solver coor-
+dinates, respectively.
+
+
+3 Residual-space sampling strategies
+
+The objective is to approximate the weighted residual Gram on the retained
+eigencoordinates. Randomized residual-Christoffel sampling uses the fixed ref-
+erence Gram G†r , whereas deterministic leverage-greedy selection updates the
+Gram of the rows already selected. Boundary rows are appended afterward
+as a fixed block. Throughout this section, N = Ni denotes the number of
+selected interior points or point blocks. A point contributes one residual row
+in the scalar formulation and may contribute several rows for a system. The
+                             L
+notation KM abbreviates KM      when the operator is clear.
+
+
+3.1 Randomized residual-Christoffel sampling
+
+The randomized rule aims to select a small set of weighted interior residual
+rows whose empirical whitened Gram (8) approximates Ir in the retained
+Residual-Christoffel Sampling for RFM Collocation                              9
+
+
+eigencoordinates. The population sampling rule draws interior points from the
+residual-Christoffel measure
+                                                  r
+                     dp = (KM /r) dµ,   ωi =             .               (14)
+                                              N KM (xi )
+Here p is the probability measure obtained by tilting µ with the residual-
+Christoffel density KM /r on the support where KM > 0; it is normalized
+because Eµ KM = r. Conditional on the fixed features, Gram, and retained
+rank, the points x1 , . . . , xN are drawn independently with replacement from
+p. Each sampled row contributes an unbiased 1/N share of the identity in the
+retained eigencoordinates:
+                                                    1
+                         Ep ωi ψ ⊥ (xi )ψ ⊥ (xi )⊤ = Ir .
+                                                 
+                                                                            (15)
+                                                    N
+Moreover, every weighted whitened row contribution has the same trace,
+                                             r
+                           ωi ∥ψ ⊥ (xi )∥22 = .                        (16)
+                                             N
+Equation (15) gives the mean interior Gram, while (16) bounds every PSD
+rank-one summand by r/N in spectral norm. Before boundary assembly, they
+are rescaled to ω̄i as defined in Section 2; this common scalar rescaling leaves
+the interior condition number unchanged.
+    For the discrete sampler, a reference quadrature is first used to approximate
+the residual Gram and construct the whitening map. The leverage scores used
+for sampling
+      P       are then evaluated on a finite candidate set CP = {(zq , ϖq )}P q=1
+with q ϖq = 1, where ϖq is the probability mass assigned to candidate zq .
+Unless otherwise stated, this candidate set is drawn from the same normalized
+Lebesgue/reference measure µ; for a uniform finite set, ϖq = 1/P . Let Kq =
+KM (zq ). The discrete sampling probability of candidate index q is
+                               X                       ϖq Kq
+                        SP =        ϖs Ks ,     πq =         ,              (17)
+                                s
+                                                        SP
+
+where we require SP > 0. The index qi is drawn independently from the
+discrete distribution in (17), and the sampled row is assigned the sampling
+weight
+                                         SP
+                                 ω(q) =      .                         (18)
+                                        N Kq
+Candidates with Kq = 0 have zero sampling probability in (17) and are omit-
+ted. Conditional on the candidate set and whitening map, the finite-set esti-
+mator is unbiased for the candidate-measure Gram
+     "N                                      #        P
+      X                                               X
+   E     ω(qi ) ψ ⊥ (zqi )ψ ⊥ (zqi )⊤ CP , Tr = HP :=   ϖq ψ ⊥ (zq )ψ ⊥ (zq )⊤ .
+      i=1                                                q=1
+                                                                            (19)
+Thus (19) is the finite-set counterpart of (15), but its target is HP , not nec-
+essarily Ir . When the candidate measure approximates the reference residual
+10                                                              J. Linghu and Y. Wang
+
+
+Gram, HP ≈ Ir and SP = tr(HP ) ≈ r, where tr denotes the matrix trace.
+Hence (18) approaches the population normalization
+                                           r
+                              ω(q) ≈               .
+                                        N KM (zq )
+
+This finite-set rule is used in the experiments. Sampling is with replacement,
+so a selected point may appear more than once and is retained as a repeated
+weighted equation. Christoffel and greedy sampling rules use the same finite
+candidate set when they are compared directly. Uniform and residual-adaptive
+points are drawn independently from the reference distribution. The candidate
+mismatch ∥HP − Ir ∥2 is isolated in Remark 2. Unlike greedy selection, ran-
+domized sampling allows arbitrary N through sampling with replacement.
+    For experiments that avoid explicit rank truncation, we use γ > 0 and the
+ridge score
+                      KM,γ (x) = ψ(x)⊤ (G + γIM )−1 ψ(x).                 (20)
+For the population measure, the normalizing constant is
+                                                 −1
+                       dG
+                                                    
+                        eff (γ) = tr G(G + γIM )      .
+
+This quantity is the ridge effective dimension of the finite Gram G at ridge
+parameter γ. For a finite candidate set, it is
+                                   X
+                           SP,γ =      ϖq KM,γ (zq ).
+                                    q
+
+
+Equations (17)–(18) then apply with KM and SP replaced by KM,γ and SP,γ .
+   The constructions in this subsection sample only the interior residual rows;
+boundary rows are appended after converting ωi to the normalized assembly
+weights ω̄i in (9). Algorithm 1 summarizes the resulting randomized finite-
+candidate construction.
+
+
+3.2 Deterministic leverage-greedy selection
+
+The deterministic rule uses leverage relative to the rows already selected,
+rather than the fixed reference score KM . This variant is useful when the can-
+didate residual rows have already been evaluated and a nonrandom set is de-
+sired. Consider an unweighted candidate set CP = {zq }Pq=1 , choose N ≤ P , and
+let λg > 0. Weighted candidate measures can be incorporated into the corre-
+                                                                     √
+sponding weighted log-determinant design by replacing ψ(zq ) with ϖq ψ(zq ).
+                                                          (k)
+Starting from G0 = λg IM , define the remaining set CP          = CP \ {x1 , . . . , xk }
+and choose
+                                                          k
+                                                          X
+ xk+1 ∈ arg max ψ(x)⊤ G−1
+                       k ψ(x),             Gk = λg IM +         ψ(xj )ψ(xj )⊤ . (21)
+                (k)
+             x∈CP                                         j=1
+Residual-Christoffel Sampling for RFM Collocation                                            11
+
+
+Algorithm 1 Randomized residual-Christoffel sampling
+
+ 1: Given feature functions {φm }M  m=1 , operator L, reference quadrature
+    Q = {(x̃q , wq )}Q
+                     q=1 , candidate set with probability masses CP = {(zq , ϖq )}P
+                                                                                  q=1 , interior
+                                                    P          P
+    sample size N , and optional ridge γ ≥ 0, with q wq = q ϖq = 1.
+ 2: Evaluate the residual feature row ψ(x) = (Lφ1 (x), . . . , LφM (x))⊤ on Q and CP .
+ 3: Form the reference residual Gram
+                                          Q
+                                          X
+                                   GQ =         wq ψ(x̃q )ψ(x̃q )⊤ .
+                                          q=1
+
+ 4: If γ = 0, compute the eigendecomposition of GQ and retain the numerical rank r. Let
+    Vr ∈ RM ×r contain the retained eigenvectors and Λr ∈ Rr×r the corresponding
+                                       −1/2
+    positive eigenvalues. Set Tr = Vr Λr    and G†Q,r = Vr Λ−1     ⊤
+                                                              r Vr . For each candidate
+    point, set
+                            Kq = ψ(zq )⊤ G†Q,r ψ(zq ) = ∥Tr⊤ ψ(zq )∥22 .
+
+ 5: If γ > 0, set Tγ = (GQ + γIM )−1/2 and
+
+                       Kq = ψ(zq )⊤ (GQ + γIM )−1 ψ(zq ) = ∥Tγ⊤ ψ(zq )∥22 .
+
+ 6: For a system with residual block Ψ (zq ), form GQ = q wq Ψ (x̃q )⊤ Ψ (x̃q ) and replace
+                                                            P
+
+    the scalar score by the sum of the equation-row scores, equivalently Kq = ∥Ψ (zq )Tr ∥2F
+    in the truncated construction. A selected point assigns the same sampling weight to
+    every row in its block.
+ 7: Using these scores, define the finite-set probabilities and inverse-Christoffel sampling
+    weights
+          Pby (17)–(18). Candidates with Kq = 0 receive zero probability; require
+    SP = q ϖq Kq > 0.
+ 8: Draw indices q1 , . . . , qN independently from {πq }P
+                                                         q=1 and set xi = zqi with sampling
+    weight ωi = ω(qi ). Sampling is with replacement, so repeated indices are retained as
+    repeated weighted rows.
+ 9: Return sampled interior points {xi }N                                  N
+                                             i=1 and sampling weights {ωi }i=1 for the interior
+    block, together
+              P     with      T r when γ = 0 or Tγ when γ > 0. Before boundary   assembly, set
+    ω̄i = ωi / s ωs as in (9).
+
+
+
+
+Here Gk is the regularized Gram of the residual rows already selected, and
+ψ(x)⊤ G−1k ψ(x) is the leverage of a candidate row in the metric induced by
+that selected set. A large score identifies a direction that is weakly repre-
+sented by the current rows. For a system of equations, the implementation
+uses the sum of the equation-row scores as a trace surrogate and incorporates
+a selected point by successive rank-one updates. If the rows at a point form
+A(x) ∈ Rs×Msys , the exact block log-determinant increment is log det(Is +
+A(x)G−1       ⊤
+       k A(x) ); it is not generally equal to the summed row scores. The
+parameter λg ensures Gk ≻ 0 from the first step and controls the scale as-
+signed to directions not yet represented. The selection rule (21) has a local
+log-determinant characterization.
+
+Proposition 1 (Scalar-row regularized greedy log-determinant step)
+Let CP be a candidate set of scalar residual rows and let Gk = λg IM +
+12                                                          J. Linghu and Y. Wang
+
+Pk                   ⊤
+     j=1 ψ(xj )ψ(xj ) with λg > 0. Then
+
+                        xk+1 ∈ arg max ψ(x)⊤ G−1
+                                              k ψ(x)
+                                       (k)
+                                   x∈CP
+
+                                                                        (k)
+maximizes log det Gk+1 − log det Gk over the remaining candidates CP .
+
+Proof For any candidate x, Gk+1 = Gk + ψ(x)ψ(x)⊤ . The matrix determinant
+lemma gives
+                 det Gk+1 = det Gk 1 + ψ(x)⊤ G−1
+                                                      
+                                              k ψ(x) .               (22)
+Since the leverage score is nonnegative and t 7→ log(1 + t) is increasing for
+t ≥ 0, (22) proves the one-step statement. This gives a local regularized log-
+determinant characterization. The Sherman–Morrison identity gives the cor-
+responding O(M 2 ) inverse update.
+
+    The selected greedy rows enter the common least-squares assembly with
+unit sampling weights before the same boundary and normalization convention
+is applied. Its accuracy as a function of sample size is evaluated numerically.
+For scalar equations, each accepted row gives the largest available local increase
+in the regularized log determinant. For systems, the summed row-leverage
+score is the trace surrogate described above. Algorithm 2 summarizes this
+deterministic finite-candidate construction, and Figure 1 visualizes the interior
+collocation sets produced by the three row-selection rules.
+
+
+3.3 Computational regimes and cost
+
+Let Q be the number of reference quadrature points, P the candidate-pool size,
+and r the retained residual dimension. On the reference quadrature, residual-
+row evaluation costs O(QM cL ), where cL is the per-feature cost of evaluating
+                                     ⊤
+the action of L. Forming GQ = ΨQ       W ΨQ costs O(QM 2 ), where ΨQ ∈ RQ×M
+has row q equal to ψ(x̃q )⊤ and W = diag(w1 , . . . , wQ ), and diagonalizing this
+dense M × M Gram costs O(M 3 ) with O(M 2 ) Gram storage.
+    Candidate-row evaluation costs O(P M cL ). Once the retained eigenspace
+is available, rank-r Christoffel scores cost O(P M r). Probability normalization
+costs O(P ); an alias table gives O(P + N ) total preprocessing and sampling
+work. Approximate ridge scores have the same projection cost when the inverse
+is represented by a rank-r or sketched factor. An exact full-dimensional ridge
+factor costs O(P M 2 ) to apply over the candidate set.
+    For the deterministic greedy rule, recomputing the inverse and all scores
+at every step costs O(N (M 3 + P M 2 )). With the P × M candidate-row ma-
+trix stored, Sherman–Morrison updates cost O(P M + M 2 ) per step, giving
+O(N (P M + M 2 )) work and O(P M + M 2 ) storage after candidate evaluation.
+For larger feature counts, a randomized range finder can be applied to the
+weighted residual matrix RQ = W 1/2 ΨQ . With sketch size ssk , each pass costs
+O(QM ssk ); a streamed or matrix-free implementation uses O((Q + M )ssk )
+auxiliary memory in addition to the data needed to evaluate residual rows,
+Residual-Christoffel Sampling for RFM Collocation                                        13
+
+
+Algorithm 2 Deterministic leverage-greedy sampling
+
+ 1: Given residual rows ψ(zq ) on a candidate set CP = {zq }P
+                                                            q=1 , target sample size N ≤ P ,
+    and greedy regularization λg > 0.
+ 2: Initialize
+                                 G0 = λg IM ,      H0 = G−1
+                                                          0 .
+
+    At each subsequent step, Hk denotes the maintained inverse G−1
+                                                                k .
+ 3: for k = 0, . . . , N − 1 do
+ 4: Compute the candidate scores
+
+                        ℓk (q) = ψ(zq )⊤ Hk ψ(zq ),            q∈
+                                                                / {q1 , . . . , qk }.
+
+ 5:   Choose the candidate with maximal score as the next collocation point,
+
+                      qk+1 ∈ arg       max           ℓk (q),      xk+1 := zqk+1 .
+                                   q ∈{q
+                                     / 1 ,...,qk }
+
+
+ 6:   Update the Gram and inverse. With a = ψ(xk+1 ), v = Hk a, and dk = 1 + a⊤ v,
+
+                                                                            vv ⊤
+                         Gk+1 = Gk + aa⊤ ,               Hk+1 = Hk −             .
+                                                                             dk
+
+ 7: end for
+ 8: For a vector-valued operator, use the sum of the equation-row scores as a trace
+    surrogate. After selecting a point, apply one rank-one update for each equation row.
+    This summed score is not, in general, the exact block log-determinant increment.
+ 9: Return deterministic interior points {xi }N
+                                              i=1 with unit sampling weights ωi = 1. Thus
+    ω̄i = 1/N in (9).
+
+
+
+
+whereas explicitly storing RQ requires O(QM ) memory. These estimates ex-
+clude boundary assembly and the final least-squares solve.
+
+
+4 Conditioning theory
+                  L
+Write KM := KM      . Conditional on the fixed features, reference Gram, whiten-
+ing map, and rank r, inverse-Christoffel sampling makes the whitened interior
+Gram concentrate about Ir . For a finite candidate set, the target is HP , which
+equals Ir only when the candidate measure also defines the whitening Gram.
+These statements quantify interior conditioning. The finite-dimensional proba-
+bility is over the sampled points or point blocks; the operator-limit probability
+below is over an independent random-feature realization.
+
+
+4.1 Residual-Gram concentration and interior conditioning
+
+Lemma 1 (Unbiased residual Gram) In the scalar formulation, let
+                                     N
+                                     X
+                            b⊥ =
+                            G              ωi ψ ⊥ (xi )ψ ⊥ (xi )⊤ ,
+                                     i=1
+14                                                                      J. Linghu and Y. Wang
+
+
+                  uniform                   residual-Christoffel         leverage-greedy
+ square
+ annulus
+
+
+
+
+Fig. 1 Interior collocation sets from the three point-selection rules. Rows show high-
+frequency Poisson on the square (M = 500, r = 252, N = 600) and smooth Poisson on
+the annulus (M = 300, r = 227, N = 600); columns show uniform, residual-Christoffel, and
+leverage-greedy sampling. In these examples, residual-Christoffel sampling visibly reallocates
+points toward boundary-adjacent high-leverage regions and may repeat candidates, whereas
+the without-replacement greedy rule produces a more evenly separated deterministic set.
+
+
+and, in the system formulation, replace each summand by
+                                       ωi Tr⊤ Ψ (xi )⊤ Ψ (xi )Tr .
+       b ⊥ ] = Ir in either case.
+Then E[G
+Proof The samples are independent and identically distributed from dp =
+(KM /r) dµ, with ω(x) = r/(N KM (x)). Hence
+                      b ⊥ ] = N Ex∼p ω(x)ψ ⊥ (x)ψ ⊥ (x)⊤
+                                                        
+                   E[G
+                                Z
+                                    r            KM
+                            =N          ψ ⊥ ψ ⊥⊤     dµ
+                                  N KM            r
+                              Z
+                            = ψ ⊥ ψ ⊥⊤ dµ = Ir ,
+
+where the last equality follows from Eµ [ψ ⊥ ψ ⊥⊤ ] = Ir on the retained subspace.
+The identities are understood on the support KM > 0; when KM = 0, the
+rank-one integrand also vanishes. For a system, the same cancellation leaves
+Tr⊤ Eµ [Ψ ⊤ Ψ ]Tr = Tr⊤ GTr = Ir .
+Remark 2 (Finite-candidate implementation) Let CP = {(zq , ϖq )}P
+                                                                q=1 be a
+candidate set and set
+                  P
+                  X                               ϖq KM (zq )                    SP
+           SP =         ϖq KM (zq ),       πq =               ,      ω(q) =
+                  q=1
+                                                      SP                      N KM (zq )
+Residual-Christoffel Sampling for RFM Collocation                               15
+
+
+on the support where KM (zq ) > 0, assuming SP > 0. Conditional on CP and
+the fixed whitening map Tr , the expectation is
+                                             P
+                                             X
+                    b ⊥ | CP ] = HP :=
+                  E[G                              ϖq ψ ⊥ (zq )ψ ⊥ (zq )⊤ .
+                                             q=1
+
+If the same empirical candidate measure is also used for whitening, then HP =
+Ir and SP = tr(HP ) = r. If whitening is computed from a separate reference
+quadrature, define the deterministic mismatch, conditional on the reference
+quadrature and candidate set, by
+                               εcand
+                                P    := ∥HP − Ir ∥2 .
+The sampling and quadrature errors then separate as
+                        b ⊥ − Ir ∥2 ≤ ∥G
+                       ∥G              b ⊥ − HP ∥2 + εcand
+                                                      P    .                  (23)
+Thus HP is the conditional candidate target; concentration about Ir addition-
+ally requires control of εcand
+                          P    . Theorem 1, with the stated constant, applies
+to the population construction. The same proof applies conditionally to a fi-
+nite candidate set used for whitening because then HP = Ir , SP = r, and
+the same r/N summand bound holds. For a distinct reference quadrature,
+a bound about HP depends additionally on the spectrum of HP and is not
+asserted here.
+Theorem 1 (Population residual-Gram concentration) Condition on
+the realized features, population Gram, whitening map Tr , and retained rank
+r. Let the interior points or point blocks be sampled independently according
+to Lemma 1 and the system extension above. Fix a relative Gram tolerance
+ε ∈ (0, 1) and failure probability δ ∈ (0, 1). If
+                                       3
+                                 N≥       r ln(2r/δ),                         (24)
+                                       ε2
+then with probability ≥ 1 − δ,
+                                   b ⊥ − Ir
+                                   G                   ≤ ε,                   (25)
+                                                   2
+
+                              b ⊥ ⪯ (1 + ε)Ir .
+or, equivalently, (1 − ε)Ir ⪯ G
+
+Proof Write G b ⊥ = PN Xi . In the scalar formulation, the independent sum-
+                       i=1
+mands are
+                          Xi = ωi ψ ⊥ (xi )ψ ⊥ (xi )⊤ ⪰ 0.
+Each term obeys
+                                   2          r                  r
+           ∥Xi ∥2 = ωi ψ ⊥ (xi )       =              KM (xi ) =   =: LN ,
+                                           N KM (xi )            N
+                       2
+using KM = ψ ⊥ . This uniform row bound is the role of the inverse-
+Christoffel weight. For a point block, the corresponding PSD summand has
+16                                                              J. Linghu and Y. Wang
+
+
+trace r/N and hence spectral norm at most r/N , so the same argument ap-
+plies. By Lemma 1, all eigenvalues of EG  b ⊥ = Ir equal one, so the smallest
+and largest eigenvalues of this expectation both equal one. Writing λmin and
+λmax for the smallest and largest eigenvalues, the matrix Chernoff inequality
+[29, 30] gives for ε ∈ (0, 1)
+
+         b ⊥ ) ≤ 1 − ε] ≤ r e−ε2 /(2LN ) ,
+Pr[λmin (G                                            b ⊥ ) ≥ 1 + ε] ≤ r e−ε2 /(3LN ) .
+                                             Pr[λmax (G
+
+Both right-hand sides are at most δ/2 once LN = r/N ≤ ε2 /(3 ln(2r/δ)). This
+is exactly (24); a union bound yields (25).
+
+Corollary 1 (Conditioning of the retained interior block) Define A⊥ ∈
+                    √
+RN ×r by (A⊥ )i,: = ωi ψ ⊥ (xi )⊤ . On the event of Theorem 1, this whitened
+weighted interior matrix obeys
+                                        r
+                                   ⊥      1+ε
+                             κ2 (A ) ≤         ,                        (26)
+                                          1−ε
+where κ2 denotes the spectral condition number, namely the ratio of the largest
+to the smallest singular value. The event in Theorem 1 ensures that A⊥ has
+full column rank. Once the feature realization and retained rank are fixed, the
+bound contains neither M nor the retained population condition ratio. The
+latter is λ1 (G)/λr (G). The required sample size still depends on the possibly
+M -dependent retained rank r through (24). For a system, A⊥ ∈ RN s×r is
+obtained by stacking the s weighted rows from each sampled point block, and
+the same bound holds.
+
+Proof Since A⊥⊤ A⊥ = G    b ⊥ , the singular values of A⊥ are the square roots of
+                       ⊥
+the eigenvalues of G . On the event of Theorem 1, these eigenvalues lie in
+                     b
+[1 − ε, 1 + ε], which gives (26).
+
+Remark 3 (Interpretation of the conditioning bound) The corollary is a state-
+ment about the retained, whitened interior residual block. Its purpose is to
+show why whitening removes population anisotropy and residual-Christoffel
+sampling transfers that normalization to the sampled block. Before whitening,
+the retained population ratio λ1 (G)/λr (G) may be large; the scalar assembly
+normalization from ωi to ω̄i does not change the interior-block condition num-
+ber. Unwhitened conditioning, boundary augmentation, and approximation
+quality are assessed separately in Section 5.
+
+
+4.2 Operator spectrum and ridge effective dimension
+
+The retained-rank concentration bound is most informative when the effective
+residual dimension is small relative to the ambient feature count. We relate the
+normalized feature Gram G/M to a residual-kernel operator and then state
+the finite-matrix ridge sampling result separately. Multiplicative convergence
+Residual-Christoffel Sampling for RFM Collocation                                 17
+
+
+of the ridge effective dimension additionally requires trace-resolvent control
+beyond this operator-norm approximation.
+    In this subsection, specialize to single-layer random features φ(x; θ) =
+σ(w·x + bθ ), where σ is the activation function, θ = (w, bθ ) consists of a feature
+weight w ∈ Rd and bias bθ ∈ R, and θ ∼ ρ is drawn from the parameter law ρ.
+Write ζθ (x) = (Lφ)(x; θ), so the residual features are independent and iden-
+tically distributed (i.i.d.) random fields. Assume that ρ has bounded support
+and that the required derivatives of σ are bounded on the corresponding com-
+pact affine image of Ω. We also assume Rζ := supθ∈supp(ρ) ∥ζθ ∥2L2 (µ) < ∞; this
+holds, for example, for bounded-coefficient differential operators of finite order
+under the preceding feature assumptions. For x, x′ ∈ Ω, define the residual
+kernel and its operator on H = L2 (µ) by
+
+                kL (x, x′ ) = Eθ [ζθ (x)ζθ (x′ )],
+                                                                                (27)
+                              Z
+                 (T v)(x) =       kL (x, x′ ) v(x′ ) dµ(x′ ),   v ∈ H.
+                                Ω
+
+The operator T is self-adjoint, positive semidefinite, and trace-class, with
+
+                               tr(T ) = Eθ ∥ζθ ∥2H ≤ Rζ .
+
+Let its eigenvalues be τ1 ≥ τ2 ≥ · · · ≥ 0. We exclude the trivial case T = 0
+and define de = tr(T )/τ1 , the dimensionless trace ratio of T . We use ∥ · ∥2 for
+the induced operator norm on H as well as for the matrix spectral norm. We
+reserve Tr for the finite-dimensional whitening matrix used in the PMalgorithms.
+For a realized feature set, define ΦM : RM → H by ΦM c =             m=1 cm ζθm .
+With ∗ denoting the Hilbert-space adjoint, we have G = Φ∗M ΦM and SM =
+ΦM Φ∗M , so their nonzero eigenvalues coincide. This is a sample-covariance-
+operator setting; sharper concentration results are available under additional
+distributional assumptions [21], while the elementary bound below is sufficient
+for the present normalization argument.
+
+Theorem 2 (Operator limit) For h1 , h2 ∈ H, let h1 ⊗ h2 denote the rank-
+one operator (h1 ⊗ h2 )v = ⟨h2 , v⟩H h1 for v ∈ H, where ⟨·, ·⟩H is the inner
+                        PM
+product of H. Let SM = m=1 ζθm ⊗ζθm , and let λj (G) denote the eigenvalues
+of the M ×M feature-index Gram G, padded by zeros for j > M . For a relative
+operator tolerance εop ∈ (0, 1) and failure probability δ ∈ (0, 1), if
+
+                                     Rζ tr(T )   Rζ de
+                              M≥        2   2  = 2 ,                            (28)
+                                      δεop τ1   δεop τ1
+
+then, with probability at least 1 − δ over the random-feature realization,
+
+          ∥M −1 SM − T ∥2 ≤ εop τ1 ,          sup |λj (G)/M − τj | ≤ εop τ1 .   (29)
+                                               j≥1
+
+In particular, M −1 SM converges to T in operator norm almost surely, and the
+normalized spectrum of G converges uniformly to that of T .
+18                                                                 J. Linghu and Y. Wang
+
+
+The proof is given in Appendix A.
+   For a constant-coefficient differential operator of order mL ,
+                                      X
+                               L=           aα ∂ α ,
+                                      |α|≤mL
+
+where aα ∈ R are the operator coefficients. Here α = (α1 , . . . , αd ) ∈ Nd0
+                                                                      Pd
+is a multi-index, N0 denotes the nonnegative integers, |α| =           j=1 αj , and
+∂ α = ∂xα11 · · · ∂xαdd . The residual feature has the general form
+                                      X
+                            ζθ (x) =       aα wα σ (|α|) (w·x + bθ ).           (30)
+                               |α|≤mL
+             Qd      α
+Here wα = j=1 wj j . Formula (30) is for scalar constant-coefficient opera-
+tors; variable coefficients and vector-valued systems require the corresponding
+product and component structure. Thus operators containing several deriva-
+tive orders, including Helmholtz and convection–diffusion operators, require a
+finite sum rather than a single derivative of σ.
+Theorem 3 (Spectral decay for uniformly analytic residual kernels)
+Assume that Ω is contained in a Cartesian box D ⊂ Rd and that µ is a
+probability measure supported on Ω. Suppose that, for some tensor-product
+Bernstein polyellipse Eϱ (D) with ϱ > 1, the map ξ 7→ kL (ξ, x′ ) is analytic on
+Eϱ (D) for every x′ ∈ Ω and, for some Ck > 0, satisfies
+                               sup          |kL (ξ, x′ )| ≤ Ck .
+                          ξ∈Eϱ (D), x′ ∈Ω
+
+Then there are constants C1 ≥ τ1 and c1 > 0, depending on (Ck , ϱ, D, d), such
+that                                   1/d
+                         τj ≤ C1 e−c1 j ,    j ≥ 1.                       (31)
+The proof is given in Appendix A.
+    The stretched-exponential form is consistent with classical spectral results
+for analytic kernels [22] and related kernel-eigenfunction approximation theory
+[26]; the theorem above states the precise one-variable analyticity condition
+used here.
+    A sufficient feature-level condition for the hypothesis of Theorem 3 is that
+every derivative σ (q) , 0 ≤ q ≤ mL , occurring in (30) be analytic and uniformly
+bounded on the compact affine image
+               Zϱ := {w·ξ + bθ : ξ ∈ Eϱ (D), (w, bθ ) ∈ supp(ρ)}.
+Sine satisfies this condition on every fixed polyellipse. For tanh, the parame-
+ter support and polyellipse must be chosen so that Zϱ has positive distance
+from the pole set {iπ(k + 21 ) : k ∈ Z}, where i is the imaginary unit and
+Z is the set of integers. The analytic decay conclusion therefore requires this
+complex-domain separation from the pole set. For variable-coefficient and elas-
+ticity residual kernels, the same conclusion follows whenever the kernel satisfies
+the analytic continuation hypothesis of Theorem 3; Section 5 examines their
+spectra numerically.
+Residual-Christoffel Sampling for RFM Collocation                                          19
+
+
+Corollary 2 (Operator ridge effective dimension) Under Theorem 3,
+                         X     τj
+          dTeff (ℓ) :=              ≤ C2 (1 + log(C1 /ℓ))d ,         0 < ℓ ≤ τ1 .        (32)
+                         j
+                             τj + ℓ
+
+Here ℓ is the positive operator ridge parameter, and C2 depends only on C1 , c1 ,
+and d.
+
+The proof is given in Appendix A.
+    We next return to the realized finite Gram. The following continuous-row
+statement is the finite-dimensional ridge-leverage guarantee used to interpret
+the sampling experiment.
+
+Theorem 4 (Ridge leverage concentration) Fix γ > 0 and a nonzero
+finite Gram G. Define
+
+ KM,γ (x) = ψ(x)⊤ (G + γIM )−1 ψ(x),                   dG
+                                                        eff (γ) = tr(G(G + γIM )
+                                                                                −1
+                                                                                   ). (33)
+
+Sample independently from the probability measure
+
+                                             KM,γ (x)
+                                dpγ (x) =              dµ(x)                             (34)
+                                              dG
+                                               eff (γ)
+
+on the support where KM,γ > 0, and use weights
+
+                                              dG
+                                               eff (γ)
+                                    ωi =                 .                               (35)
+                                            N KM,γ (xi )
+
+For a relative Gram tolerance ε ∈ (0, 1) and failure probability δ ∈ (0, 1), if
+
+                                    8 −2 G
+                              N≥      ε deff (γ) log(2M/δ),                              (36)
+                                    3
+                                                                                     ⊤
+                                                                       P
+then, with probability at least 1 − δ, the weighted Gram G
+                                                         b=
+                                                                            i ωi ψi ψi , where
+ψi = ψ(xi ), obeys
+
+              (1 − ε)(G + γIM ) ⪯ G
+                                  b + γIM ⪯ (1 + ε)(G + γIM ).                           (37)
+
+Proof Let Cγ = (G + γIM )−1/2 G(G + γIM )−1/2 and set
+
+                   Yi = (G + γIM )−1/2 ωi ψi ψi⊤ (G + γIM )−1/2 .
+
+Set Rγ = dG                                                 2
+             eff (γ)/N . Then EYi = Cγ /N , ∥Yi ∥2 = Rγ , Yi = Rγ Yi , and
+           G
+tr(Cγ ) = deff (γ). Moreover, 0 ⪯ Yi , EYi ⪯ Rγ IM , so for Zi = Yi − EYi ,
+∥Zi ∥2 ≤ Rγ and
+
+                    X                   X
+                         EZi2       ≤       EYi2       = Rγ ∥Cγ ∥2 ≤ Rγ .
+                     i          2       i          2
+20                                                                 J. Linghu and Y. Wang
+
+
+The self-adjoint matrix Bernstein inequality [29, 30], together with ε < 1, gives
+                 "                    #
+                                                         3N ε2
+                   X                                             
+               Pr      Yi − Cγ > ε ≤ 2M exp − G                     .
+                     i
+                                                        8deff (γ)
+                                  2
+
+Condition (36) makes this probability at most δ. Undoing the normalization
+yields
+               ∥(G + γIM )−1/2 (G
+                                b − G)(G + γIM )−1/2 ∥2 ≤ ε,
+
+which is equivalent to −ε(G + γIM ) ⪯ G  b − G ⪯ ε(G + γIM ). Adding G + γIM
+gives (37). This is a continuous-row result. A finite candidate construction
+has an analogous deterministic discrepancy between its empirical ridge tar-
+get and the population target, in addition to row-sampling fluctuation. The
+result is the counterpart of finite ridge-leverage constructions used in kernel
+approximation [12, 15].
+
+Remark 4 (Finite versus operator dimensions) Corollary 2 is an operator-level
+statement, whereas Theorem 4 is conditional on the realized finite matrix
+and depends on dG                                                   G
+                     eff (γ). A multiplicative comparison between deff (M ℓ) and
+ T
+deff (ℓ) requires trace-resolvent concentration in addition to the additive spec-
+tral bound (29).
+
+    For the relative finite-matrix ridges used in the experiments, let the dimen-
+sionless parameter ρrel > 0 specify γ = ρrel λ1 (G), and set ℓ = γ/M . On the
+event (29), if εop < 1, then
+
+                     ρrel (1 − εop )τ1 ≤ ℓ ≤ ρrel (1 + εop )τ1 .
+
+The numerical section separately checks normalized-spectrum collapse, the em-
+pirical growth of dG
+                   eff (γ), ridge-relative Gram concentration, and the retained-
+rank ratio. Over the reported range M = 400, . . . , 6400, the observed ratio
+r/M decreases from 0.44 to 0.05.
+
+
+5 Numerical results
+
+The numerical study examines effective residual dimension and conditioning. It
+then considers LSQR convergence and accuracy versus sample size. Controlled
+comparisons distinguish sampling from boundary treatment, preconditioning,
+feature pruning, trial-space enrichment, and direct solution. Section 5.1 gives
+the common setup.
+
+
+5.1 Experimental setup
+
+The compared interior sampling strategies are uniform sampling, random-
+ized residual-Christoffel sampling (Algorithm 1), and deterministic leverage-
+greedy sampling (Algorithm 2). A residual-adaptive control is included in the
+Residual-Christoffel Sampling for RFM Collocation                              21
+
+
+accuracy-versus-sample-size experiments: three enrichment stages sample from
+a density proportional to the squared current PDE residual. For elasticity, the
+score is the squared Euclidean norm of the two equation residuals. All methods
+use the same trial space and boundary rows within a test. Ranks, whitening
+maps, and Christoffel weights follow the constructions in Sections 2 and 3, with
+the default rank chosen by (5). Throughout the numerical section, r denotes
+this retained residual rank, selected separately for each benchmark before the
+collocation-sampling rule is changed; ratios such as N/r therefore report se-
+lected interior points per retained residual direction. In scalar tests each point
+contributes one equation row, whereas an elasticity point contributes a two-
+row block. Boundary rows are fixed across samplers.
+    Unless otherwise stated, boundary points use equal weights normalized to
+total boundary weight β = 1, so ηj = 1/Nb in scalar tests; for vector-valued
+systems, the same point weight is applied to each boundary component row.
+Boundary weighting and boundary-aware whitening are varied only in the
+ablation study.
+    Unless stated otherwise, the trial functions are φm (x) = tanh(wm ·x + bm )
+with independent wm ∼ Unif([−arf , arf ]d ) and bm ∼ Unif([−arf , arf ]), where
+Unif denotes the uniform distribution. The feature bandwidth is arf = 6 in 1D
+and in the variable-coefficient, convection–diffusion, elasticity, and geometry
+tests, arf = 5 in the smooth 2D/3D Poisson tests, and arf = 8 in the high-
+frequency Poisson and k = 6 Helmholtz accuracy tests. The dense scaling and
+sketched-construction tests instead use φm (x) = sin(wm·x + bm ) with arf = 18
+and bm ∼ Unif[−π, π]; the k = 16 Helmholtz test uses the same sine law with
+arf = 28.
+    Errors are reported as relative discrete L2 errors on held-out interior test
+sets. Except in solver comparisons, accuracy is computed by a singular value
+decomposition (SVD) in the full coefficient space with relative cutoff 10−13 ;
+runs of the iterative least-squares solver LSQR use absolute and relative tol-
+erances 10−10 with the stated iteration caps. Randomized results are reported
+as medians over the repetitions stated in each caption. Spectrum experiments
+vary both the feature and reference-quadrature realizations. Accuracy-versus-
+sample-size experiments fix the feature map, reference quadrature, boundary
+set, and test set, and vary the point-selection rule and finite candidate set. The
+solver-scaling experiment varies the complete feature, quadrature, and sam-
+pling realization. Dotted large-sample uniform reference errors provide com-
+parison levels. Wall-clock timings were measured on a server with an Intel Xeon
+Platinum 8476C central processing unit (CPU) using four numerical-library
+threads.
+    All scalar tests impose Dirichlet data from a manufactured solution, with
+the right-hand side obtained by applying the stated operator. The Poisson
+operator is L = −∆. On unit boxes, the Poisson solutions are products of
+sine functions; the high-frequency Poisson accuracy and scaling tests use u =
+sin(4πx) sin(4πy) on [0, 1]2 . Writing x and y for the Cartesian coordinates, the
+two Helmholtz tests on [0, 1]2 use wavenumber k in L = −∆ − k 2 I, where
+I is the identity operator. They use k = 6 with u = sin(2πx) sin(2πy) and
+22                                                                                                 J. Linghu and Y. Wang
+
+
+                           2D residual Gram spectrum                                      Ridge effective dimension
+                   0
+             10                                                             400                                       1D
+                                                                                                                      2D
+
+
+
+
+                                                                          (γ)
+            10
+                 −5                                                         300                                       3D
+ λj (G)/M
+
+
+
+
+                                                               ridge deff
+                                                                      G
+                 −10
+                                                                            200
+            10               M = 400
+                             M = 800                                        100
+            10
+                 −15         M = 1600
+                                                                                0
+                       1     50      100    150    200   250                        100      200    400     800       1600
+                                  eigenvalue index j                                        number of features M
+
+Fig. 2 Residual spectra and effective dimensions for smooth Poisson tests. Curves show
+medians over five independently paired feature/reference draws, with interquartile bands.
+Left: the leading normalized 2D residual-Gram spectra are similar across M , while the
+resolved tails separate. Right: at γ = 10−6 λ1 (G), the ridge effective dimension grows slowly
+in 1D and more rapidly in 2D and 3D; the 3D curve ends at M = 800.
+
+
+
+k = 16 with u = sin(5πx) sin(5πy). The remaining square-domain tests use
+−∇·(a∇u) with diffusion coefficient a = 1+0.5 sin(πx) sin(πy), −0.1∆u+v·∇u
+with convection velocity v = (2, 1), and u = sin(2πx) sin(2πy) in both scalar
+cases.
+   The Navier–Cauchy operator is
+
+                                        Lel u = −µel ∆u − (λel + µel )∇(∇·u),
+
+with Lamé parameters µel = λel = 1 and manufactured displacement u =
+(sin(πx) sin(πy), sin(2πx) sin(2πy))⊤ . The subscripts distinguish these elastic-
+ity constants from the reference measure µ and the Gram eigenvalues λj ; ∇
+and ∆ denote the spatial gradient and Laplacian.
+    Geometry transfer is tested on the L-shaped domain [−1, 1]2 \ ((0, 1] ×
+[−1, 0)) and the annulus 0.3 ≤ ∥x∥2 ≤ 1.
+
+
+5.2 Effective residual dimension and conditioning
+
+We first examine the dimension of the resolved residual space and then test how
+its geometry controls the conditioning and iterative solution of the collocation
+system.
+    Figure 2 compares normalized residual-Gram spectra and ridge effective
+dimensions for smooth Poisson problems. The leading 2D spectra nearly coin-
+cide after normalization, in agreement with the operator limit in Theorem 2,
+while the resolved tails separate as M increases. The effective dimension re-
+mains below the ambient feature count in every dimension, but occupies a
+larger fraction of the feature space as the spatial dimension increases.
+    Figure 3 tests whether effective dimension organizes the sample size re-
+quired for Gram approximation. For representative 1D, 2D, and 3D Poisson
+residual Grams, it plots ∥(G + γIM )−1/2 (G b − G)(G + γIM )−1/2 ∥2 against the
+Residual-Christoffel Sampling for RFM Collocation                                            23
+
+
+
+                         G)(G + γIM )−1/2 ‖2                  Ridge concentration
+                                                                                        1D
+                                               10                                       2D
+                                                                                        3D
+                                                5
+    ‖(G + γIM )−1/2 (G −
+                       ̂
+
+
+
+
+                                                2
+
+
+                                                1
+
+
+                                                    0.5   1            2            4    8
+                                                                      G
+                                                                   N/deff (γ)
+
+Fig. 3 Ridge-relative Gram error versus N/dG eff (γ). Curves show medians over twenty inde-
+pendent sampling trials, with interquartile bands, for fixed representative Poisson residual
+Grams (M = 400 in 1D and M = 600 in 2D/3D, γ = 10−6 λ1 (G)), using the unrebalanced
+continuous-theory weights and a pool of size P = max(30N, 6000). The dotted line marks
+unit relative deviation. Only the 1D median falls below this line within the displayed range.
+
+
+
+
+normalized sample size N/dG    eff (γ). The error decreases with normalized sam-
+ple size in all three cases. The 1D curve crosses unit relative deviation, the 2D
+curve approaches it, and the 3D curve remains larger, revealing dimension-
+dependent finite-sample constants. Because the candidate pool grows with
+N , the curves combine row-sampling concentration with increasingly accurate
+finite-pool resolution.
+    Table 1 reports the effect of sampling and whitening on condition numbers.
+Unless stated otherwise, κ2 refers to the weighted matrix actually solved, in-
+cluding the common boundary block. The untransformed uniform matrices
+are numerically rank deficient in all but the 3D case, whereas the sampled and
+whitened matrices are numerically full rank with substantially smaller condi-
+tion estimates. The scalar Poisson rows use greedy selection and the remain-
+ing rows use randomized residual-Christoffel sampling; later controls separate
+point selection from whitening.
+   Figure 4 connects conditioning to iterative convergence on the 2D Pois-
+son benchmark. As M increases, the untransformed uniform matrix becomes
+numerically rank deficient and LSQR reaches its iteration cap. Both residual-
+space constructions maintain numerical full rank and reduce the solve to tens
+or hundreds of iterations. The paired curves show that the conditioning im-
+provement is directly reflected in LSQR convergence.
+24                                                                                                                    J. Linghu and Y. Wang
+
+
+Table 1 Conditioning reduction across benchmarks. N and Nb are interior and boundary
+point counts; for elasticity, M is the feature count per displacement component, so the system
+has 2M coefficient columns, and each point contributes one row per equation component.
+Boundary rows and their total weight are fixed across sampling rules. Entries are median
+estimated condition numbers over three point-selection trials for the boundary-augmented
+weighted matrix. Untransformed values above the double-precision resolution scale indicate
+numerical rank deficiency.
+
+Problem                                      size          r       N                            Nb     uniform κ2     rule          whitened κ2
+1D Poisson                                   M = 640       24      400                          2      4.3 × 1017     greedy        2.1 × 103
+2D Poisson                                   M = 640       216     800                          300    6.4 × 1017     greedy        1.9 × 103
+3D Poisson                                   M = 800       586     2000                         800    4.3 × 1011     greedy        2.0 × 104
+Helmholtz k = 16                             M = 4000      270     3000                         800    7.5 × 1019     Christoffel   3.1 × 101
+Variable-coefficient el-                     M = 700       264     2000                         400    4.3 × 1017     Christoffel   5.3 × 103
+liptic
+Convection–diffusion                         M = 700       229     2000                         400    3.6 × 1017     Christoffel   8.8 × 103
+Navier–Cauchy elastic-                       2M = 1000     428     1500                         400    6.4 × 1017     Christoffel   2.1 × 103
+ity
+
+
+
+                                     Condition number                                                           LSQR iterations
+                       18
+                  10                                                                            4000
+                                                                       LSQR iterations to tol
+ condition number κ
+
+
+
+
+                       14
+                  10                                                                            1000
+                                                     uniform raw                                            uniform raw
+                       10                            Christoffel                                 500        Christoffel
+                  10
+                                                     greedy                                                 greedy
+                                                                                                 200
+                           6
+                      10                                                                         100
+                                                                                                  50
+                               80      160          320          640                                   80           160       320        640
+                                    number of features M                                                     number of features M
+
+Fig. 4 Conditioning and LSQR convergence on the 2D Poisson benchmark. Curves show
+medians over eight point-selection trials, with interquartile bands. Left: the untransformed
+uniform matrix becomes numerically rank deficient, whereas both sampled and whitened
+matrices remain in the 103 –104 range. Right: unpreconditioned LSQR reaches the 4000-
+iteration cap, while the transformed systems meet the tolerance in 48–254 median iterations.
+
+
+
+5.3 Accuracy versus number of collocation points
+
+We next examine PDE accuracy for a fixed number of interior collocation
+points. Conditioning measures the stability of the residual system, whereas
+discretization error also depends on the approximation space; the experiment
+therefore evaluates both quantities.
+    Figure 5 compares the three sampling rules at N = ⌊2.5r⌋, where ⌊·⌋
+denotes the floor function. Uniform sampling is most accurate for the two
+smallest feature spaces. Residual-Christoffel and greedy sampling become more
+accurate from M = 400 onward, and the greedy curve reaches the numerical
+accuracy floor at the largest feature count.
+    Figure 6 examines accuracy as a function of N/r for fixed feature maps.
+At the smallest ratios, greedy selection has the lowest median error in all
+four scalar problems and improves the high-frequency Poisson error by more
+Residual-Christoffel Sampling for RFM Collocation                                       25
+
+
+                                         Fixed-ratio accuracy
+                                                                     uniform
+                                                                     Christoffel
+                          10−4                                       greedy
+     relative L 2 error
+
+
+
+
+                          10−7
+
+
+
+                          10−10
+
+
+                                  100   200       400          800          1600
+                                          number of features M
+Fig. 5 Accuracy at fixed sample-to-rank ratio for 2D Poisson with N = ⌊2.5r⌋. Curves show
+medians over 30 point-selection trials and interquartile bands; the M = 1600 Christoffel
+point uses 100 trials. Uniform sampling is best at the two smallest feature counts, whereas
+the residual-space sampling rules are more accurate once M ≥ 400.
+
+
+
+than an order of magnitude relative to both uniform and residual-adaptive
+sampling. The elasticity errors remain comparable across the four methods.
+Residual-Christoffel sampling supplies the randomized rule linked to Gram
+concentration, while the greedy rule is especially effective when only a small
+number of scalar equations can be assembled.
+    The high-frequency Helmholtz results also separate stability from approx-
+imation quality. Greedy selection approaches the large-sample accuracy refer-
+ence with only a few equations per retained direction, while residual-Christoffel
+sampling with whitening produces the well-conditioned transformed system re-
+ported in Table 1. The two constructions therefore act on the same residual
+geometry but emphasize small-sample coverage and randomized norm preser-
+vation, respectively.
+
+
+
+5.4 Geometry transfer and field-level validation
+
+Table 2 examines smooth manufactured solutions on L-shaped and annular do-
+mains for four scalar operators. Every untransformed uniform system reaches
+the LSQR cap, whereas residual-Christoffel sampling with whitening produces
+convergent iterative solves and reduces the condition estimates by several or-
+ders of magnitude. The result shows that the algebraic stabilization persists
+across nonrectangular geometries and operator classes.
+26                                                                                                                      J. Linghu and Y. Wang
+
+
+                                                 high-frequency Poisson                                             Helmholtz k = 6
+                                          −2
+                relative L 2 error
+
+
+
+
+                                                                               relative L 2 error
+                                     10                                                                  −4
+                                                                                                    10
+                                          −3
+                                     10
+                                          −4
+                                     10                                                                  −6
+                                                                                                    10
+                                          −5
+                                     10
+                                               1.2 1.8      3              5                                  1.2 1.8       3                5
+                                                            N/r                                                            N/r
+                                                    variable coefficient                                          convection-diffusion
+                                          −4
+                relative L 2 error
+
+
+
+
+                                                                               relative L 2 error
+                                     10                                                                  −4
+                                                                                                    10
+                                          −5                                                             −5
+                                     10                                                             10
+                                                                                                         −6
+                                          −6                                                        10
+                                     10
+                                                                                                         −7
+                                                                                                    10
+                                               1.2 1.8      3              5                                  1.2 1.8       3                5
+                                                            N/r                                                            N/r
+                                                         elasticity
+                      3 × 10−5
+ relative L 2 error
+
+
+
+
+                      2 × 10−5                                                                                          uniform
+                                                                                                                        Christoffel
+                                                                                                                        greedy
+                                     10−5                                                                               residual-adaptive
+                                                                                                                        large-uniform ref.
+                      6 × 10−6
+                                               1.2 1.8      3              5
+                                                            N/r
+
+Fig. 6 Accuracy at prescribed sample-to-rank ratios. Curves show median relative L2 error
+over five point-selection and finite-candidate realizations, with interquartile bands. Dot-
+ted large-sample uniform reference levels show the attainable uniform-sampling accuracy.
+Greedy has the lowest median error at the smallest sample size in four scalar panels, while
+the elasticity errors are comparable.
+
+
+
+
+   Figure 7 complements the table with one field-level Poisson realization on a
+square, an L-shaped domain, and an annulus. All three use residual-Christoffel
+rows and an SVD solve in the full coefficient space. The pointwise maps place
+the largest errors near the outer boundary of the square, the reentrant ge-
+ometry and exterior edges of the L-shape, and the two annular boundary
+components.
+Residual-Christoffel Sampling for RFM Collocation                                                            27
+
+
+Table 2 Geometry-transfer experiments for smooth manufactured solutions. Entries are
+medians over three point-selection realizations with M = 400, N = 1400, and Nb = 350.
+Unpreconditioned LSQR on the uniform system reaches the 2000-iteration cap in every
+realization; residual-Christoffel sampling with whitening converges in 114–427 median iter-
+ations. The reported error is obtained from an SVD solve in the full coefficient space on the
+Christoffel rows.
+Geometry Operator                 M        r uniform κ2 Christoffel κ2 LSQR uniform/Christoffel      Rel. L2
+L-shape      Poisson              400 337      6.7×1010
+                                                             6.8×10    3
+                                                                                       2000/390 6.1×10−4
+L-shape      Helmholtz k = 6      400 300      7.7×1011      4.2×101                   2000/124 2.2×10−2
+L-shape      Variable coeff.      400 341      8.2×1010      1.6×104                   2000/409 1.2×10−2
+L-shape      Convection–diffusion 400 313      2.9×1011      1.4×104                   2000/427 1.1×10−3
+Annulus      Poisson              400 323      1.2×1011      6.5×103                   2000/353 9.2×10−5
+Annulus      Helmholtz k = 6      400 289      1.6×1012      3.9×101                   2000/114 8.4×10−3
+Annulus      Variable coeff.      400 319      1.6×1011      5.0×103                   2000/292 6.1×10−3
+Annulus      Convection–diffusion 400 303      6.3×1011      1.7×104                   2000/381 5.4×10−4
+
+
+
+                       exact                RFM reconstruction             pointwise error ×10−6
+              1                                                                                          1.0
+                                      0.5                          0.5
+ Poisson
+ square
+
+
+
+
+             0.5                      0.0                          0.0                                   0.5
+                                      −0.5                         −0.5
+              0                                                                                          0.0
+                   0    0.5      1            0      0.5       1           0     0.5      1
+
+                                                                                                    −3
+              1                                                                               ×10
+                                      1                            1
+  L-shaped
+
+
+
+
+                                                                                                         4
+  Poisson
+
+
+
+
+              0                       0                            0
+                                                                                                         2
+
+              -1                      −1                           −1                                    0
+                -1       0       1           -1       0        1           -1     0       1
+
+                                                                                                    −4
+              1                                                                               ×10
+                                                                                                         2
+                                      0.5                          0.5
+  annulus
+  Poisson
+
+
+
+
+              0                       0.0                          0.0
+                                                                                                         1
+                                      −0.5                         −0.5
+              -1                                                                                         0
+                -1       0       1           -1       0        1           -1     0       1
+
+Fig. 7 Poisson fields for one residual-Christoffel realization. Columns show the exact field,
+RFM reconstruction, and pointwise absolute error. Rows show the square (M = 400, N =
+1400, r = 190), L-shape (M = 400, N = 1400, r = 337), and annulus (M = 400, N = 1400,
+r = 323). The corresponding relative L2 errors are 1.5 × 10−7 , 6.4 × 10−4 , and 7.5 × 10−5 .
+28                                                                 J. Linghu and Y. Wang
+
+
+5.5 Ablations and controls
+
+This subsection presents controlled ablations that isolate five effects otherwise
+easily conflated with residual-space sampling: boundary weighting, boundary-
+aware whitening, solver preconditioning, column pruning after assembly, and
+trial-space deficiency. Except where explicitly varied, the boundary convention
+is the rebalanced system with total boundary weight β = 1.
+    The first controls concern the appended boundary block. Interior-only
+whitening stabilizes the sampled residual rows; the condition number of the full
+matrix additionally depends on the boundary block. Figure 8(a) varies only the
+augmented whitening Gram Gα = (1 − α)G + αGb . Incorporating the bound-
+ary Gram reduces the full-system condition number by nearly three orders
+of magnitude while leaving the error unchanged. Boundary-aware whitening
+therefore stabilizes the appended block without altering the collocation points
+or boundary penalty.
+    The boundary penalty controls the relative strength of boundary enforce-
+ment. Figure 8(b) and Table 3 show the same error-conditioning tradeoff across
+the scalar operators: stronger boundary enforcement improves accuracy while
+increasing the condition number. The greedy error varies by only about a fac-
+tor of two over seven orders of magnitude in its regularization parameter, as
+shown in panel (c). Panel (d) isolates whitening itself; removing it returns the
+sampled system to numerical rank deficiency.
+
+
+Table 3 Boundary-penalty sensitivity across scalar operators. Entries are median relative
+L2 error / κ2 over three residual-Christoffel point-selection realizations with M = 400,
+N = 1500, and Nb = 300.
+
+Operator                 r             β = 10−2                 β=1                β = 102
+Poisson                190   7.7×10−2 / 4.1×102    1.1×10−2 / 3.8×103   1.3×10−3 / 3.6×104
+Helmholtz              163     1.1×100 / 1.2×101   6.5×10−2 / 1.1×102   5.2×10−3 / 1.1×103
+Convection–diffusion   177   2.7×10−2 / 1.1×103    1.5×10−3 / 1.1×104   3.0×10−4 / 1.1×105
+
+
+
+
+    The next control fixes the collocation set and separates point selection,
+solver preconditioning, and column pruning. Direct SVD supplies the accu-
+racy reference for each row set. Unpreconditioned LSQR, ridge-LSQR, and
+the least-squares solver with randomized normal projection (LSRN) [3, 24]
+act on the assembled system; rank-revealing QR factorization (RRQR), im-
+plemented by column-pivoted QR, changes the retained feature columns [7].
+Table 4 reports the resulting accuracy, iterations, and algebraic solve times.
+    Unpreconditioned and ridge-transformed LSQR reach the iteration cap,
+whereas LSRN converges in about seventy iterations for both row sets. Thus
+solver preconditioning remains effective after either collocation rule has been
+chosen. RRQR pruning to k = r removes essential approximation directions;
+retaining larger column sets recovers accuracy, with the nonmonotone errors
+confirming that column identity matters as well as column count.
+Residual-Christoffel Sampling for RFM Collocation                                                                                                                                   29
+
+
+                                         (a) Boundary-aware Gram                                                                 (b)Boundary-weight tradeoff
+relative L 2 error
+
+
+
+
+                                                                                                   relative L 2 error
+                                               −3                                                                                  −1           error
+                     5.35 × 10                                                                     3                            10                           4
+                                                                                              10                                                          10
+                      5.3 × 10
+                               −3
+                                                                                    error                                                       κ2
+                               −3
+                     5.25 × 10                                                      κ2             2
+
+
+
+
+                                                                                                           κ2
+
+
+
+
+                                                                                                                                                                                κ2
+                                                                                                                                     −2                                         3
+                               −3                                                             10                                10                                         10
+                      5.2 × 10
+                               −3
+                     5.15 × 10                                                                10
+                                                                                                   1
+                                                                                                                                                                                2
+                                                                                                                                10
+                                                                                                                                     −3                                    10
+                                                                                                                                          −3     −2   −1    0     1    2
+                                                     0    0.1                0.3        0.5                                           10 10 10             10 10 10
+                                                    boundary Gram fraction α                                                               boundary weight β
+                                                    Greedy regularization
+                                         (c) ×10
+                                                          −5
+                                                                                                                                 (d)      Residual whitening
+
+
+
+                                                                                                          condition number κ2
+                                                                                                                                   17
+                                              1.0                                                                               10
+                         relative L 2 error
+
+
+
+
+                                                                                                                                   14
+                                                                                                                                10
+                                              0.8                                                                               10
+                                                                                                                                   11
+
+                                                                                                                                    8
+                                                                                                                                 10
+                                              0.6                                                                                   5
+                                                                                                                                 10
+                                                              −7        −5         −3        −1
+                                                         10        10         10        10                                                     raw          whitened
+                                                    greedy regularization λg
+
+Fig. 8 Ablation tests on 2D Poisson. (a) Boundary-aware whitening varies α while holding
+the collocation set, assembly weights, and r = 222 fixed; the condition number decreases
+without a material error change. (b) Increasing β decreases the error but increases the
+condition number. (c) The greedy error varies by about a factor of two over λg = 10−8 –
+10−1 . (d) Omitting residual whitening makes the sampled matrix numerically rank deficient.
+
+
+Table 4 Fixed-collocation-set comparison on high-frequency Poisson (M = 1200, r = 427,
+N = 1068 ≈ 2.5r). Methods act through point selection, solver preconditioning, or feature
+pruning. Times exclude point selection, assembly, and error evaluation; LSRN and RRQR
+include their listed algebraic steps, while ridge-transform construction is excluded from
+ridge-LSQR. Times are single-run measurements of the listed stages.
+
+                Method                                                             Component varied                                  rel. L2 error LSQR iters time (s)
+                uniform + direct SVD                                               SVD reference                                      4.1 × 10−5             –        0.21
+                uniform + LSQR                                                     LSQR solve                                         2.9 × 10−2           3000       0.42
+                uniform + LSRN                                                     solver precond.                                    2.0 × 10−4            68        0.41
+                uniform + ridge-LSQR                                               ridge solve                                        1.0 × 10−3           3000       0.42
+                uniform + RRQR, k = r                                              feature pruning                                    1.6 × 10−2             –        0.60
+                uniform + RRQR, k = 1.5r                                           feature pruning                                    8.5 × 10−5             –        0.84
+                uniform + RRQR, k = 2r                                             feature pruning                                    1.2 × 10−4             –        0.80
+                Christoffel + direct SVD                                           point selection                                    1.6 × 10−5             –        0.25
+                Christoffel + ridge-LSQR                                           selection + ridge map                              1.5 × 10−3           3000       0.41
+                Christoffel + LSRN                                                 selection + LSRN                                   1.8 × 10−4            70        0.43
+
+
+
+
+     The RRQR rows show one side of the approximation-space issue: removing
+too many feature columns can destroy accuracy even when the collocation set
+is fixed. A complementary control examines whether point selection can com-
+pensate for a missing solution direction. On the singular L-shaped problem, a
+smooth RFM with 8000 interior points leaves a relative L2 error of 1.4 × 10−2 ,
+whereas appending the known corner-singularity function reaches the numeri-
+30                                                                                                                 J. Linghu and Y. Wang
+
+
+cal precision of the solve. This enrichment separates trial-space deficiency from
+point placement: residual leverage stabilizes represented directions, whereas
+enrichment expands the approximation space.
+
+
+
+
+5.6 Computational regime and approximate leverage construction
+
+
+Figure 9 compares dense post-assembly solvers on the high-frequency Poisson
+benchmark. Direct SVD remains the fastest and most accurate method over
+the displayed feature range. Among the iterative methods, LSRN is fastest and
+most accurate. Unpreconditioned LSQR and ridge-LSQR are slower and less
+accurate. The residual-Christoffel curve reports ridge-LSQR on the selected
+rows.
+        post-assembly solve time (s)
+
+
+
+
+                                         (a) Post-assembly timing                                 (b)Post-assembly accuracy
+                                                                                                  −3
+                                        50                                                  10
+                                                                       relative L 2 error
+
+
+
+
+                                                                                                  −5
+                                        10                                                  10
+                                         5                                                        −7
+                                                                                            10
+                                          1                                                       −9
+                                        0.5                                                 10
+                                                                                                 −11
+                                        0.1                                                 10
+                                       0.05                                                      −13
+                                                                                            10
+                                              400    800    1600   3200                                400   800     1600     3200
+                                                     features M                                              features M
+      direct SVD                                    uniform raw LSQR         uniform + LSRN                        Christoffel ridge-LSQR
+
+Fig. 9 Post-assembly methods on high-frequency Poisson with N = 2M . Direct SVD,
+unpreconditioned LSQR, and LSRN use uniform rows; ridge-LSQR uses residual-Christoffel
+rows. Panels show solve time and relative L2 error, summarized by medians and interquartile
+bands over five independent feature, quadrature, and sampling realizations. Timings exclude
+leverage construction, point selection, boundary construction, matrix assembly, and error
+evaluation. Direct SVD remains fastest and most accurate throughout the displayed dense
+regime.
+
+
+
+
+   Figure 10 compares dense Gram eigendecomposition with the randomized
+range-finder construction from Section 3.3. Beyond the observed crossover, the
+sketch reduces both construction time and dominant-array storage, while its
+smaller retained residual subspace produces higher PDE error. The crossover
+therefore exposes a direct cost-accuracy tradeoff in leverage construction.
+Residual-Christoffel Sampling for RFM Collocation                                                                                                 31
+
+
+                                          Leverage construction                                                  Estimated memory footprint
+
+
+
+
+                                                                                         dominant memory (GB)
+          leverage build time (s)
+                                    100                                                                            1 (b)
+                                        (a)
+                                     30                                                                          0.5
+                                     10                                                                          0.2
+                                      3                                                                          0.1
+                                      1                                                                         0.05
+                                    0.3                                                                         0.02
+                                       400      1600         12800                                                  400      1600         12800
+                                                features M                                                                   features M
+                                          Designed conditioning                                                        Final PDE accuracy
+                                    150 (c)                                                                            (d)
+
+
+                                                                    relative L 2 error
+                                                                                                                 −2
+                                                                                             10
+         designed κ2
+
+
+
+
+                                    100
+                                                                                         5 × 10−3
+
+                                     50                                                  2 × 10−3
+                                                                                             10−3
+                                     30
+                                                                                         5 × 10−4
+                                       400      1600         12800                                                    400    1600         12800
+                                                features M                                                                   features M
+                                                        dense eig                        randomized sketch
+
+Fig. 10 Sketched residual-leverage construction. The randomized range finder is applied to
+RQ = W 1/2 ΨQ and compared with dense Gram eigendecomposition. Curves show medians
+over five realizations; panel (b) reports the dominant-array storage estimate. For M ≥ 3200,
+where both constructions were run, the sketch lowers construction time and dominant-array
+storage but retains a smaller residual subspace and gives higher PDE error.
+
+
+
+
+6 Conclusion and outlook
+
+This paper developed an operator-aware collocation strategy for linear PDEs in
+fixed random feature spaces. The operator-residual Gram defines the residual-
+Christoffel density, inverse-density weights, and coefficient whitening map; a
+deterministic scalar-row companion maximizes regularized log-determinant in-
+crements. Conditional on the trial space, the randomized construction approx-
+imates the whitened residual Gram with O(r log(r/δ)/ε2 ) samples. For uni-
+formly analytic residual kernels, spectral decay yields a polylogarithmic ridge
+effective dimension. Experiments across scalar and vector PDEs, varied geome-
+tries, and one to three dimensions show substantially improved conditioning
+and iterative convergence, together with the lowest small-sample scalar errors
+from the greedy construction. These results establish residual-space geometry
+as the organizing principle for stable strong-form random feature collocation.
+    Natural extensions combine localized or enriched trial spaces with operator-
+aware sampling for nonsmooth and multiscale solutions, use streamed residual-
+Gram factorizations for larger feature sets, and employ block leverage with
+augmented interior-boundary Grams for coupled or parameterized PDEs. Each
+direction preserves the principle of resolving the operator-induced geometry
+of the trial space.
+32                                                                           J. Linghu and Y. Wang
+
+
+A Proofs of the spectral-decay results
+
+This appendix collects the proofs of the kernel-spectral results of Section 4.2.
+
+Proof (Proof of Theorem 2) SM = ΦM Φ∗M is cospectral with G = Φ∗M ΦM , and M −1 SM
+averages i.i.d. PSD operators Xm = ζθm ⊗ ζθm with EXm = T and ∥Xm ∥HS = ∥ζθm ∥2H ≤
+Rζ , where ∥ · ∥HS is the Hilbert–Schmidt norm. Independence and centering give
+
+                                          2    1
+                      E M −1 SM − T       HS
+                                             =   E∥X1 − T ∥2HS
+                                               M
+                                                1
+                                                   E∥X1 ∥2HS − ∥T ∥2HS
+                                                                       
+                                              =
+                                                M
+                                                1             Rζ tr(T )
+                                              ≤   E∥ζθ1 ∥4H ≤           .
+                                                M                M
+Since the operator norm is bounded by the Hilbert–Schmidt norm, Markov’s inequality
+yields
+                                                    Rζ tr(T )
+                      Pr ∥M −1 SM − T ∥2 > εop τ1 ≤
+                                                
+                                                               .
+                                                    M ε2op τ12
+Condition (28) makes this probability at most δ. The compact self-adjoint eigenvalue pertur-
+bation inequality transfers the operator-norm bound to the eigenvalues, with the finite-rank
+spectrum of M −1 SM padded by zeros. Finally, the Hilbert–Schmidt operator space over the
+separable space H = L2 (µ) is itself separable, and E∥X1 ∥HS < ∞. The Hilbert-space strong
+law therefore gives ∥M −1 SM − T ∥HS → 0 almost surely, which proves the stated limiting
+claim.
+
+Proof (Proof of Theorem 3) Analyticity is needed only in the first kernel variable. The
+uniform continuation gives a tensor-product Chebyshev expansion of kL (·, x′ ) on D, with
+coefficients bounded uniformly in x′ . Truncating the expansion at degree n in each coordi-
+nate produces a kernel, where qα is a tensor-product Chebyshev polynomial and cα is its
+coefficient function in the second kernel variable,
+                                              X
+                             kL,n (x, x′ ) =         qα (x)cα (x′ )
+                                            α∈{0,...,n}d
+
+such that
+                           sup |kL (x, x′ ) − kL,n (x, x′ )| ≤ C0 e−c0 n ,
+                         x,x′ ∈Ω
+
+where C0 , c0 > 0 depend only on the analytic extension in the theorem. The integral operator
+Tn associated with kL,n has range in the span of the (n + 1)d tensor-product polynomials
+qα , so rank(Tn ) ≤ (n + 1)d . Because µ is a probability measure,
+
+                       ∥T − Tn ∥2 ≤ ∥kL − kL,n ∥L2 (µ×µ) ≤ C0 e−c0 n .
+
+The approximation-number characterization of the eigenvalues of a compact PSD operator
+therefore gives τ(n+1)d +1 ≤ C0 e−c0 n . Choosing n comparable to j 1/d and enlarging the
+                                                                                1/d
+constant to cover the finitely many leading indices yields τj ≤ C1 e−c1 j             .
+
+Proof (Proof of Corollary 2) Set
+                                                     d 
+                             j ⋆ = max 1, c−1
+                                           1  log(C1 /ℓ)      .
+
+Here ⌈·⌉ denotes the ceiling function. The first j ⋆ terms contribute at most j ⋆ . For j > j ⋆ ,
+τj /(τj + ℓ) ≤ τj /ℓ, and monotonicity gives
+
+                           C1 ∞ −c1 t1/d           C1 d ∞
+                 X τj         Z                         Z
+                         ≤         e         dt =                   ud−1 e−c1 u du.
+                j>j ⋆
+                       ℓ    ℓ j⋆                     ℓ    (j ⋆ )1/d
+Residual-Christoffel Sampling for RFM Collocation                                          33
+
+
+Repeated integration by parts, or the elementary exponential-tail bound for a fixed poly-
+nomial, shows that the last integral is at most Ce−c1 a (1 + ad−1 ) with a = (j ⋆ )1/d and a
+constant C > 0 depending only on c1 and d. By the definition of j ⋆ , (C1 /ℓ)e−c1 a ≤ 1. Hence
+the tail is O((1 + log(C1 /ℓ))d−1 ), while the head is O((1 + log(C1 /ℓ))d ), which proves the
+claim.
+
+
+
+
+Acknowledgements
+
+This work was carried out during Jiale Linghu’s visit to Professor Weizhu Bao at the National
+University of Singapore. Both authors thank Professor Bao for his valuable advice and
+helpful discussions.
+
+
+
+
+Data availability
+
+An initial code release is publicly available in the RC-RFM repository at https://github.
+com/linghujiale/RC-RFM. The complete experiment scripts and numerical records support-
+ing this manuscript will be deposited in the same repository before publication and are
+available from the corresponding author on reasonable request.
+
+
+
+
+Funding
+
+The authors declare that no funds, grants, or other support were received during the prepa-
+ration of this manuscript.
+
+
+
+
+Competing interests
+
+The authors have no relevant financial or non-financial interests to disclose.
+
+
+
+
+Ethics approval
+
+Not applicable. This article does not contain studies with human participants or animals
+performed by any of the authors.
+
+
+
+
+Author contributions
+
+Jiale Linghu and Yangshuai Wang contributed equally to the conceptualization, method-
+ology, formal analysis, investigation, validation, numerical implementation, interpretation
+of results, and manuscript writing. Both authors reviewed, edited, and approved the final
+manuscript.
+34                                                                 J. Linghu and Y. Wang
+
+
+References
+
+ 1. Adcock, B.: Optimal sampling for least-squares approximation.            Foundations of
+    Computational Mathematics 25(6), 1975–2034 (2025). https://doi.org/10.1007/
+    s10208-025-09738-2
+ 2. Adcock, B., Can, K., Wang, X.: Christoffel adaptive sampling for sparse random feature
+    expansions. arXiv preprint arXiv:2603.18251 (2026)
+ 3. Avron, H., Maymounkov, P., Toledo, S.: Blendenpik: Supercharging LAPACK’s least-
+    squares solver. SIAM Journal on Scientific Computing 32(3), 1217–1236 (2010). https:
+    //doi.org/10.1137/090767911
+ 4. Bao, W., Cai, Y., Jia, X., Tang, Q.: A uniformly accurate multiscale time integrator
+    pseudospectral method for the Dirac equation in the nonrelativistic limit regime. SIAM
+    Journal on Numerical Analysis 54(3), 1785–1812 (2016). https://doi.org/10.1137/
+    15M1032375
+ 5. Bao, W., Cai, Y., Jia, X., Tang, Q.: Numerical methods and comparison for the Dirac
+    equation in the nonrelativistic limit regime. Journal of Scientific Computing 71(3),
+    1094–1134 (2017). https://doi.org/10.1007/s10915-016-0333-3
+ 6. Bao, W., Jiang, S., Tang, Q., Zhang, Y.: Computing the ground state and dynamics of
+    the nonlinear Schrödinger equation with nonlocal interactions via the nonuniform FFT.
+    Journal of Computational Physics 296, 72–89 (2015). https://doi.org/10.1016/j.
+    jcp.2015.04.045
+ 7. van Beek, J.W., Dolean, V., Moseley, B.: Local feature filtering for scalable and well-
+    conditioned domain-decomposed random feature methods. Computer Methods in Ap-
+    plied Mechanics and Engineering 449, 118583 (2026). https://doi.org/10.1016/j.
+    cma.2025.118583
+ 8. Cardenas, J.M., Adcock, B., Dexter, N.: CS4ML: A general framework for active
+    learning with arbitrary data based on Christoffel functions. In: A. Oh, T. Nau-
+    mann, A. Globerson, K. Saenko, M. Hardt, S. Levine (eds.) Advances in Neu-
+    ral Information Processing Systems, vol. 36, pp. 19990–20037. Curran Associates,
+    Inc. (2023). URL https://proceedings.neurips.cc/paper_files/paper/2023/file/
+    3f8c7eb848ffec848f3ed2b7ca44915d-Paper-Conference.pdf
+ 9. Chen, J., Chi, X., E, W., Yang, Z.: Bridging traditional and machine learning-based
+    algorithms for solving PDEs: The random feature method. Journal of Machine Learning
+    1(3), 268–298 (2022). https://doi.org/10.4208/jml.220726
+10. Chen, J., E, W., Luo, Y.: The random feature method for time-dependent problems.
+    East Asian Journal on Applied Mathematics 13(3), 435–463 (2023). https://doi.org/
+    10.4208/eajam.2023-065.050423
+11. Cohen, A., Migliorati, G.: Optimal weighted least-squares methods. The SMAI Jour-
+    nal of Computational Mathematics 3, 181–203 (2017). https://doi.org/10.5802/
+    smai-jcm.24
+12. Cohen, M.B., Musco, C., Musco, C.: Input sparsity time low-rank approximation via
+    ridge leverage score sampling. In: Proceedings of the Twenty-Eighth Annual ACM-SIAM
+    Symposium on Discrete Algorithms (SODA), pp. 1758–1777. SIAM (2017). https:
+    //doi.org/10.1137/1.9781611974782.115
+13. Dong, S., Li, Z.: Local extreme learning machines and domain decomposition for solving
+    linear and nonlinear partial differential equations. Computer Methods in Applied Me-
+    chanics and Engineering 387, 114129 (2021). https://doi.org/10.1016/j.cma.2021.
+    114129
+14. Dwivedi, V., Srinivasan, B.: Physics informed extreme learning machine (PIELM)–a
+    rapid method for the numerical solution of partial differential equations. Neurocomput-
+    ing 391, 96–118 (2020). https://doi.org/10.1016/j.neucom.2019.12.099
+15. El Alaoui, A., Mahoney, M.W.: Fast randomized kernel ridge regression with statisti-
+    cal guarantees. In: C. Cortes, N. Lawrence, D. Lee, M. Sugiyama, R. Garnett (eds.)
+    Advances in Neural Information Processing Systems, vol. 28, pp. 775–783. Curran Asso-
+    ciates, Inc. (2015). URL https://proceedings.neurips.cc/paper_files/paper/2015/
+    file/f3f27a324736617f20abbf2ffd806f6d-Paper.pdf
+Residual-Christoffel Sampling for RFM Collocation                                         35
+
+
+16. Fasshauer, G.E.: Solving partial differential equations by collocation with radial ba-
+    sis functions. In: A. Le Méhauté, C. Rabut, L.L. Schumaker (eds.) Surface Fitting
+    and Multiresolution Methods, pp. 131–138. Vanderbilt University Press, Nashville, TN
+    (1997)
+17. Gao, Z., Yan, L., Zhou, T.: Failure-informed adaptive sampling for PINNs. SIAM
+    Journal on Scientific Computing 45(4), A1971–A1994 (2023). https://doi.org/10.
+    1137/22M1527763
+18. Hampton, J., Doostan, A.: Coherence motivated sampling and convergence analysis of
+    least-squares polynomial chaos regression. Computer Methods in Applied Mechanics
+    and Engineering 290, 73–97 (2015). https://doi.org/10.1016/j.cma.2015.02.006
+19. Hon, Y.C., Schaback, R.: On unsymmetric collocation by radial basis functions. Applied
+    Mathematics and Computation 119(2–3), 177–186 (2001). https://doi.org/10.1016/
+    S0096-3003(99)00255-6
+20. Kansa, E.J.: Multiquadrics—a scattered data approximation scheme with applications
+    to computational fluid-dynamics. II. solutions to parabolic, hyperbolic and elliptic par-
+    tial differential equations. Computers & Mathematics with Applications 19(8–9), 147–
+    161 (1990). https://doi.org/10.1016/0898-1221(90)90271-K
+21. Koltchinskii, V., Lounici, K.: Concentration inequalities and moment bounds for sample
+    covariance operators. Bernoulli 23(1), 110–133 (2017). https://doi.org/10.3150/
+    15-BEJ730
+22. Little, G., Reade, J.B.: Eigenvalues of analytic kernels. SIAM Journal on Mathematical
+    Analysis 15(1), 133–136 (1984). https://doi.org/10.1137/0515009
+23. Lu, L., Meng, X., Mao, Z., Karniadakis, G.E.: DeepXDE: A deep learning library for
+    solving differential equations. SIAM Review 63(1), 208–228 (2021). https://doi.org/
+    10.1137/19M1274067
+24. Meng, X., Saunders, M.A., Mahoney, M.W.: LSRN: A parallel iterative solver for
+    strongly over- or underdetermined systems. SIAM Journal on Scientific Computing
+    36(2), C95–C118 (2014). https://doi.org/10.1137/120866580
+25. Narayan, A., Jakeman, J.D., Zhou, T.: A Christoffel function weighted least squares
+    algorithm for collocation approximations. Mathematics of Computation 86(306), 1913–
+    1947 (2017). https://doi.org/10.1090/mcom/3192
+26. Santin, G., Schaback, R.: Approximation of eigenfunctions in kernel-based spaces. Ad-
+    vances in Computational Mathematics 42(4), 973–993 (2016). https://doi.org/10.
+    1007/s10444-015-9449-5
+27. Sun, J., Dong, S., Wang, F.: Local randomized neural networks with discontinuous
+    galerkin methods for partial differential equations. Journal of Computational and Ap-
+    plied Mathematics 445, 115830 (2024). https://doi.org/10.1016/j.cam.2024.115830
+28. Tan, L., Chen, J.: High-precision randomized preconditioned iterative methods for the
+    random feature method. Journal of Computational and Applied Mathematics 481,
+    117255 (2026). https://doi.org/10.1016/j.cam.2025.117255
+29. Tropp, J.A.: User-friendly tail bounds for sums of random matrices. Foundations
+    of Computational Mathematics 12(4), 389–434 (2012). https://doi.org/10.1007/
+    s10208-011-9099-z
+30. Tropp, J.A.: An introduction to matrix concentration inequalities. Foundations
+    and Trends in Machine Learning 8(1-2), 1–230 (2015). https://doi.org/10.1561/
+    2200000048
+31. Wang, Y., Dong, S.: An extreme learning machine-based method for computational
+    PDEs in higher dimensions. Computer Methods in Applied Mechanics and Engineering
+    418, 116578 (2024). https://doi.org/10.1016/j.cma.2023.116578
+32. Wenzel, T., Winkle, D., Santin, G., Haasdonk, B.: Adaptive meshfree approxima-
+    tion for linear elliptic partial differential equations with PDE-greedy kernel meth-
+    ods. BIT Numerical Mathematics 65(1), 11 (2025). https://doi.org/10.1007/
+    s10543-025-01053-0
+33. Wu, C., Zhu, M., Tan, Q., Kartha, Y., Lu, L.: A comprehensive study of non-adaptive
+    and residual-based adaptive sampling for physics-informed neural networks. Computer
+    Methods in Applied Mechanics and Engineering 403, 115671 (2023). https://doi.org/
+    10.1016/j.cma.2022.115671
+

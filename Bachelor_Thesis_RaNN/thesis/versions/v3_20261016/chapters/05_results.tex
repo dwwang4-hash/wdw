@@ -1,0 +1,88 @@
+\chapter{数值实验与结果分析}
+\section{环境、指标与数据来源}
+实际运行环境为Linux CPU、Python 3.12.14、NumPy 2.2.6、SciPy 1.15.3及Matplotlib 3.10.3，BLAS线程设为1。程序设计为Windows Python 3.12可运行，但尚未完成Windows实机验证。无需GPU或真实外部数据。直线模型多数使用五种子，花形近似复现主比较使用十种子；表中的均值覆盖全部指定运行，样本标准差采用分母$n-1$。
+
+\begin{table}[htbp]\centering\small
+\caption{主要实验设置概览，细项以各run配置为准}\label{tab:protocol_overview}
+\begin{tabular}{lp{.69\textwidth}}\toprule
+设置 & 固定参数与比较范围\\\midrule
+平滑采样主比较 & 每侧64特征，scale2；三轮；A/B/C/D及两消融；三系数组合；点预算1104或行预算1232；五种子。\\
+局部峰比较 & 每侧128特征，scale2/4；峰宽.12/.06；三轮/六轮；1232/1904行；两个系数组合；五种子。\\
+花形主近似复现 & 每侧80/160/320特征；总配置点1000/1000/5000；两网络权重范围1.6、偏置.7；FD和解析导数；十种子。\\
+\bottomrule\end{tabular}\end{table}
+
+直线模型测试每侧83乘83中点及257界面点；峰值细测试每侧161乘161、界面521点，另用81乘81检查积分敏感性。全局Poisson随机特征使用81乘81内部点。FDM误差在其节点上，残差为离散系统相对残差；其他PDE残差为独立点上的连续解析算子残差，两者不能直接作为同指标比较。时间区分单次组装/求解和完整自适应过程，不含最终验证/绘图。
+
+所有表格由原始CSV生成，图由CSV重绘。主要来源为实验01、02、03、04、06、07、08及09的两组复现记录，均为2026年10月13日保存。完整路径见附录；原文数据另标注，不混为本项目输出。
+
+设同一设置下五次误差为$e_s$，报告均值与样本标准差：
+\[\bar e=\frac1n\sum_s e_s,\qquad s_e=\sqrt{\frac{\sum_s(e_s-\bar e)^2}{n-1}}.\]
+标准差描述随机初始化的离散程度，不等于均值的置信区间。采样比较采用共享种子的配对比例$R_s=e_{D,s}/e_{X,s}$，其中$X$为基线；$R_s<1$仅表示该次解误差更低。比例中位数与均值之比不同，本文不混用。五种子不足以支持广泛的统计显著性或总体优势声明。
+
+\section{Poisson基线正确性}
+表\ref{tab:fdm}和图\ref{fig:fdm}显示四级网格的误差与观测阶。相邻步长减半后误差约降四倍，与第二章的正弦特征值推导一致。单元测试还核查矩阵符号、制造右端、tanh导数和秩亏最小范数解。
+\begin{table}[htbp]\centering\caption{Poisson五点差分真实结果}\label{tab:fdm}\input{tables/fdm}\end{table}
+\figurefile{fdm_convergence}{正弦Poisson五点差分收敛；数据来自exp01原始CSV。}{fig:fdm}
+基础全局RaNN每种特征数五次：64特征相对误差均值约$8.64\times10^{-3}$，128特征约$5.99\times10^{-5}$，后者样本标准差约$3.08\times10^{-5}$。与此同时128特征加权矩阵平均条件数约$2.48\times10^9$。精度改善并不意味着条件性改善。全局网络与双子域网络总特征数、坐标尺度、配置点及评估方式不同，本文不据此宣称公平效率优越。
+
+\section{直线界面与尺度取舍}
+150次运行包含连续与非零跳跃、七组正反向系数组合、raw/balanced及Poisson极限。无运行异常，平衡组通过预设粗误差门槛；这一门槛不覆盖后续窄峰。表\ref{tab:interface}为非零跳跃、每侧128特征、scale2的五次均值。
+\begin{table}[htbp]\centering\caption{高对比度下解与物理通量，五种子均值及样本标准差}\label{tab:interface}\resizebox{\textwidth}{!}{\input{tables/interface}}\end{table}
+\figurefile{interface_contrast}{非零跳跃、每侧128特征的系数对比度实验；物理通量未除以系数。}{fig:interface}
+平衡后解误差明显降低，但物理通量均值不一定降低。raw最高条件数约$1.69\times10^{15}$、最低有效秩240/256；balanced仍可达到约$2.11\times10^{12}$、最低255/256。截断SVD使近秩亏系统可求解，但不能据正常运行声称病态已消除。
+
+\section{采样主比较与消融}
+180次主比较固定每侧64特征、scale2、三轮；每种预算覆盖三个系数组合和五种子。表\ref{tab:sampling}展示点预算、$\beta=(1000,1)$的全部六种方法，最终物理总点1104，D方程数可变。
+\begin{table}[htbp]\centering\caption{等物理点预算下采样与消融，误差为均值及样本标准差}\label{tab:sampling}\resizebox{\textwidth}{!}{\input{tables/sampling}}\end{table}
+\figurefile{sampling}{点预算下全部种子的解误差，横线为均值；数据来自exp03。}{fig:sampling}
+在每种预算的3设置乘5种子配对中，D对A/B解误差胜出均为0/15，D/B误差比例中位数约1.264和1.256。设置之间相关，不能把15个配对当作15个独立种子做显著性推断。D对C仅部分改善，仍没有稳定胜出。去PDE指标消融给界面更多点而较好，但后续相同最终组配额的固定随机在六组均值中更好且更快，未支持把收益简单归因于残差选点。
+
+这说明比较基线必须合理：若只选界面明显欠采样的静态比例，可能高估动态分配的价值。另一方面，D默认指标偏向内部，界面配额较低，也可能影响解误差。本研究把该解释保留为数值猜想，而非因果证明。
+
+表\ref{tab:paired_sampling}按系数与预算拆开配对结果，避免只报告合并中位数而掩盖不同设置。三个系数组合均使用相同五个种子，跨设置重复并不产生新的独立初始化样本。
+\begin{table}[p]\centering\caption{平滑模型的分设置配对；比值为D误差除以基线误差}\label{tab:paired_sampling}\input{tables/paired_sampling}\end{table}
+
+\subsection{配额与选点位置的分离诊断}
+去PDE指标消融在点预算下最终每侧内部176点、界面512点，外边界240点，共1104个物理点及1616个标量方程。后续固定随机对照采用同一最终配额、特征数及随机种子，表\ref{tab:allocation_control}显示其平均解误差在三个系数组合下均更低。该比较是看到消融结果后登记的探索性诊断，不能改写成预先设计的验证。表中成本来自不同批次，支持当前环境下的成本观察；严格串行重测的证据见峰值场景。
+\begin{table}[htbp]\centering\caption{相同最终配额的随机对照与去PDE指标消融，五种子}\label{tab:allocation_control}\resizebox{\textwidth}{!}{\input{tables/allocation_control}}\end{table}
+这个对照未支持残差排序选点对消融收益的必要性，但也不是完整因果分解：增量历史、位置与求解路径仍不同。因各组按点数取平均，增加界面点没有直接增加界面平方权重，而是改变界面经验测度并减少内部预算。不能将此同配额实验与1232行默认方案直接称为等行预算比较。
+
+\section{参数、秩与误差饱和}
+285次探索性后续实验包含固定比例及单因素扫描。表\ref{tab:width}为$\beta=(1,1000)$宽度对照，其他设置固定。
+\begin{table}[htbp]\centering\caption{特征宽度敏感性，数据秩上限为总特征数}\label{tab:width}\input{tables/width}\end{table}
+\figurefile{width}{三个系数组合下的宽度、物理通量与条件数；数据来自exp04。}{fig:width}
+当前平滑模型增宽改善误差，但条件数升至约$10^{17}$，256/侧时有效秩仅404至417，不能以总特征数代表独立维度。scale从.5到8的影响显著，小范围可适合平滑函数却加重病态，大范围可能使近似质量变差。界面权重、岭和点数也改变排序：强岭增加偏差；点数216至1728的解误差不单调，物理通量却可改善。这些扫描属于看到主比较后登记的探索性研究，不把其中最好参数改写为事先最优基线。
+
+\section{独立局部峰与多预算}
+在原分片制造解两侧加$h=16A x(1-x)y(1-y)\exp(-((x-c_x)^2+(y-c_y)^2)/w^2)$，取$A=.75,(c_x,c_y)=(.46,.55)$，两峰宽$.12,.06$。值跳跃不变，但通量增加$(\beta_2-\beta_1)h_x$，须重新制造数据。400次比较采用每侧128特征、scale2/4、两个行预算及五方法五种子。两个测试网格误差相对变化最大约0.49\%，未进入选点。
+\figurefile{peaks}{scale4下独立峰的两个标量行预算比较；所有预设模型与方法均保留。}{fig:peaks}
+80描述性配对中，D对A、B、C误差更低分别6、36、49次；对应比值中位数约1.293、1.095、.963。D\_unused没有稳定逆转结果。部分窄峰相对误差大于1，最大约1.493，无运行异常并不代表精度验收。固定特征表达力和采样目标变化都可能影响结果，不能只增加点数就承诺解决。
+
+主峰值前段与谱任务并发，严格成本讨论使用另行25次串行重测。表\ref{tab:peaks}为固定窄峰、$\beta=(1000,1)$、scale4、六轮及1904方程，系数已与主case校验一致。D在该设置比C精度更好，但仍不如A且更贵。
+\begin{table}[htbp]\centering\caption{固定峰值场景的串行完整成本，误差均值及样本标准差}\label{tab:peaks}\resizebox{\textwidth}{!}{\input{tables/peaks}}\end{table}
+
+窄峰结果并未唯一识别误差来源。表达空间、选点分布、组权重及数值截断均可能限制精度；尚未计算该空间的最佳近似误差，因此不能把失败严格归因于表达力。可以确定的是：在本文已运行的固定特征和预算下，联合采样没有实现稳定的精度或成本优势。
+
+\section{固定矩阵扰动观察}
+15组矩阵谱、三阈值和两个扰动方向构成90组观察。右端相对扰动固定$10^{-8}$；最小保留左奇异方向的放大与$1/\sigma_{\min,\rm retained}$在浮点误差内一致，图\ref{fig:perturb}展示系数和函数变化的差别。
+\figurefile{perturbation}{固定TSVD空间下的右端扰动；理论界仅针对固定矩阵和保留空间。}{fig:perturb}
+最大系数相对变化约275.6，而预测函数相对变化最大约$1.71\times10^{-8}$。冗余特征可使系数敏感而函数变化较小，但该数值还可能接近大系数抵消的浮点求值地板，未以高精度算术复核。不能由此断言病态无害，也没有考察矩阵扰动、阈值跨秩或所有物理数据误差。
+
+\section{花形界面FD近似复现}
+选Li--Wang预印本Example4.1\cite{interfacepreprint}，$\Omega=(-1,1)^2$，中心$.02\sqrt5$，极径$r=.4+.2\sin20\theta$。图1核查花内为$\Omega_1$。两侧真解为$e^{xy}/\beta_1$及$\sin x\sin y/\beta_2$，$\beta=(1,10)$；法向由曲线切向旋转并归一化，不能只用径向单位向量。
+
+按最贴合文字的解释，两网络权重范围均为1.6、偏置范围.7。与原文相同的设置包括单隐层tanh、3:1:1点数比例、$h_1=10^{-6},h_2=5\times10^{-4}$、行权重50、GL20及十次平均。作者种子、dtype、最小二乘阈值、确切界面测度未获实现；本项目float64/gelsd/$\tau=10^{-12}$、主角度均匀并补弧长对照。因此\textbf{只称近似复现}。
+\begin{table}[htbp]\centering\small\caption{原文表1与本项目近似复现，十种子均值}\label{tab:reproduction}\resizebox{\textwidth}{!}{\input{tables/reproduction}}\end{table}
+\figurefile{reproduction}{最贴合文字初始化下的FD与解析导数对照；原文曲线不是本项目数据。}{fig:reproduction}
+表\ref{tab:reproduction}的误差与原文明显不同。更低数值不能当作算法改进，差异可能涉及初始化、dtype、截断与采样，尚无法唯一归因。最初按子域解释范围的110次保留为独立对照，核对文字后追加60次权重/偏置解释，旧数据不改写。原文通量印刷矩阵疑似漏$\beta$，本项目按物理模型保留，正式版仍待核对。
+
+在子域范围解释变体中，五种子的FD步长结果见表\ref{tab:steps}。过大步长有截断偏差，过小步长出现舍入放大；不能把此变体当作作者结论。GL20与GL100在极小误差下可有明显相对变化，均保留而不选择较好的积分值。
+\begin{table}[htbp]\centering\caption{FD步长独立诊断，$m=160,N=1000$}\label{tab:steps}\input{tables/fd_steps}\end{table}
+
+定义积分敏感度为$\Delta=|e_{20}-e_{100}|/e_{100}$。表\ref{tab:quadrature}使用最贴合原文字面初始化的FD组，逐种子计算后报告中位数与最大值。GL100是更密的数值验证规则，不是连续误差的严格真值；改变规则只用于诊断，没有进入训练或选择最好运行。误差极小时较大的相对差别也可能对应很小的绝对差别，故同时报告误差量级。
+\begin{table}[htbp]\centering\caption{花形界面误差对积分规则的敏感度，十种子}\label{tab:quadrature}\resizebox{\textwidth}{!}{\input{tables/quadrature}}\end{table}
+
+\section{实验结论的范围}
+已有数据支持对采样、尺度、表达力和求解截断进行系统讨论，但不支持普适自适应优势。平滑、峰值及花形模型具有不同的近似难度；对一个算例表现好的范围不应直接迁移。还未做传统界面FDM/FEM或PINN同预算对照、完整多层增长、复杂物理或矩阵扰动。初稿中所有结论限于已登记模型与参数，后续应以独立模型和理论补充，而非对旧测试集无限调参。
+
+\input{chapters/05_discussion_expanded}

@@ -1,0 +1,7 @@
+{
+  "date": "2026-10-13",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "python": "3.12.14",
+  "logical_cpus_visible": 3,
+  "execution_environment": "managed Linux CPU; Windows not tested"
+}

@@ -1,0 +1,18 @@
+test_fdm_discrete_eigenvalue_and_order (test_basics.BasicTests.test_fdm_discrete_eigenvalue_and_order) ... ok
+test_interface_manufacturing (test_basics.BasicTests.test_interface_manufacturing) ... ok
+test_manufactured_poisson (test_basics.BasicTests.test_manufactured_poisson) ... ok
+test_svd_known_solution_and_deficiency (test_basics.BasicTests.test_svd_known_solution_and_deficiency) ... ok
+test_tanh_derivatives (test_basics.BasicTests.test_tanh_derivatives) ... ok
+test_local_chain_rule (test_interface.InterfaceTests.test_local_chain_rule) ... ok
+test_manufactured_exact_system (test_interface.InterfaceTests.test_manufactured_exact_system) ... ok
+test_nonzero_jump_manufacturing (test_interface.InterfaceTests.test_nonzero_jump_manufacturing) ... ok
+test_poisson_limit (test_interface.InterfaceTests.test_poisson_limit) ... ok
+test_budget_conservation (test_sampling.SamplingTests.test_budget_conservation) ... ok
+test_random_baseline_contains_initial_points (test_sampling.SamplingTests.test_random_baseline_contains_initial_points) ... ok
+test_sampling_without_replacement (test_sampling.SamplingTests.test_sampling_without_replacement) ... ok
+test_shared_features_and_scalar_budget (test_sampling.SamplingTests.test_shared_features_and_scalar_budget) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.118s
+
+OK

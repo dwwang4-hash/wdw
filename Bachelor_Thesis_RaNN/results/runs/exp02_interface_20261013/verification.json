@@ -1,0 +1,13 @@
+{
+  "run": "exp02_interface_20261013",
+  "rows": 150,
+  "failures": 0,
+  "csv_unchanged_after_redraw": true,
+  "raw_sha256": {
+    "interface.csv": "baea3176ca640596b42cd3eb2f4f5befd0ac5993c15fef4c7506b24ae07b4a3f",
+    "representative_grid.csv": "acc5064105153e4b60bf80915b0726485d2a2cb199efb4983ccca83130fe548c"
+  },
+  "case0_reconstruction_relative_l2": 1.6941838962829367e-07,
+  "saved_coefficient_reconstruction": true,
+  "existing_run_protected": true
+}

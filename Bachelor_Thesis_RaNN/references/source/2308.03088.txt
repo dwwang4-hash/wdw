@@ -1,0 +1,818 @@
+                                                       Randomized Neural Networks with Petrov-Galerkin Methods
+                                                                for Solving Linear Elasticity Problems
+
+                                                                                 Yong Shang1 , Fei Wang2
+
+                                                Abstract: We develop the Randomized Neural Networks with Petrov-Galerkin Methods (RNN-
+                                                PG methods) to solve linear elasticity problems. RNN-PG methods use Petrov-Galerkin varia-
+                                                tional framework, where the solution is approximated by randomized neural networks and the
+                                                test functions are piecewise polynomials. Unlike conventional neural networks, the parameters
+arXiv:2308.03088v1 [math.NA] 6 Aug 2023
+
+
+
+
+                                                of the hidden layers of the randomized neural networks are fixed randomly, while the parameters
+                                                of the output layer are determined by the least square method, which can effectively approx-
+                                                imate the solution. We also develop mixed RNN-PG methods for linear elasticity problems,
+                                                which ensure the symmetry of the stress tensor and avoid locking effects. We compare RNN-
+                                                PG methods with the finite element method, the mixed discontinuous Galerkin method, and the
+                                                physics-informed neural network on several examples, and the numerical results demonstrate that
+                                                RNN-PG methods achieve higher accuracy and efficiency.
+                                                Keywords: Petrov-Galerkin formulation, randomized neural networks, linear elasticity problem,
+                                                least-square method.
+
+
+                                          1     Introduction
+                                              Linear elasticity problems deal with the displacement, strain, and stress fields in a solid under external
+                                          forces and boundary conditions. These problems are fundamental for engineering because they help design
+                                          and analyze structures and materials that can withstand loads without excessive deformation or fracture.
+                                          Computing linear elasticity problems accurately is crucial for many applications. However, the low-order
+                                          finite element method (FEM) may encounter a “locking” issue for nearly incompressible materials ([4]),
+                                          which prevents the method from capturing the correct deformation modes of the structure. Several “locking-
+                                          free” approaches have been developed, such as nonconforming methods ([20]), discontinuous Galerkin (DG)
+                                          method ([13]), mixed DG method ([36]) and others. These methods tend to increase the number of degrees
+                                          of freedom and become computationally challenging in higher dimensions.
+                                              Artificial neural network methods have a strong approximation ability, which offers a new approach to
+                                          solving partial differential equations (PDEs). In particular, they show remarkable advantages for solving
+                                          high-dimensional problems. The application of neural networks to solve differential equations was pioneered
+                                          by [21]. In recent years, deep neural networks-based methods for solving PDEs have been developed rapidly,
+                                          such as the Deep Ritz Method ([9]), the Deep Galerkin Method ([31]), and the Physics-Informed Neural
+                                          Networks (PINNs, [26]). These NN-based methods train neural networks by minimizing a loss function that
+                                          incorporates the underlying PDEs and initial/boundary conditions. PINNs have been applied to various
+                                          problems in fluid mechanics ([34, 18, 24]), solid mechanics ([12, 10, 27]) and other fields ([19, 5]). Some
+                                          research works on PINNs for linear elasticity problems are [11, 28, 38, 29, 30, 35].
+                                             1 School of Mathematics and Statistics, Xi’an Jiaotong University, Xi’an, Shaanxi 710049, P.R. China.     E-mail:
+                                          fsy2503.xjtu@xjtu.edu.cn
+                                             2 School of Mathematics and Statistics, Xi’an Jiaotong University, Xi’an, Shaanxi 710049, China. The work of this
+                                          author was partially supported by the National Natural Science Foundation of China (Grant No. 12171383). Email:
+                                          feiwang.xjtu@xjtu.edu.cn
+
+
+
+
+                                                                                                   1
+   These DNN-based methods have achieved significant advancements in solving high-dimensional and ir-
+regular domain problems. However, the training process can be computationally expensive, and it is chal-
+lenging to reach the optimal state of the problem with the existing training algorithms. To overcome this
+challenge, randomized neural networks-based methods have been proposed for solving PDEs, such as Local
+Extreme Learning Machines and Domain Decomposition Method ([8]), Randomized Neural Networks with
+Petrov-Galerkin Methods (RNN-PG methods, [32]), Local Randomized Neural Networks with Discontinuous
+Galerkin Methods ([33]), and Random Feature Method ([6]). In these methods, the unknown variables are
+approximated by randomized neural networks, and parameters are solved by least-square computation rather
+than training algorithms, so they can approximate the solutions more accurately with less computational
+cost.
+    In this paper, we develop Randomized Neural Networks with Petrov-Galerkin Methods to solve linear
+elasticity problems. The paper is organized as follows. Section 2 introduces the RNN-PG method for solving
+a linear elasticity problem. In order to present a scheme for preserving the symmetry of the stress tensor, we
+introduce Mixed RNN-PG methods based on different mixed formulations in Section 3. Numerical examples
+are shown in Section 4 with a comparison of FEM, Mixed DG method, and PINNs. The last section concludes
+the paper with some discussions.
+
+
+2       RNN-PG method for a linear elasticity problem
+    In this section, we introduce Randomized Neural Networks with Petrov-Galerkin (RNN-PG) Methods
+for solving linear elasticity problems.
+    Let Ω be a bounded domain in Rd (d = 2, 3) with boundary Γ = ΓD ∪ ΓN and ΓD ∩ ΓN = ∅. Consider a
+linear elasticity problem of the form:
+                                       Aσ − ε(u) = 0         in Ω ,                            (2.1)
+                                     
+                                     
+                                     
+                                      −div σ = f
+                                     
+                                                             in Ω ,                            (2.2)
+                                     
+                                     
+                                      u = gD                on ΓD ,                           (2.3)
+                                     
+                                       σn = g N              on ΓN ,                           (2.4)
+
+where displacemnt u : Ω → Rd and the stree tensor σ : Ω → S with S denoting the space of real symmetric
+matrices of order d × d. Here, ε(u) = (∇u + (∇u)t )/2 is the strain tensor, λ and µ are Lamé coefficients,
+and compliance tensor A : S → S is given by
+                                                                  
+                                           1          λ
+                                    Aσ =       σ−          tr(σ)Id .                                  (2.5)
+                                          2µ       2µ + dλ
+
+                                                                                  1
+  The weak formulation of the linear elasticity problem (2.1)–(2.4) is: Find u ∈ HD,gD
+                                                                                       (Ω; Rd ) = {u ∈
+    1  d
+H (Ω; R ); u|ΓD = gD } such that
+                                              1
+                    a(u, v) = l(v)      ∀v ∈ HD,0 (Ω; Rd ) = {v ∈ H 1 (Ω; Rd ); v|ΓD = 0},               (2.6)
+
+where
+                                           Z
+                                                                         
+                               a(u, v) =     2µε(u) : ε(v) + λ∇ · u ∇ · v dx,
+                                         ZΩ            Z
+                                  l(v) =    f · v dx +     g N · v ds.
+                                           Ω              ΓN
+
+
+
+                                                      2
+    Instead of using piecewise polynomial functions to approximate the solution of the aforementioned prob-
+lem, we employ neural networks to approximate the displacement vector u. To solve the problem (2.6), we
+utilize the RNN-PG method and aim to find a neural network uρ ∈ Uρ such that
+                                                        1
+                     a(uρ , v) = l(v)        ∀v ∈ Vh ⊂ HD,0 (Ω; Rd ),                                     (2.7)
+                      uρ (xk ) = g D (xk )   for some points xk ∈ ΓD , k = 1, 2, · · · , Nb .             (2.8)
+
+Here, equation (2.8) is used to enforce the Dirichlet boundary condition (2.3) by selecting random sam-
+ples {xk }N
+          k=1 according to the uniform distribution U(ΓD ). In addition, Vh can be any finite-dimensional
+           b
+
+                                                1
+function space that effectively approximates HD,0  (Ω; Rd ), while Uρ consists of randomized neural networks
+Φ ∈ H 1 (Ω; Rd ) with fixed parameters for input layer and hidden layers, and adjustable parameters for the
+output layer. The concept of randomized neural networks was initially introduced in [25], and extreme
+learning machine (ELM) is one example ([17]). In comparison to feedforward neural networks, ELM pre-
+serves generalization capability when appropriate activation functions are employed and suitable initialization
+methods for fixed parameters are used ([23]).
+
+
+
+
+Figure 1: Network structure of Φ : R3 → R3 , the solid green line represents the parameters of the neural
+network that are randomly initialized and fixed thereafter, while the dotted red line refers to the adjustable
+parameters.
+
+    Let D be the depth and ρ be the activation function. A fully connected feedforward neural network Φ is
+defined by
+
+                             Φ0 (x) = x,
+                             Φl (x) = ρ(Wl Φl−1 + bl )        for l = 1, · · · , D − 1,
+                             Φ := ΦD (x) = WD ΦD−1 ,
+     n                                  o
+            (l)                    (l)
+where Wl = wij ∈ Rnl ×nl−1 , bl = bi   ∈ Rnl are the weight parameters initialized with a uniform
+distribution U(−r, r) in the l-th layer, and r ∈ R.
+   When d = 3, let uρ be the output of Φ with 3 input neurons and 3 output neurons shown in Figure 1.
+
+
+
+
+                                                        3
+Denote Φuj := ΦjD−1 , uj1ρ := w1j
+                               D
+                                  , uj2ρ := w2j
+                                             D
+                                                and uj3ρ := w3j
+                                                             D
+                                                                for j = 1, · · · , nD−1 . Then
+                                                                                                             t
+                                            nD−1                     nD−1                   nD−1
+                                               X                     X                      X
+         uρ (x) = WD ΦD−1 =                         uj1ρ Φuj (x),          uj2ρ Φuj (x),          uj3ρ Φuj (x) := (uρ1 , uρ2 , uρ3 )t ,
+                                               j=1                   j=1                    j=1
+
+
+where the variables uj1ρ , uj2ρ , and uj3ρ are to be determined for j = 1, . . . , nD−1 .
+   Test functions can be chosen from {v i }N                    1        d
+                                                    i=1 ∈ Vh ⊂ HD,0 (Ω; R ). Therefore, problem (2.7)-(2.8) becomes:
+                                                      h
+
+
+Find uj1ρ , uj2ρ and uj3ρ , j = 1, · · · , nD−1 , such that
+                                                                               t         
+             nD−1                   nD−1                    nD−1
+              X                     X                       X
+       a          uj1ρ Φuj (x),           uj2ρ Φuj (x),            uj3ρ Φuj (x) , v i  = l(v i )          for i = 1, · · · , Nh ,        (2.9)
+              j=1                    j=1                    j=1
+                                                                                       t
+                  nD−1                     nD−1                     nD−1
+                  X                        X                         X
+                        uj1ρ Φuj (xk ),          uj2ρ Φuj (xk ),          uj3ρ Φuj (xk ) = g D (xk ) for k = 1, · · · , Nb .              (2.10)
+                  j=1                      j=1                       j=1
+
+
+   Finally, we can obtain the solution uρ by solving a least-squares problem with the corresponding linear
+system (2.9)-(2.10).
+
+
+3     Mixed RNN-PG methods for the linear elasticity problem
+    Elasticity stress measures how much a material can deform under external forces without breaking or
+losing its original shape. This is an important concept for engineers who design structures such as buildings
+and aircraft. Mixed methods can approximate both displacement and stress tensor at the same time. How-
+ever, the stress tensor has to be symmetric according to the conservation of angular momentum principle
+([3]). Designing stable mixed finite element methods with symmetric stress is a challenging task for linear
+elasticity problems, and many research works have investigated this topic, see [2, 1, 7, 14, 15, 16, 37, 36] and
+the references therein.
+   In this section, we develop the Mixed RNN-PG (M-RNN-PG) methods, which use separate neural net-
+works to approximate displacement u and stress tensor σ, respectively, and maintain the symmetric property
+automatically.
+    For example, when d = 2, the unkown varaibles u and σ are approxiamted by uρ and σ ρ as following.
+                                 
+                u1          σ11 σ12
+Denote u =           ,σ=              , then u1 , u2 , σ11 , σ12 , σ21 , σ22 were appximated by Φu1 , Φu2 , Φσ1 , Φσ2 ,
+                u2          σ21 σ22
+Φσ2 , Φσ3 , separately. By using the same approximation of σ12 and σ21 by Φσ2 , the symmetry property of
+numerical solution σ ρ is preserved automatically. As a similar setting in Section 2, the randomized neural
+networks are defined by
+                                                   n                    
+                                                       D̃−1
+                                                       P      j    u
+                                                            u    Φ
+                                                              1ρ j   (x)       u 
+                                                                                Φ1
+                                                                        
+                                          u        j=1
+                              uρ = WD̃ ΦD̃−1 =  nD̃−1                    :=         ,
+                                                                         
+                                                                                Φu2
+                                                            uj2ρ Φuj (x)
+                                                      P                 
+                                                                        j=1
+
+
+
+
+                                                                            4
+                                                 nD̃−1              
+                                                   P j σ
+                                                        σ1ρ Φj (x) 
+                                                 j=1                     σ 
+                                                                            Φ1
+                                                  n
+                                                 P D̂−1             
+                                                          j
+                             σ ρ = WD̂ ΦσD̂−1 =         σ2ρ Φσj (x)  :=  Φσ2  .
+                                                                    
+                                                 j=1
+                                                                            Φσ3
+                                                                     
+                                                 nD̂−1              
+                                                 P j σ              
+                                                         σ3ρ Φj (x)
+                                                         j=1
+
+    To obtain different mixed formulations, one can multiply test functions on both sides of the equations
+(2.1)–(2.2), followed by integration by parts and the boundary conditions (2.3)–(2.4), then four weak formu-
+lations are given as follows.
+   Mixed Formulation 1: Find (σ, u) ∈ L2 (Ω; S) × HD,g
+                                                    1
+                                                       D
+                                                         (Ω; Rd ) such that
+          Z              Z
+             Aσ : τ dx −    ε(u) : τ dx = 0                              ∀τ ∈ L2 (Ω; S),
+           Ω              Ω
+                         Z                Z             Z
+                                                                               1
+                            σ : ε(v) dx =    f · v dx +      g N · v ds ∀v ∈ HD,0  (Ω; Rd ).
+                                  Ω                  Ω              ΓN
+
+
+   Mixed Formulation 2: Find (σ, u) ∈ H N,gN (div, Ω; S) × L2 (Ω; Rd ) such that
+            Z              Z                Z
+               Aσ : τ dx +    u · divτ dx =      g D · τ n ds     ∀τ ∈ H N,0 (div, Ω; S),
+             Ω              Ω                 Γ
+                           Z                Z D
+                         −    divσ · v dx =     f · v dx          ∀v ∈ L2 (Ω; Rd ).
+                                      Ω                   Ω
+
+                                                            1
+   Mixed Formulation 3: Find (σ, u) ∈ H N,gN (div, Ω; S) × HD,gD
+                                                                 (Ω; Rd ) such that
+              Z               Z
+                 Aσ : τ dx −     ε(u) : τ dx = 0                   ∀τ ∈ L2 (Ω; S),
+               Ω               Ω
+                              Z                Z
+                            −    divσ · v dx =     f · v dx         ∀v ∈ L2 (Ω; Rd ).
+                                          Ω                    Ω
+
+   Mixed Formulation 4: Find (σ, u) ∈ L2 (Ω; S) × L2 (Ω; Rd ) such that
+        Z               Z                 Z
+            Aσ : τ dx +     u · divτ dx =     g D · τ n ds              ∀τ ∈ H N,0 (div, Ω; S),
+          Ω               Ω                ΓD
+                        Z                 Z              Z
+                                                                              1
+                            σ : ε(v) dx =    f · v dx +    g N · v ds ∀v ∈ HD,0  (Ω; Rd ).
+                              Ω                  Ω                 ΓN
+
+Here,
+                        1
+                       HD,0 (Ω; Rd ) = {v ∈ H 1 (Ω; Rd ); v|ΓD = 0},
+                       1
+                      HD,gD
+                            (Ω; Rd ) = {v ∈ H 1 (Ω; Rd ); v|ΓD = gD },
+                                                                              1
+                    H N,0 (div, Ω; S) = {τ ∈ H(div, Ω; S); ⟨τ n, v⟩ = 0 ∀v ∈ HD,0 (Ω; Rd )},
+                                                                               1
+                  H N,gN (div, Ω; S) = {τ ∈ H(div, Ω; S); ⟨τ n, v⟩ = g N ∀v ∈ HD,0 (Ω; Rd )},
+and ⟨·, ·⟩ denotes the duality between H −1/2 (Γ; Rd ) and H 1/2 (Γ; Rd ).
+
+Remark 3.1 The weak form of the Mixed Formulation 4 incorporates all the boundary conditions, so there
+is no need for additional treatment of the boundary. Moreover, the weak form eliminates the computation of
+derivatives, which may enhance the accuracy of the results.
+
+                                                              5
+   Let us take Mixed Formulation 4 as an example to illustrate how the M-RNN-PG method works. The
+equivalent form reads: Find (σ, u) ∈ L2 (Ω; S) × L2 (Ω; Rd ) such that
+                                                                                 1
+                                                                                     (Ω; Rd ).
+                                  
+                 L (σ, u); (τ , v) = F(τ , v)    ∀(τ , v) ∈ H N,0 (div, Ω; S) × HD,0           (3.11)
+
+where
+                                              Z
+                                                                              
+                        L (σ, u); (τ , v) =       Aσ : τ + u · divτ + σ : ε(v) dx,
+                                              ZΩ            Z                Z
+                                   F(τ , v) =    f · v dx +     g N · v ds +     g D · τ n ds.
+                                                Ω                ΓN                ΓD
+
+
+    Therefore, the M-RNN-PG method is: Find neural networks uρ ∈ Uρ and σ ρ ∈ Qρ such that
+                                                  
+                       L (σ ρ , uρ ); (τ i , v k ) = F(τ i , v k ) ∀(τ i , v k ) ∈ Qh × Vh ,                          (3.12)
+
+where Qh and Vh can be chosen as any proper finite-dimensional function spaces, Uρ and Qρ consist of
+randomized neural networks uρ ∈ L2 (Ω; Rd ) and σ ρ ∈ L2 (Ω; S), respectively.
+   Thus, problem (3.12) becomes: Find uj1ρ , uj2ρ with j = 1, · · · , nD̃−1 , and σ1ρ j    j
+                                                                                        , σ2ρ    j
+                                                                                              , σ3ρ with j = 1, · · · , nD̂−1
+such that
+  n                   nD̂−1
+                                           n                                   
+         D̂−1                                    D̃−1
+         P     j   σ
+                          P j σ                 P      j   u
+           σ1ρ Φj (x)        σ2ρ Φj (x)          u1ρ Φj (x)                 
+L nj=1                 j=1               j=1
+                                            ,                        ; (τ   , v   ) = F(τ i , v k ) ∀(τ i , v k ) ∈ Qh × Vh .
+                                                                              
+         D̂−1            n D̂−1
+                                             n D̃−1
+                                                                        i     k
+   P        j   σ
+                          P      j   σ      P        j   u
+              σ2ρ Φj (x)        σ3ρ Φj (x)            u2ρ Φj (x)
+                                                                                 
+          j=1                j=1                    j=1
+                                                                                                          (3.13)
+                                                        
+                                    τ11 τ12                 v1
+For test functions, denote τ i =              and v k =         , then we can take (τ i , v k ) ∈ Qh × Vh in the
+                                    τ12 τ22                 v2
+forms of                                                             
+                      τ11 0        v1          τ11 0       0              0 τ12     v
+                               ,        ,              ,          ,               , 1         ,
+                       0 0         0            0 0        v2            τ12 0       0
+                                                                     
+                       0 τ12          0          0 0         v1            0 0       0
+                                 ,        ,              ,          ,             ,           .
+                      τ12 0          v2          0 τ22        0            0 τ22    v2
+
+    Finally, we need to solve a least-squares problem with the linear system generated by (3.13).
+
+
+4     Numerical examples
+   In this section, we show the results of RNN-PG and M-RNN-PG methods for solving the linear elasticity
+problem in two or three dimensions. We compare these methods with FEM, Mixed DG method, and PINNs.
+
+Example
+ x−y     4.1 In this example, we solve a 2-dimensional linear elasticity problem with a solution u =
+ e    xy(1 − x)(1 − y)
+                         and homogeneous Dirichlet boundary condition,
+    sin(πx)sin(πy)
+                                 
+                                  σ = 2µε(u) + λ tr (ε(u)) I2 in Ω ,
+                                 
+                                   −div σ = f                in Ω ,
+                                 
+                                 
+                                   u=0                       on Γ ,
+
+                                                             6
+on Ω = (0, 1)2 with Γ = ∂Ω. Here, I2 is the 2 × 2 identity matrix, and the Lamé constants are set to be
+µ = 1/2 and λ = 1.
+
+    We approximate u by a two-layer randomized neural network with U(−1, 1) as the initial uniform distri-
+bution in the RNN-PG method. The network has 2 input neurons (n0 = 2) and 2 output neurons (n2 = 2),
+and uses ρ = tanh as the activation function. In M-RNN-PG methods, we introduce another two-layer
+randomized neural network to approximate σ. This network has 2 input neurons (n0 = 2) and 3 output
+neurons (n2 = 3). To evaluate the impact of the degrees of freedom (DoF) of our method, we set the number
+of neurons in the hidden layer to be n1 = 100, 200, 400, respectively. The DoF for the RNN-PG method is
+2n1 , and the DoF for the M-RNN-PG method is 5n1 .
+
+                         n1
+                                        100                               200                            400
+Scheme
+                                    ∥u−uρ ∥0    ∥σ−σ ρ ∥0             ∥u−uρ ∥0   ∥σ−σ ρ ∥0          ∥u−uρ ∥0   ∥σ−σ ρ ∥0
+                              DoF     ∥u∥0        ∥σ∥0          DoF     ∥u∥0       ∥σ∥0      DoF      ∥u∥0       ∥σ∥0
+
+     RNN-PG method            200 6.367e-8 3.112e-7             400 7.087e-9 2.883e-8        800    4.269e-9   1.489e-8
+  M-RNN-PG method-1           500 8.448e-8 2.161e-7 1000 1.024e-8 2.547e-8 2000 3.372e-9                       1.405e-8
+  M-RNN-PG method-2           500 5.509e-8 2.300e-7 1000 8.530e-9 1.413e-8 2000 2.655e-9                       2.400e-9
+  M-RNN-PG method-3           500 5.346e-8 3.817e-7 1000 1.132e-8 3.913e-8 2000 5.366e-9                       1.260e-8
+  M-RNN-PG method-4           500 5.552e-8 1.058e-7 1000 1.703e-9 5.661e-9 2000 4.133e-10 8.070e-10
+
+         Table 1: Relative L2 (Ω) errors of different RNN-PG methods and various n1 in Example 4.1.
+
+
+     Scheme
+                        P1 linear FEM                   P2 quadratic FEM                        P3 cubic FEM
+ h
+                         ∥u−uh ∥0   ∥σ−σ h ∥0               ∥u−uh ∥0       ∥σ−σ h ∥0               ∥u−uh ∥0    ∥σ−σ h ∥0
+                 DoF       ∥u∥0       ∥σ∥0        DoF         ∥u∥0           ∥σ∥0        DoF         ∥u∥0        ∥σ∥0
+
+     2−2          18     1.815e-1   3.645e-1       98       9.035e-3       5.605e-2      242       7.092e-4    5.825e-3
+     2−3          98     4.643e-2   1.895e-1      450       1.121e-3       1.470e-2      1058      4.095e-5    7.367e-4
+      −4
+     2           450     1.184e-2   9.588e-2      1922      1.386e-4       3.731e-3      4418      2.463e-6    9.213e-5
+     2−5         1922    2.980e-3   4.810e-2      7938      1.726e-5       9.366e-4     18050      1.514e-7    1.151e-5
+
+               Table 2: Relative L2 (Ω) errors of the Pk FEM with different h in Example 4.1.
+
+   The test functions are selected from the bilinear basis functions of the finite element method, which
+partitions the domain Ω into square elements with a mesh size of h = 2−4 . The numerical integration is done
+by the Gauss-Legendre quadrature with 25 points in each square, and 100 points are randomly drawn on
+each edge of Γ. We calculate ∇uρ by the central difference method with a spacing of 10−6 , which achieves a
+good balance between computation time and accuracy. We use the least-square solver scipy.linalg.lstsq in
+Python to solve the linear system that arises.
+   We show the relative L2 errors for u and σ with different values of n1 and different versions of RNN-PG
+methods in Table 1. We find that the accuracy improves as the DoF increases. In addition, M-RNN-PG
+
+
+                                                            7
+method-4 attains a very low relative L2 error of around 10−10 , due to its benefit of not using numerical
+derivatives and imposing boundary conditions. For comparison, we also calculate the numerical solutions
+uh and σ h by FEM with Fenics ([22]) on a sequence of uniform triangulations with mesh size h = 2−n (n =
+2, 3, 4, 5), and we employ the standard triangle Lagrange elements Pk (k = 1, 2, 3) to solve this problem.
+Here, k is the polynomial degree, and the DoF for Pk FEM is 2(k/h − 1)2 . The numerical errors are given
+in Table 2. By comparing Table 1 and Table 2, we notice that both the RNN-PG method and M-RNN-PG
+methods surpass FEM in terms of DoF and accuracy, which implies that our method can achieve a more
+accurate numerical representation with much fewer degrees of freedom.
+
+Example
+         4.2 We consider a 2-dimensional elasticity plane-strain problem with an exact solution u =
+  cos(2πx)sin(πy)
+                   on the unit square, and the boundary conditions are depicted in the Figure 2.
+   sin(πx)Qy 4 /4
+
+                                       σ = 2µε(u) + λ tr (ε(u)) I2     in Ω ,
+                                   
+
+                                       −div σ = f                    in Ω ,
+
+where I2 is the 2 × 2 identity matrix, and parameters are set to be µ = 1/2 , λ = 1 and Q = 4.
+
+
+
+
+                    Figure 2: Problem setup and boundary conditions in Example 4.2.
+
+    We use the same network structure and test functions as in Example 4.1, and we report the relative
+errors in Table 3. Compared to the results in [11, 12] obtained by PINNs, which require a lot of time to train
+deep neural networks to achieve the relative L2 errors around 10−3 , both RNN-PG method and M-RNN-PG
+methods can reach even 10−8 with much less time by using randomized neural networks. Meanwhile, we
+notice that all the variants of RNN-PG methods can handle this complex boundary condition very well, and
+we display the numerical solution of uρ = (uρ1 , uρ2 )t and σ ρ = (σρ11 , σρ12 , σρ22 )t obtained by M-RNN-PG
+methods-4 in Figure 3 and Figure 4, respectively.
+
+
+
+
+                                                       8
+                           n1
+                                             100                            200                          400
+ Scheme
+                                         ∥u−uρ ∥0    ∥σ−σ ρ ∥0         ∥u−uρ ∥0   ∥σ−σ ρ ∥0         ∥u−uρ ∥0     ∥σ−σ ρ ∥0
+                                DoF        ∥u∥0        ∥σ∥0      DoF     ∥u∥0       ∥σ∥0      DoF     ∥u∥0         ∥σ∥0
+
+      RNN-PG method                 200 6.623e-6 1.167e-5        400 3.818e-7 7.979e-7        800 9.422e-8 3.065e-7
+   M-RNN-PG method-1                500 5.912e-6 6.202e-6 1000 8.130e-7 1.287e-6 2000 2.998e-7 3.155e-7
+   M-RNN-PG method-2                500 6.486e-6 1.418e-5 1000 3.153e-6 1.020e-6 2000 7.949e-7 7.746e-7
+   M-RNN-PG method-3                500 6.550e-6 6.433e-6 1000 3.504e-6 3.678e-6 2000 7.161e-7 4.833e-7
+   M-RNN-PG method-4                500 8.795e-7 1.570e-6 1000 7.559e-8 1.300e-7 2000 2.318e-8 2.145e-8
+
+       Table 3: Relative L2 (Ω) errors of different RNN-PG methods and various n1 in Example 4.2.
+
+
+
+
+       (a) Numerical solution uρ1                   (b) Exact solution u1                      (c) |u1 − uρ1 |
+
+
+
+
+      (d) Numerical solution uρ2                    (e) Exact solution u2                      (f) |u2 − uρ2 |
+
+Figure 3: Numerical solution uρ by M-RNN-PG method-4 with h = 2−4 and DoF = 2000 in Example 4.2.
+
+
+Example 4.3 In this example, we consider a two-dimensional problem of linear elasticity
+                                   
+                                    σ = 2µε(u) + λ tr (ε(u)) I2 in Ω ,
+                                   
+                                     −div σ = f                in Ω ,
+                                   
+                                   
+                                     u=0                       on Γ ,
+                                             2
+                                             −x (x − 1)2 y(y − 1)(2y − 1)
+                                                                            
+                      2
+on domain Ω = (0, 1) with a solution u =                                      Here, I2 is the identity matrix
+                                             x(x − 1)(2x − 1)y 2 (y − 1)2 .
+of size 2 × 2, and µ and λ are the Lamé parameters. These parameters depend on Young’s modulus E and
+
+
+
+                                                             9
+      (a) Numerical solution σρ11              (b) Exact solution σ11             (c) |σ11 − σρ11 |
+
+
+
+
+      (d) Numerical solution σρ12              (e) Exact solution σ12             (f) |σ12 − σρ12 |
+
+
+
+
+      (g) Numerical solution σρ22              (h) Exact solution σ22              (i) |σ22 − σρ22 |
+
+Figure 4: Numerical solution σ ρ by M-RNN-PG method-4 with h = 2−4 and DoF = 2000 in Example 4.2.
+
+
+the Poisson’s ratio ν of the material, as follows:
+                                            E                       Eν
+                                    µ=            ,     λ=                    .
+                                         2(1 + ν)             (1 + ν)(1 − 2ν)
+
+The Poisson’s ratio ν measures the compressibility of the material, and it approaches 0.5 as the material
+becomes more incompressible.
+
+    In this example, we use the same network structure as in Example 4.1. We choose test functions on a
+square mesh with mesh size h = 2−5 to increase the amount of data, and we set the spacing parameter of
+the central difference method to 10−8 . We show the L2 errors for u and σ with various values of ν, DoF
+by mixed RNN-PG methods in Table 4. We also compare our results with those of the mixed DG method
+([36]) in Table 5, where we change Poisson’s ratio ν, h, and the elements of the method. We observe that
+our method is locking-free in the incompressible limit case, similar to the mixed DG method, highly accurate
+
+
+                                                        10
+but with fewer DoF than Mixed DG method. In addition, we see that M-RNN-PG method-4 has better
+accuracy for σ than the other methods when larger ν is considered.
+
+              Scheme       M-RNN-PG                  M-RNN-PG                  M-RNN-PG               M-RNN-PG
+ν , DoF                     method 1                  method 2                  method 3               method 4
+
+       ν       DoF ∥u − uρ ∥0 ∥σ − σ ρ ∥0 ∥u − uρ ∥0 ∥σ − σ ρ ∥0 ∥u − uρ ∥0 ∥σ − σ ρ ∥0 ∥u − uρ ∥0 ∥σ − σ ρ ∥0
+                500    2.611e-7     6.904e-5    7.840e-8        6.370e-6   1.655e-7   1.142e-5   5.881e-9    4.153e-7
+               1000    4.288e-8     1.421e-6    1.363e-8        1.448e-6   4.216e-8   2.454e-6   2.872e-10   3.076e-8
+  ν = 0.49
+               2000    5.494e-8     1.015e-5    5.164e-9        4.966e-7   4.599e-8   7.026e-6   1.478e-10   1.415e-8
+               4000    3.109e-8     4.485e-6    9.060e-9        8.345e-7   2.253e-8   2.181e-6   5.942e-11   5.791e-9
+                500    1.504e-7     4.202e-3    1.156e-7        1.193e-4   3.238e-7   5.701e-3   4.796e-9    2.712e-6
+               1000    4.726e-8     6.491e-4    1.133e-8        8.830e-6   3.522e-8   6.223e-4   2.307e-10   2.637e-7
+ ν = 0.4999
+               2000    3.763e-8     6.772e-4    4.483e-9        4.755e-6   2.615e-8   7.912e-4   1.464e-10   4.444e-7
+               4000    4.594e-8     9.960e-4    8.364e-9        1.764e-6   6.228e-8   1.515e-3   1.067e-10   4.216e-8
+                500    2.524e-7     2.644e-1    6.464e-8        4.242e-3   2.158e-7   2.776e-2   3.854e-9    4.248e-4
+               1000    9.581e-8     1.149e-1    2.318e-8        3.092e-3   3.582e-8   2.092e-2   2.484e-10   7.245e-6
+ν = 0.499999
+               2000    3.946e-8     8.892e-2    7.034e-9        3.337e-4   4.623e-8   3.840e-3   1.086e-10   8.319e-6
+               4000    2.811e-8     3.430e-2    2.060e-8        1.144e-5   4.940e-8   7.410e-2   9.871e-11   3.203e-6
+
+Table 4: L2 (Ω) error of different formulations of RNN-PG methods with different ν and DoF in Example
+4.3.
+
+
+               Scheme
+                                  P1−1 − P0−1                        P2−1 − P1−1                  P3−1 − P2−1
+ν, h
+       ν         h      DoF ∥u − uh ∥0 ∥σ − σ h ∥0 DoF ∥u − uh ∥0 ∥σ − σ h ∥0 DoF ∥u − uh ∥0 ∥σ − σ h ∥0
+                2−4     5632      4.196e-4     1.649e-3 12288 2.940e-5         6.685e-5 21504 1.282e-6       1.674e-6
+  ν = 0.49
+                2−5     22528 2.106e-4         7.906e-4 49152 7.380e-6         1.434e-5 86016 1.610e-7       1.110e-7
+                 −4
+                2       5632      4.196e-4     1.640e-3 12288 2.940e-5         6.652e-5 21504 1.282e-6       1.665e-6
+ ν = 0.4999
+                2−5     22528 2.106e-4         7.864e-4 49152 7.380e-6         1.427e-5 86016 1.610e-7       1.110e-7
+                2−4     5632      4.196e-4     1.640e-3 12288 2.940e-5         6.652e-5 21504 1.282e-6       1.665e-6
+ν = 0.499999
+                 −5
+                2       22528 2.106e-4         7.863e-4 49152 7.380e-6         1.427e-5 86016 1.610e-7       1.110e-7
+
+ Table 5: L2 (Ω) error of the mixed DG method (taken from [36]) with different ν and h in Example 4.3.
+
+
+
+
+                                                           11
+Example 4.4 we consider a three-dimensional linear elasticity problem
+                               
+                                σ = 2µε(u) + λ tr (ε(u)) I3 in Ω ,
+                               
+                                  −div σ = f                 in Ω ,
+                               
+                               
+                                  u=g                        on ΓD ,
+on the unit cube with an exact solution
+                                              4
+                                              2
+                                         u = 25  x(1 − x)y(1 − y)z(1 − z).
+                                              26
+
+Here, I3 is the 3 × 3 identity matrix, and the Lamé parameters are set to be µ = 1/2 ,λ = 1.
+
+    In this example, we employ a two-layer randomized neural network with 3 input neurons (n0 = 3) and 3
+output neurons (n2 = 3) to approximate u, which is initialized with a uniform distribution U(−1, 1). Our
+test functions are trilinear functions on cubic meshes with mesh size h = 2−n (n = 2, 3, 4). We perform the
+numerical integration by using Gauss-Legendre quadrature with 125 points inside each cube. We randomly
+sample 100 points on each face of ΓD to impose the Dirichlet boundary condition. Table 6 shows the
+L2 errors for u and σ with different mesh sizes and numbers of DoF. We calculate σ ρ by the relation
+σ ρ = 2µε(uρ ) + λ tr (ε(uρ )) I3 . The RNN-PG method solves this three-dimensional problem very well and
+achieves high accuracy with fewer degrees of freedom compared to the results obtained by FEM and mixed
+DG method ([36]) in Table 7.
+
+               DoF
+                              300                    600                       1200                     2400
+   h
+                     ∥u − uρ ∥0 ∥σ − σ ρ ∥0 ∥u − uρ ∥0 ∥σ − σ ρ ∥0 ∥u − uρ ∥0 ∥σ − σ ρ ∥0 ∥u − uρ ∥0 ∥σ − σ ρ ∥0
+       2−2            1.125e-2     1.444e-1   1.266e-3     4.172e-2   1.878e-3    5.460e-2       1.538e-3   3.547e-2
+       2−3            1.732e-2     2.123e-1   5.036e-4     6.410e-3   5.086e-6    8.350e-5       1.210e-6   1.740e-5
+         −4
+       2              7.251e-2     7.193e-1   7.902e-4     8.954e-3   5.909e-6    1.019e-4       5.519e-8   1.207e-6
+
+           Table 6: L2 (Ω) error of the RNN-PG method with different h and DoF in Example 4.4.
+
+
+               Scheme
+                                          P2 FEM                                      P2−1 − P1−1
+           h
+                            DoF       ∥u − uh ∥0     ∥σ − σ h ∥0       DoF        ∥u − uh ∥0        ∥σ − σ h ∥0
+                −1
+               2             81         4.858e-2          1.085        3456           8.310e-2       3.642e-1
+               2−2          1029        6.511e-3         3.401e-1     27648           2.274e-2       6.646e-2
+               2−3         10125        8.232e-4         8.359e-2     221184          5.820e-3       1.238e-2
+
+Table 7: L2 (Ω) errors of the FEM and mixed DG method (taken from [36]) with different h in Example 4.4.
+
+
+
+
+                                                            12
+5    Summary
+    In this paper, we explore the use of RNN-PG methods for solving linear elasticity problems in solid
+mechanics. Based on the weak formulation, we can naturally incorporate the PDE information and the
+Neumann boundary condition, and we can enforce the Dirichlet boundary condition by using random samples.
+We apply the least-squares method to solve the resulting linear system, and we obtain a more accurate
+solution of the displacement and the stress tensor. Moreover, we use M-RNN-PG methods that employ
+separate neural networks to approximate displacement and stress variables, and we can easily achieve the
+symmetric property of the stress tensor in the network structure. Numerical results show that traditional
+methods such as FEM and DG method require a larger degree of freedom to obtain an accurate numerical
+solution, while our method provides a more accurate solution with less DoF. Compared to the common
+PINNs, both methods can handle problems with complex boundary conditions, complex domains, or higher
+dimensions, but our method has the advantage of being more accurate and less time-consuming, as solving
+a linear system is much faster than training a deep neural network.
+    Despite the success of RNN-PG methods and M-RNN-PG methods, several questions remain, such as
+how to generate a proper initialization with a suitable activation function, how to compute the resulting
+linear system efficiently, especially in higher dimensions with a large condition number, and how to ex-
+tend the proposed approach to other mechanical problems such as nonlinear elasticity, viscoplasticity, and
+elastoplasticity.
+
+
+References
+ [1] D. Arnold, G. Awanou and R. Winther, Finite elements for symmetric tensors in three dimensions,
+     Mathematics of Computation 77 (2008), 1229–1251.
+
+ [2] D. Arnold, R. Falk and R. Winther, Mixed finite element methods for linear elasticity with weakly
+     imposed symmetry, Mathematics of Computation 76 (2007), 1699–1723.
+
+ [3] D. N. Arnold and R. Winthe, Mixed finite elements for elasticity, Numerische Mathematik 92 (2002),
+     401–419.
+
+ [4] I. Babuška and M. Suri, On locking and robustness in the finite element method, SIAM Journal on
+     Numerical Analysis 29 (1992), 1261–1293.
+
+ [5] S. Cai, Z. Wang, S. Wang, et al, Physics-informed neural networks for heat transfer problems, Journal
+     of Heat Transfer 143 (2021).
+
+ [6] J. Chen, X. Chi and Z. Yang, Bridging Traditional and Machine Learning-based Algorithms for Solving
+     PDEs: The Random Feature Method, ArXiv Preprint (2022), arXiv:2207.13380.
+
+ [7] B. Cockburn, J. Gopalakrishnan and J. Guzmán, A new elasticity element made for enforcing weak
+     stress symmetry, Mathematics of Computation 79 (2010), 1331–1349.
+
+ [8] S. Dong and Z. Li, Local extreme learning machines and domain decomposition for solving linear and
+     nonlinear partial differential equations, Computer Methods in Applied Mechanics and Engineering 387
+     (2021), 114129.
+
+ [9] W. E and B. Yu, The Deep Ritz method: a deep learning-based numerical algorithm for solving varia-
+     tional problems, Communications in Mathematics and Statistics 6 (2018), 1–12.
+
+
+                                                   13
+[10] S. Goswami, C. Anitescu and S. Chakraborty, Transfer learning enhanced physics informed neural
+     network for phase-field modeling of fracture, Theoretical and Applied Fracture Mechanics 106 (2020),
+     102447.
+
+[11] M. Guo and E. Haghighat, Energy-Based Error Bound of Physics-Informed Neural Network Solutions
+     in Elasticity, Journal of Engineering Mechanics 148 (2022), 04022038.
+
+[12] E. Haghighat, M. Raissi, A. Moure, et al, A deep learning framework for solution and discovery in solid
+     mechanic, ArXiv Preprint (2020), arXiv:2003.02751.
+
+[13] P. Hansbo and M. G. Larson, Discontinuous Galerkin methods for incompressible and nearly incom-
+     pressible elasticity by Nitsche’s method, Computer methods in applied mechanics and engineering 191
+     (2002), 1895–1908.
+
+[14] J. Hu, Finite element approximations of symmetric tensors on simplicial grids in Rn : The higher order
+     case, Journal of Computational Mathematics 33 (2015), 283–296.
+
+[15] J. Hu and S. Y. Zhang, A family of symmetric mixed finite elements for linear elasticity on tetrahedral
+     grids, Science China Mathematics 58 (2015), 297–307.
+
+[16] J. Hu and S. Zhang, Finite element approximations of symmetric tensors on simplicial grids in Rn : The
+     lower order case, Mathematical Models and Methods in Applied Sciences 26 (2016) 1649–1669.
+
+[17] G. B. Huang, Q. Y. Zhu and C. K. Siew, Extreme learning machine: theory and applications, Neuro-
+     computing 70 (2006), 489–501.
+
+[18] X. Jin, S. Cai, H. Li and G. E. Karniadakis, NSFnets (Navier-Stokes flow nets): Physics-informed neural
+     networks for the incompressible Navier-Stokes equations, Journal of Computational Physics 426 (2021),
+     109951.
+
+[19] T. Kadeethum, T.M. Jørgensen and H.M. Nick, Physics-informed neural networks for solving nonlinear
+     diffusivity and Biot’s equations, PloS one 15 (2020), e0232683.
+
+[20] R. Kouhia and R. Stenberg, A linear nonconforming finite element method for nearly incompressible
+     elasticity and Stokes flow, Computer Methods in Applied Mechanics and Engineering 124 (1995), 195–
+     212.
+
+[21] I. E. Lagaris, A. Likas and D. I. Fotiadis, et al, Artificial neural networks for solving ordinary and partial
+     differential equations, IEEE transactions on neural networks 9 (1998), 987–1000.
+
+[22] H. P. Langtangena and A. Logg, Solving PDEs In Python: The FEniCS Tutorial I, Springer Nature,
+     (2017).
+
+[23] X. Liu, S. Lin, J. Fang and Z. Xu, Is extreme learning machine feasible? A theoretical assessment (part
+     1), IEEE Transactions on Neural Networks and Learning Systems 26 (2014), 7–20.
+
+[24] Z. Mao, A. D. Jagtap and G. E. Karniadakis, Physics-informed neural networks for high-speed flows,
+     Computer Methods in Applied Mechanics and Engineering 360 (2020), 112789.
+
+[25] Y. H. Pao, G. H. Park and D. J. Sobajic, Learning and generalization characteristics of the random
+     vector functional-link net, Neurocomputing 6 (1994), 163–180.
+
+
+
+
+                                                        14
+[26] M. Raissi, P. Perdikaris and G. E. Karniadakis, Physics-informed neural networks: a deep learning
+     framework for solving forward and inverse problems involving nonlinear partial differential equations,
+     Journal of Computational Physics 378 (2019), 686–707.
+
+[27] C. Rao, H Sun and Y Liu, Physics-informed deep learning for computational elastodynamics without
+     labeled data, Journal of Engineering Mechanics 147 (2021), 04021043.
+
+[28] S. Rezaei, A. Harandi, A. Moeineddin, et al, A mixed formulation for physics-informed neural networks
+     as a potential solver for engineering problems in heterogeneous domains: comparison with finite element
+     method, Computer Methods in Applied Mechanics and Engineering 401 (2022), 115616.
+
+[29] A. M. Roy and R. Bose, Physics-aware deep learning framework for linear elasticity, arXiv preprint,
+     (2023), arXiv:2302.09668.
+
+[30] E. Samaniego, C. Anitescu, S. Goswami, et al, An energy approach to the solution of partial differential
+     equations in computational mechanics via machine learning: Concepts, implementation and applica-
+     tions, Computer Methods in Applied Mechanics and Engineering 362 (2020), 112790.
+
+[31] J. Sirignano and K. Spiliopoulos, DGM: a deep learning algorithm for solving partial differential equa-
+     tions, Journal of Computational Physics 375 (2018), 1339–1364.
+
+[32] Y, Shang, F. Wang and J. Sun, Deep Petrov-Galerkin method for solving partial differential equations,
+     ArXiv Preprint (2022), arXiv:2201.12995.
+
+[33] J. Sun, S. Dong and F. Wang, Local Randomized Neural Networks with Discontinuous Galerkin Methods
+     for Partial Differential Equations, arXiv preprint (2022), arXiv:2206.05577.
+
+[34] L. Sun, H. Gao, S. Pan and J. X. Wang, Surrogate modeling for fluid flows based on physics-constrained
+     deep learning without simulation data, Computer Methods in Applied Mechanics and Engineering 361
+     (2020), 112732.
+
+[35] M. Vahab, E. Haghighat, M. Khaleghi, et al, A physics-informed neural network approach to solution
+     and identification of biharmonic equations of elasticity, Journal of Engineering Mechanics 148 (2022),
+     04021154.
+
+[36] F. Wang, S. Wu and J. Xu, A mixed discontinuous Galerkin method for linear elasticity with strongly
+     imposed symmetry, Journal of Scientific Computing 83 (2020).
+
+[37] S. Wu, S. Gong and J. Xu, Interior penalty mixed finite element methods of any order in any dimension
+     for linear elasticity with strongly symmetric stress tensor, Mathematical Models and Methods in Applied
+     Sciences 27 (2017) 2711–2743.
+
+[38] E. Zhang, M. Dao, G. E. Karniadakis, et al, Analyses of internal structures and defects in materials
+     using physics-informed neural networks, Science advances 8 (2022), eabk0644.
+
+
+
+
+                                                     15
+

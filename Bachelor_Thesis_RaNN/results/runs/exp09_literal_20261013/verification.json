@@ -1,0 +1,10 @@
+{
+  "run": "exp09_literal_20261013",
+  "runs": 60,
+  "failures": 0,
+  "raw_sha256": {
+    "reproduction.csv": "8007d3fa318426fe5bce88b8e7c50e91ecf5636ea3336cad92efb892f25dcdeb"
+  },
+  "redraw_preserves_csv": true,
+  "case0_reconstruction": true
+}

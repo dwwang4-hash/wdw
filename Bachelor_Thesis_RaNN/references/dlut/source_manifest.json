@@ -1,0 +1,32 @@
+[
+  {
+    "file": "management_public.pdf",
+    "bytes": 1954445,
+    "sha256": "860d95cc5d86ed0f8ac87de4f741b00acb8f2e410b14904ce3c418057de4c3e7"
+  },
+  {
+    "file": "management_public.txt",
+    "bytes": 962945,
+    "sha256": "6f125a9ba1643849227a5143f55af5c08b3785bd8a50b8cca0ee67be7c3a691e"
+  },
+  {
+    "file": "math_2010.html",
+    "bytes": 50552,
+    "sha256": "476dcff440e37a27393bbbd0712ac3f9b1d7ea9b8ea5cad6e4974dfaffe19a2e"
+  },
+  {
+    "file": "management_2024_download.html",
+    "bytes": 3829,
+    "sha256": "b0f05f47fd59179cb9dabd1ff302371adbeb9b0f99593ff4b527fd4074c7638f"
+  },
+  {
+    "file": "notice_2026.html",
+    "bytes": 53258,
+    "sha256": "35251748157ab1df154610e4e17f7cc8b2826422c775392648cba3cd49e0afc0"
+  },
+  {
+    "file": "template_2025_download.html",
+    "bytes": 3829,
+    "sha256": "f074d463ad65676ceb7190b515ba2d038ce81fa5efde006bb4493aa3cfa3ef2d"
+  }
+]

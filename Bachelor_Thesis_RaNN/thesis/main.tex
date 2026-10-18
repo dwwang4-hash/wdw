@@ -1,0 +1,111 @@
+% 大连理工大学数学专业科研修订稿：现行官方模板附件尚需核对。
+\newif\ifdraftfallback
+\IfFileExists{ctexbook.cls}{
+  \documentclass[UTF8,12pt,oneside]{ctexbook}
+}{
+  \draftfallbacktrue
+  \documentclass[12pt,oneside]{book}
+  \usepackage{fontspec}
+  \setmainfont{Noto Serif CJK SC}[AutoFakeSlant=.15]
+  \setsansfont{Noto Sans CJK SC}
+  \setmonofont{DejaVu Sans Mono}[Scale=.85]
+  \XeTeXlinebreaklocale "zh"
+  \XeTeXlinebreakskip=0pt plus 1pt
+  \renewcommand{\contentsname}{目录}
+  \renewcommand{\figurename}{图}
+  \renewcommand{\tablename}{表}
+  \renewcommand{\bibname}{参考文献}
+}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,graphicx,booktabs,longtable}
+\renewcommand{\proofname}{证明}
+\usepackage[hidelinks]{hyperref}
+\ifdraftfallback
+  \usepackage{titlesec}
+  \titleformat{\chapter}[hang]{\centering\sffamily\bfseries\Large}{\thechapter}{1em}{}
+  \titlespacing*{\chapter}{0pt}{0pt}{24pt}
+  \titleformat{\section}{\sffamily\bfseries\large}{\thesection}{1em}{}
+  \titleformat{\subsection}{\sffamily\bfseries\normalsize}{\thesubsection}{1em}{}
+\fi
+\hypersetup{pdftitle={局部随机神经网络与自适应采样：本科毕业论文修订稿v3},pdfauthor={作者信息待确认}}
+
+\theoremstyle{definition}
+\newtheorem{proposition}{命题}[chapter]
+\newtheorem{remark}{注}[chapter]
+\newcommand{\R}{\mathbb R}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\figurefile}[3]{\begin{figure}[htbp]\centering\includegraphics[width=.98\textwidth]{figures/#1.pdf}\caption{#2}\label{#3}\end{figure}}
+\setlength{\parindent}{2em}
+\setlength{\parskip}{0pt}
+\linespread{1.25}
+\emergencystretch=3em
+\pagestyle{plain}
+\title{基于自适应采样的局部随机神经网络求解椭圆型界面问题的数值研究\\[1em]\large 本科毕业论文科研初稿（修订版v3）}
+\author{作者、学号、学院及指导教师信息待填写}
+\date{2026年10月16日}
+\begin{document}
+\frontmatter
+\begin{titlepage}
+\centering
+{\sffamily\bfseries\LARGE 大连理工大学\par}
+\vspace{1.0cm}
+{\sffamily\Large 本科毕业论文\par}
+\vspace{1.2cm}
+{\sffamily\bfseries\Large 基于自适应采样的局部随机神经网络\par
+求解椭圆型界面问题的数值研究\par}
+\vspace{0.7cm}
+{\large Numerical Study of Local Randomized Neural Networks\par
+with Adaptive Sampling for Elliptic Interface Problems\par}
+\vspace{1.2cm}
+\begin{tabular}{ll}
+学院：& 数学科学学院（信息待本人确认）\\[.5em]
+专业：& 数学与应用数学（信息待本人确认）\\[.5em]
+学生姓名：& 待填写\\[.5em]
+学号：& 待填写\\[.5em]
+指导教师：& 待填写\\[.5em]
+完成日期：& 待按实际提交日期填写
+\end{tabular}
+\vfill
+{科研修订稿v3，2026年10月16日\par}
+\small 本页为审阅封面，非已核准的学校官方模板。\par
+\end{titlepage}
+\chapter*{修订稿说明}
+本稿使用真实程序输出及公开可核实文献，保留未达到预期优势的实验。学校本科论文规范已开展核查，但本届数学学院细则及现行官方模板附件尚未完整取得，具体差距另存项目文档。封面信息、声明与签名须由本人和指导教师按实际情况核实，不代填指导记录、评语或签名。本页供审阅使用，正式提交时须按学院要求处理。
+
+\chapter*{摘要}
+椭圆型界面问题具有分片系数及界面耦合条件，配置点在区域和界面上的分配会影响强形式离散系统的精度与稳定性。本文在既有局部随机神经网络思想基础上，独立实现固定隐藏参数的单隐层双子域方法，通过线性最小二乘确定输出系数。采用解析导数建立内部方程、外边界条件以及界面值和法向通量跳跃条件，并补充有限差分导数模式，对公开文献中的花形界面算例开展近似复现。
+
+首先以正弦制造解验证Poisson方程五点差分和随机特征程序，差分观测收敛阶接近二阶。随后比较固定均匀点、固定随机点、仅PDE残差驱动采样及区域与界面联合指标采样，并开展预算、参数、消融和独立局部峰实验。所有随机比较至少采用五个固定种子，区分物理点预算与标量方程预算，在独立测试点报告解误差、界面误差及完整计算成本。
+
+实验表明，在本文已测试的平滑直线界面问题与预设参数下，联合策略未取得相对均匀、随机基线的稳定解误差优势；增加界面资源的固定随机方案也能解释部分消融收益。局部峰问题中联合策略在部分对照改善，但多数情况下仍未优于均匀基线，且部分窄峰精度不足。尺度平衡、特征宽度、随机权重范围和SVD截断会显著改变误差及有效秩，解误差与物理通量误差可能具有不同排序。固定矩阵扰动实验进一步表明，系数敏感性与预测函数变化不可混为一谈。本文的贡献定位为已有方法的独立实现、可重复比较与有限范围稳定性分析，不主张提出具有普遍优势的原创采样算法。
+
+\noindent\textbf{关键词：}椭圆型界面问题；局部随机神经网络；配置点；残差采样；最小二乘
+\chapter*{Abstract}
+Elliptic interface problems involve discontinuous diffusion coefficients and coupled solution and flux conditions across an internal interface. The distribution of collocation points can affect both the approximation obtained from these conditions and the conditioning of the resulting linear system. This thesis studies that distribution within an independently implemented local randomized neural network method. Each subdomain uses fixed hidden parameters and trainable linear output coefficients, which are determined by weighted least squares on a CPU. Analytic derivatives are used in the main experiments, and a finite difference derivative mode is implemented for an approximate reproduction of a published example.
+
+Manufactured solutions provide consistent source terms, exterior boundary data, solution jumps, and coefficient-weighted normal flux jumps. A sine solution on the unit square first verifies the Poisson finite difference baseline and the random feature implementation. The finite difference results exhibit an observed order close to two. Subsequent experiments use a straight interface with continuous or nonzero jump data, diffusion coefficient contrasts in both directions, and additional localized peaks. A flower-shaped interface is included as a separate reproduction study, with implementation assumptions and discrepancies explicitly retained.
+
+Four strategies are compared: fixed uniform points, fixed random points, interior PDE residual sampling, and joint allocation based on interior and interface residual indicators. Hidden features and random seeds are shared within each comparison. Physical point budgets and scalar equation budgets are distinguished because an interface location supplies two scalar conditions. Independent evaluation points are excluded from point selection. Random comparisons use at least five fixed seeds, while the main flower reproduction uses ten. The reported quantities include relative solution error, maximum absolute error, independent PDE residuals, interface errors, numerical rank, conditioning, and the complete adaptive computation time.
+
+For the smooth straight-interface configurations tested here, joint sampling does not consistently outperform the static baselines in solution error. A fixed random control with the same final group allocation also accounts for part of the apparent benefit of an ablation. Localized peak problems produce mixed comparisons, and some narrow peaks remain inaccurate under the chosen fixed feature spaces and budgets. Scaling, feature count, initialization range, and singular value truncation introduce trade-offs between solution accuracy, physical flux accuracy, and numerical conditioning. Fixed-matrix perturbations show that coefficient sensitivity and prediction sensitivity must be distinguished; these observations do not establish general robustness to matrix perturbations.
+
+The mathematical discussion provides self-contained finite-dimensional error identities, conditional stability bounds, and a restricted continuous energy estimate with explicit assumptions. These results do not turn finite training residuals into a general PDE error guarantee. The contribution is a reproducible implementation and a systematic numerical analysis of existing techniques, rather than an assertion of an original sampling algorithm with universal advantages. Further validation requires independent models, fuller access to the original implementations, and confirmation of the current institutional submission requirements.
+
+\noindent\textbf{Keywords:} elliptic interface problem; randomized neural network; collocation; adaptive sampling; least squares
+\tableofcontents
+\mainmatter
+\include{chapters/01_introduction}
+\include{chapters/02_preliminaries}
+\include{chapters/03_method}
+\include{chapters/04_sampling}
+\include{chapters/05_results}
+\include{chapters/06_conclusion}
+\input{bibliography}
+\appendix
+\include{chapters/appendix}
+\backmatter
+\chapter*{致谢}
+\addcontentsline{toc}{chapter}{致谢}
+致谢内容待本人依据实际获得的指导与帮助撰写。本稿不虚构指导过程、项目资助、人员贡献或答辩经历。
+
+\end{document}

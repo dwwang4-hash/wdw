@@ -1,0 +1,64 @@
+% 本科毕业论文科研初稿：使用真实CSV生成表图，学校模板待确认。
+\IfFileExists{ctexbook.cls}{
+  \documentclass[UTF8,12pt,oneside]{ctexbook}
+}{
+  \documentclass[12pt,oneside]{book}
+  \usepackage{fontspec}
+  \setmainfont{Noto Serif CJK SC}[AutoFakeSlant=.15]
+  \setsansfont{Noto Sans CJK SC}
+  \setmonofont{DejaVu Sans Mono}[Scale=.85]
+  \XeTeXlinebreaklocale "zh"
+  \XeTeXlinebreakskip=0pt plus 1pt
+  \renewcommand{\contentsname}{目录}
+  \renewcommand{\figurename}{图}
+  \renewcommand{\tablename}{表}
+  \renewcommand{\bibname}{参考文献}
+}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb,amsthm,graphicx,booktabs,longtable}
+\renewcommand{\proofname}{证明}
+\usepackage[hidelinks]{hyperref}
+\theoremstyle{definition}
+\newtheorem{proposition}{命题}[chapter]
+\newtheorem{remark}{注}[chapter]
+\newcommand{\R}{\mathbb R}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+\newcommand{\figurefile}[3]{\begin{figure}[htbp]\centering\includegraphics[width=.98\textwidth]{figures/#1.pdf}\caption{#2}\label{#3}\end{figure}}
+\setlength{\parindent}{2em}
+\setlength{\parskip}{.25em}
+\linespread{1.25}
+\emergencystretch=3em
+\pagestyle{plain}
+\title{基于自适应采样的局部随机神经网络求解椭圆型界面问题的数值研究\\[1em]\large 本科毕业论文科研初稿（修订版v2）}
+\author{作者、学号、学院及指导教师信息待填写}
+\date{2026年10月13日}
+\begin{document}
+\frontmatter
+\maketitle
+\chapter*{摘要}
+椭圆型界面问题具有分片系数及界面耦合条件，配置点在区域和界面上的分配会影响强形式离散系统的精度与稳定性。本文在既有局部随机神经网络思想基础上，独立实现固定隐藏参数的单隐层双子域方法，通过线性最小二乘确定输出系数。采用解析导数建立内部方程、外边界条件以及界面值和法向通量跳跃条件，并补充有限差分导数模式，对公开文献中的花形界面算例开展近似复现。
+
+首先以正弦制造解验证Poisson方程五点差分和随机特征程序，差分观测收敛阶接近二阶。随后比较固定均匀点、固定随机点、仅PDE残差驱动采样及区域与界面联合指标采样，并开展预算、参数、消融和独立局部峰实验。所有随机比较至少采用五个固定种子，区分物理点预算与标量方程预算，在独立测试点报告解误差、界面误差及完整计算成本。
+
+实验表明，在本文已测试的平滑直线界面问题与预设参数下，联合策略未取得相对均匀、随机基线的稳定解误差优势；增加界面资源的固定随机方案也能解释部分消融收益。局部峰问题中联合策略在部分对照改善，但多数情况下仍未优于均匀基线，且部分窄峰精度不足。尺度平衡、特征宽度、随机权重范围和SVD截断会显著改变误差及有效秩，解误差与物理通量误差可能具有不同排序。固定矩阵扰动实验进一步表明，系数敏感性与预测函数变化不可混为一谈。本文的贡献定位为已有方法的独立实现、可重复比较与有限范围稳定性分析，不主张提出具有普遍优势的原创采样算法。
+
+\noindent\textbf{关键词：}椭圆型界面问题；局部随机神经网络；配置点；残差采样；最小二乘；数值稳定性
+\chapter*{Abstract}
+This thesis independently implements a two-subdomain randomized neural network collocation method for elliptic interface problems. Fixed hidden features are combined with analytic or finite-difference derivatives, and output coefficients are obtained by a linear least-squares solve. Manufactured solutions verify the PDE, boundary data, solution jumps, and coefficient-weighted normal flux jumps.
+
+Uniform, random, PDE-residual, and joint interior-interface sampling are compared under explicit point or scalar-equation budgets. Independent tests, repeated seeds, ablations, parameter scans, localized peaks, and fixed-matrix perturbations are reported. The joint strategy does not consistently outperform the static baselines in the tested configurations. Narrow peaks expose approximation limitations, while scaling and rank truncation introduce accuracy trade-offs. A public flower-interface example is approximately reproduced with all implementation differences retained. The work emphasizes reproducible numerical comparison rather than a claim of algorithmic novelty or universal superiority.
+
+\noindent\textbf{Keywords:} elliptic interface problem; randomized neural network; collocation; adaptive sampling; least squares; stability
+\tableofcontents
+\mainmatter
+\include{chapters/01_introduction}
+\include{chapters/02_preliminaries}
+\include{chapters/03_method}
+\include{chapters/04_sampling}
+\include{chapters/05_results}
+\include{chapters/06_conclusion}
+\appendix
+\include{chapters/appendix}
+\backmatter
+\input{bibliography}
+\end{document}

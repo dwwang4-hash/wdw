@@ -1,0 +1,57 @@
+\chapter{预备知识与数学模型}
+\section{椭圆型界面问题}
+设单位正方形$\Omega=(0,1)^2$被$\Gamma=\{x=1/2,0<y<1\}$分为$\Omega_1$与$\Omega_2$，法向$n=(1,0)$从左指向右。系数$\beta_i>0$在子域内为常数。本文约定跳跃$[v]=v_2-v_1$，与参考预印本的相反约定须同时转换约束行和数据。
+\begin{equation}\label{eq:interface}
+\begin{cases}
+-\beta_i\Delta u_i=f_i,&\text{在 }\Omega_i,\ i=1,2,\\
+u=g_D,&\text{在 }\partial\Omega,\\
+[u]=g_u,\quad[\beta\nabla u\cdot n]=g_q,&\text{在 }\Gamma.
+\end{cases}
+\end{equation}
+本研究使用分片光滑制造解，把各项数据从同一函数严格导出。方程在每侧求导，不对跨界面不连续的总函数直接应用普通中心差分。
+
+\section{Poisson制造解与差分验证}
+令$u=\sin(\pi x)\sin(\pi y)$。由于$u_{xx}=u_{yy}=-\pi^2u$，有$f=2\pi^2u$及零Dirichlet边界。每向$n$个内部节点、$h=1/(n+1)$时五点格式为
+\begin{equation}\label{eq:fdm}
+\frac{4U_{ij}-U_{i-1,j}-U_{i+1,j}-U_{i,j-1}-U_{i,j+1}}{h^2}=f_{ij}.
+\end{equation}
+按$x$方向快序铺平，矩阵为$A=I\otimes T+T\otimes I$，其中$T=h^{-2}\operatorname{tridiag}(-1,2,-1)$。零边界不增加右端，非零边界则须把已知邻点贡献移至右端。
+
+\begin{proposition}[正弦算例的离散误差]
+对上述节点和制造解，五点差分解恰为
+\[U=(2\pi^2/\lambda_h)u|_{\rm grid},\qquad\lambda_h=8h^{-2}\sin^2(\pi h/2).\]
+相对离散$\ell^2$误差为$\pi^2h^2/12+O(h^4)$。
+\end{proposition}
+\begin{proof}
+一维节点正弦是$T$的特征向量，特征值$4h^{-2}\sin^2(\pi h/2)$；二维张量积对应两个特征值之和。右端为$2\pi^2u|_{\rm grid}$，故解的倍数关系成立。由正弦平方的Taylor展开得
+\[\lambda_h=2\pi^2-\pi^4h^2/6+O(h^4),\]
+展开$2\pi^2/\lambda_h-1$即得结论。
+\end{proof}
+这是经典差分性质在特定真解上的初等推导，不是一般PDE或随机网络的新收敛定理。
+
+\section{直线界面的分片制造解}
+记$q=x(1-x)$、$p=q(x)(x-1/2)$，定义
+\begin{align}
+u_i&=\left(\sin\pi x+a_iq+\frac{t_i}{\beta_i}p\right)\sin\pi y,\label{eq:manufactured}\\
+f_i&=\left[2\beta_i\pi^2\sin\pi x+\beta_i a_i(2+\pi^2q)-t_i(3-6x)+t_i\pi^2p\right]\sin\pi y.
+\end{align}
+因为$q''=-2$、$p''=3-6x$，式\eqref{eq:manufactured}满足内部方程。外边界为零，界面上$p=0,q=1/4,p'=1/4$，于是
+\begin{equation}
+g_u=\frac{a_2-a_1}{4}\sin\pi y,\qquad g_q=\frac{t_2-t_1}{4}\sin\pi y.
+\end{equation}
+连续模型取$a_1=a_2=0,t_1=t_2=1$，此时通量本身为$\sin\pi y/4$，并非恒零，能有效检验通量行。非零跳跃取$a_1=0,a_2=.4,t_1=1,t_2=1.2$，所以$g_u=.1\sin\pi y,g_q=.05\sin\pi y$。
+
+\section{固定特征最小二乘与截断}
+最小二乘、SVD和伪逆属于标准数值线性代数内容\cite{golub}。以下给出本文所需结论的自含推导，不将其列为原创定理。对实矩阵$B\in\R^{m\times n}$，求$\min_c\norm{Bc-d}_2^2$。SVD写为$B=Q\Sigma V^T$，保留$\sigma_j>\tau\sigma_1$的方向后，截断解为
+\begin{equation}\label{eq:tsvd}
+c_\tau=\sum_{\sigma_j>\tau\sigma_1}\frac{q_j^Td}{\sigma_j}v_j.
+\end{equation}
+满列秩时$\kappa_2(B)=\sigma_1/\sigma_n$。由正规矩阵特征值$\sigma_j^2$可知$\kappa_2(B^TB)=\kappa_2(B)^2$，这解释了为什么不直接用正规方程替代QR/SVD。本文使用SciPy的gelsd型求解，并单独记录奇异值诊断\cite{scipy}。
+
+\begin{proposition}[固定矩阵右端扰动]
+若$B$满列秩、$c=B^\dagger d$、$\widetilde c=B^\dagger(d+\delta d)$，则$\norm{\widetilde c-c}_2\le\norm{\delta d}_2/\sigma_n$。固定截断子空间时以最小保留奇异值替换$\sigma_n$。
+\end{proposition}
+\begin{proof}
+差值为$B^\dagger\delta d$。由SVD，$\norm{B^\dagger}_2=1/\sigma_n$，应用算子范数不等式即得。固定截断空间的线性映射具有相同推导。若扰动沿最小保留左奇异向量，上界在精确算术中取到。
+\end{proof}
+这一标准线性代数结论不覆盖矩阵扰动或秩变化。若预测矩阵为$P$，函数变化是$P\delta c$，所以大的系数变化也不自动意味着大的函数变化。岭目标$\norm{Bc-d}^2+\alpha\norm c^2$对奇异方向使用$\sigma/(\sigma^2+\alpha)$，抑制放大但引入偏差，不能保证更小真解误差。

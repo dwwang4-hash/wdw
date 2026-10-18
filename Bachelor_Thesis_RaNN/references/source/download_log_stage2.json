@@ -1,0 +1,712 @@
+{
+  "urls": {
+    "2308.03088.html": "https://arxiv.org/abs/2308.03088",
+    "2308.03088.pdf": "https://arxiv.org/pdf/2308.03088",
+    "2409.01949.html": "https://arxiv.org/abs/2409.01949",
+    "2409.01949.pdf": "https://arxiv.org/pdf/2409.01949",
+    "arxiv_search_adaptive_interface.xml": "https://export.arxiv.org/api/query?search_query=all%3A%22interface%22+AND+all%3A%22adaptive%22+AND+all%3A%22sampling%22&start=0&max_results=15&sortBy=submittedDate&sortOrder=descending",
+    "arxiv_search_random_sampling.xml": "https://export.arxiv.org/api/query?search_query=all%3A%22random%22+AND+all%3A%22feature%22+AND+all%3A%22sampling%22+AND+all%3A%22PDE%22&start=0&max_results=15&sortBy=submittedDate&sortOrder=descending",
+    "arxiv_search_lrnn_adaptive.xml": "https://export.arxiv.org/api/query?search_query=all%3A%22randomized%22+AND+all%3A%22neural%22+AND+all%3A%22adaptive%22&start=0&max_results=15&sortBy=submittedDate&sortOrder=descending",
+    "doi_pg.json": "https://api.crossref.org/works/10.1016/j.cnsns.2023.107518",
+    "doi_interface.json": "https://api.crossref.org/works/10.1016/j.jcp.2025.113847",
+    "doi_dg.json": "https://api.crossref.org/works/10.1016/j.cam.2024.115830",
+    "doi_schwarz.json": "https://api.crossref.org/works/10.1016/j.cma.2025.118011",
+    "doi_rar.json": "https://api.crossref.org/works/10.1016/j.cma.2022.115671",
+    "crossref_high_precision.json": "https://api.crossref.org/works?query.title=Optimization+of+random+feature+method+in+the+high+precision+regime&rows=3"
+  },
+  "outcomes": [
+    [
+      "2308.03088.html",
+      [
+        "Randomized Neural Networks with Petrov-Galerkin Methods for Solving Linear Elasticity Problems",
+        "Shang, Yong",
+        "Wang, Fei",
+        "2023/08/06"
+      ]
+    ],
+    [
+      "2308.03088.pdf",
+      1865701
+    ],
+    [
+      "2409.01949.html",
+      [
+        "ELM-FBPINNs: An Efficient Multilevel Random Feature Method",
+        "Anderson, Samuel",
+        "Dolean, Victorita",
+        "Moseley, Ben",
+        "Pestana, Jennifer",
+        "2024/09/03"
+      ]
+    ],
+    [
+      "2409.01949.pdf",
+      1735507
+    ],
+    [
+      "arxiv_search_adaptive_interface.xml",
+      [
+        [
+          "http://arxiv.org/abs/2610.13573v1",
+          "MatQuery: Execution-Grounded Natural-Language Querying over Heterogeneous Materials Databases",
+          "2026-10-09T13:27:20Z"
+        ],
+        [
+          "http://arxiv.org/abs/2610.12185v1",
+          "RESETTLE: Robotic Recovery through Disagreement-Triggered Retrieval and Efficient Corrective Control",
+          "2026-10-08T15:49:03Z"
+        ],
+        [
+          "http://arxiv.org/abs/2610.12107v1",
+          "ContourVLA: A Closed-Loop Perception-Action Contour Policy for Generalized Referring Expression Segmentation",
+          "2026-10-08T15:06:00Z"
+        ],
+        [
+          "http://arxiv.org/abs/2610.11752v1",
+          "2DGS-Planner: Rasterization-based Path Planning in 2D Gaussian Splatting Map",
+          "2026-10-08T11:41:38Z"
+        ],
+        [
+          "http://arxiv.org/abs/2610.06831v1",
+          "UniSlider: Perceptually Uniform Sliders for Continuous Image Editing",
+          "2026-10-05T17:58:11Z"
+        ],
+        [
+          "http://arxiv.org/abs/2610.05277v1",
+          "Mind the Gaps: From Failure Attribution to Closed-Form Repair of Code Language Models",
+          "2026-10-04T14:55:02Z"
+        ],
+        [
+          "http://arxiv.org/abs/2610.03335v1",
+          "Randomization Beyond Deterministic Adaptivity in Parallel Sampling",
+          "2026-10-02T14:07:05Z"
+        ],
+        [
+          "http://arxiv.org/abs/2610.01260v1",
+          "PROMO: Preference-conditioned Multi-Objective Reinforcement Learning for Quadrupedal Robots",
+          "2026-10-01T07:52:33Z"
+        ],
+        [
+          "http://arxiv.org/abs/2609.39421v1",
+          "IDEAL: A Multimodal Domain Adaptation Framework for EEG-Eye Emotion Recognition",
+          "2026-09-30T10:02:11Z"
+        ],
+        [
+          "http://arxiv.org/abs/2609.36755v1",
+          "Drag as Evidence: Motion-Grounded Latent Recomposition for Drag-Based Editing",
+          "2026-09-29T05:25:38Z"
+        ],
+        [
+          "http://arxiv.org/abs/2609.36710v1",
+          "Block-Wise Variational Quantum Algorithms for PDEs with Interface Penalty Constraints",
+          "2026-09-29T04:48:41Z"
+        ],
+        [
+          "http://arxiv.org/abs/2609.33765v1",
+          "Principal Steering Subspaces for Online Adaptation of Frozen Generative Robot Policies",
+          "2026-09-27T17:04:16Z"
+        ],
+        [
+          "http://arxiv.org/abs/2609.30698v1",
+          "MM-VeriAgent: Learning to Use Extensive Tools to Verify Multimodal Misinformation with Reinforcement Learning",
+          "2026-09-25T02:12:16Z"
+        ],
+        [
+          "http://arxiv.org/abs/2609.25489v1",
+          "High-Order Variable-Scaled Energetic Variational Neural Networks for Phase-Field Gradient Flows",
+          "2026-09-21T23:37:48Z"
+        ],
+        [
+          "http://arxiv.org/abs/2609.19666v1",
+          "Towards High-DoF Dexterous Manipulation through VLA Post-Training",
+          "2026-09-17T04:12:21Z"
+        ]
+      ]
+    ],
+    [
+      "arxiv_search_random_sampling.xml",
+      [
+        [
+          "http://arxiv.org/abs/2609.31909v1",
+          "Mapped Multi-Patch Spectral Extreme Learning Machine for Partial Differential Equations",
+          "2026-09-25T18:54:03Z"
+        ],
+        [
+          "http://arxiv.org/abs/2608.14914v1",
+          "Random blob methods for diffusion",
+          "2026-08-14T21:55:21Z"
+        ],
+        [
+          "http://arxiv.org/abs/2607.19786v1",
+          "A Structure-Adaptive Random Feature Method for High-Dimensional Elliptic PDEs",
+          "2026-07-22T06:10:49Z"
+        ],
+        [
+          "http://arxiv.org/abs/2607.13382v1",
+          "Residual-Christoffel Sampling for Random Feature Collocation of Linear PDEs",
+          "2026-07-15T02:21:24Z"
+        ],
+        [
+          "http://arxiv.org/abs/2606.15571v1",
+          "Liquid Random Feature Methods for Time-Dependent Partial Differential Equations",
+          "2026-06-14T03:27:51Z"
+        ],
+        [
+          "http://arxiv.org/abs/2604.23999v1",
+          "Adaptive-Distribution Randomized Neural Networks for PDEs: A Low-Dimensional Distribution-Learning Framework",
+          "2026-04-27T03:25:48Z"
+        ],
+        [
+          "http://arxiv.org/abs/2604.08869v2",
+          "Adaptive Randomized Neural Networks with Locally Activation Function: Theory and Algorithm for Solving PDEs",
+          "2026-04-10T02:07:07Z"
+        ],
+        [
+          "http://arxiv.org/abs/2603.01093v1",
+          "Adaptive-Growth Randomized Neural Networks for Level-Set Computation of Multivalued Nonlinear First-Order PDEs with Hyperbolic Characteristics",
+          "2026-03-01T13:16:25Z"
+        ],
+        [
+          "http://arxiv.org/abs/2601.11771v1",
+          "Solving High-Dimensional PDEs Using Linearized Neural Networks",
+          "2026-01-16T20:55:52Z"
+        ],
+        [
+          "http://arxiv.org/abs/2601.08719v1",
+          "Soft Partition-based KAPI-ELM for Multi-Scale PDEs",
+          "2026-01-13T16:43:38Z"
+        ],
+        [
+          "http://arxiv.org/abs/2512.17884v1",
+          "Regularized Random Fourier Features and Finite Element Reconstruction for Operator Learning in Sobolev Space",
+          "2025-12-19T18:36:24Z"
+        ],
+        [
+          "http://arxiv.org/abs/2511.00886v1",
+          "HEATNETs: Explainable Random Feature Neural Networks for High-Dimensional Parabolic PDEs",
+          "2025-11-02T10:50:11Z"
+        ],
+        [
+          "http://arxiv.org/abs/2510.10350v3",
+          "Prescribed-Basis Coefficient-to-Coefficient Neural Operator for Partial Differential Equations",
+          "2025-10-11T21:47:48Z"
+        ],
+        [
+          "http://arxiv.org/abs/2508.17902v1",
+          "Spectral-Prior Guided Multistage Physics-Informed Neural Networks for Highly Accurate PDE Solutions",
+          "2025-08-25T11:17:05Z"
+        ],
+        [
+          "http://arxiv.org/abs/2408.01536v2",
+          "Active Learning for Neural PDE Solvers",
+          "2024-08-02T18:48:58Z"
+        ]
+      ]
+    ],
+    [
+      "arxiv_search_lrnn_adaptive.xml",
+      [
+        [
+          "http://arxiv.org/abs/2610.12325v1",
+          "Prior or Feedback? What an LLM Uses When Adapting Neural Operators",
+          "2026-10-08T17:06:23Z"
+        ],
+        [
+          "http://arxiv.org/abs/2610.11475v1",
+          "Rare Gate Disagreements Can Limit Plasticity: When Gradient Flow Mispredicts Finite-Batch SGD",
+          "2026-10-08T08:22:35Z"
+        ],
+        [
+          "http://arxiv.org/abs/2610.08739v2",
+          "BARE-AI: Bit-Flip Attack Resilience in AI Hardware through Built-in Performance Monitors",
+          "2026-10-06T17:38:24Z"
+        ],
+        [
+          "http://arxiv.org/abs/2610.06816v1",
+          "Reconfigurable On-Chip AI for Particle Physics Detectors with Logic Neural Networks",
+          "2026-10-05T17:55:54Z"
+        ],
+        [
+          "http://arxiv.org/abs/2610.06701v1",
+          "A Solvable Model of Adaptive Learning Rate Rescaling: Acceleration, Stability & Scaling",
+          "2026-10-05T17:00:25Z"
+        ],
+        [
+          "http://arxiv.org/abs/2610.06195v1",
+          "Loss-Invariant Projections as Passive Probes of Learned Representations",
+          "2026-10-05T12:10:16Z"
+        ],
+        [
+          "http://arxiv.org/abs/2610.05835v1",
+          "Adaptive-Shot Hybrid Quantum Anomaly Detection for Tactile Internet Security: Reliability-Aware Measurement Allocation Under Resource Constraints",
+          "2026-10-05T05:38:18Z"
+        ],
+        [
+          "http://arxiv.org/abs/2610.04526v1",
+          "Diffusion-Based Stress Testing of Overload Monitoring for Resilient Emergency Cellular Networks Using Internet CDR Proxies",
+          "2026-10-03T13:46:27Z"
+        ],
+        [
+          "http://arxiv.org/abs/2610.04219v1",
+          "Adaptive Operator Selection in Bilevel Large Neighborhood Search for Electric Autonomous Dial-a-Ride Problem under Uncertainty",
+          "2026-10-03T02:18:56Z"
+        ],
+        [
+          "http://arxiv.org/abs/2610.03127v1",
+          "Coverage You Can Steer: Online Conformal Calibration for RL-Driven Hardware-Aware NAS",
+          "2026-10-02T10:47:58Z"
+        ],
+        [
+          "http://arxiv.org/abs/2610.02771v1",
+          "Nearly Optimal Fixed-Confidence Best-Arm Identification with 1-Bit Feedback",
+          "2026-10-02T03:56:28Z"
+        ],
+        [
+          "http://arxiv.org/abs/2609.39871v3",
+          "A PyTorch Library for Hyperspectral Image Models: Technical Report",
+          "2026-09-30T14:50:21Z"
+        ],
+        [
+          "http://arxiv.org/abs/2609.39125v1",
+          "LBDU-VIO: Learned Bias Dynamics and Uncertainty for Visual-Inertial Odometry with Unreliable Vision",
+          "2026-09-30T06:57:26Z"
+        ],
+        [
+          "http://arxiv.org/abs/2609.38401v1",
+          "Memorize, Adapt, Ignore: Diagnosing Robot Learning Mechanisms under Training Data Variation",
+          "2026-09-29T18:57:43Z"
+        ],
+        [
+          "http://arxiv.org/abs/2609.37328v1",
+          "CASR: Content-Adaptive Neural Super-Resolution Post-Filter for Versatile Video Coding via Low-Rank Overfitting",
+          "2026-09-29T12:05:33Z"
+        ]
+      ]
+    ],
+    [
+      "doi_pg.json",
+      {
+        "title": [
+          "Randomized neural network with Petrov–Galerkin methods for solving linear and nonlinear partial differential equations"
+        ],
+        "author": [
+          {
+            "given": "Yong",
+            "family": "Shang",
+            "sequence": "first",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          },
+          {
+            "ORCID": "https://orcid.org/0000-0002-9745-1195",
+            "authenticated-orcid": false,
+            "given": "Fei",
+            "family": "Wang",
+            "sequence": "additional",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          },
+          {
+            "given": "Jingbo",
+            "family": "Sun",
+            "sequence": "additional",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          }
+        ],
+        "DOI": "10.1016/j.cnsns.2023.107518",
+        "container-title": [
+          "Communications in Nonlinear Science and Numerical Simulation"
+        ],
+        "volume": "127",
+        "issue": null,
+        "page": "107518",
+        "article-number": "107518",
+        "published": {
+          "date-parts": [
+            [
+              2023,
+              12
+            ]
+          ]
+        },
+        "URL": "https://doi.org/10.1016/j.cnsns.2023.107518"
+      }
+    ],
+    [
+      "doi_interface.json",
+      {
+        "title": [
+          "Local randomized neural networks with finite difference methods for interface problems"
+        ],
+        "author": [
+          {
+            "given": "Yunlong",
+            "family": "Li",
+            "sequence": "first",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          },
+          {
+            "ORCID": "https://orcid.org/0000-0002-9745-1195",
+            "authenticated-orcid": false,
+            "given": "Fei",
+            "family": "Wang",
+            "sequence": "additional",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          }
+        ],
+        "DOI": "10.1016/j.jcp.2025.113847",
+        "container-title": [
+          "Journal of Computational Physics"
+        ],
+        "volume": "529",
+        "issue": null,
+        "page": "113847",
+        "article-number": "113847",
+        "published": {
+          "date-parts": [
+            [
+              2025,
+              5
+            ]
+          ]
+        },
+        "URL": "https://doi.org/10.1016/j.jcp.2025.113847"
+      }
+    ],
+    [
+      "doi_dg.json",
+      {
+        "title": [
+          "Local randomized neural networks with discontinuous Galerkin methods for partial differential equations"
+        ],
+        "author": [
+          {
+            "given": "Jingbo",
+            "family": "Sun",
+            "sequence": "first",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          },
+          {
+            "given": "Suchuan",
+            "family": "Dong",
+            "sequence": "additional",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          },
+          {
+            "ORCID": "https://orcid.org/0000-0002-9745-1195",
+            "authenticated-orcid": false,
+            "given": "Fei",
+            "family": "Wang",
+            "sequence": "additional",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          }
+        ],
+        "DOI": "10.1016/j.cam.2024.115830",
+        "container-title": [
+          "Journal of Computational and Applied Mathematics"
+        ],
+        "volume": "445",
+        "issue": null,
+        "page": "115830",
+        "article-number": "115830",
+        "published": {
+          "date-parts": [
+            [
+              2024,
+              8
+            ]
+          ]
+        },
+        "URL": "https://doi.org/10.1016/j.cam.2024.115830"
+      }
+    ],
+    [
+      "doi_schwarz.json",
+      {
+        "title": [
+          "Overlapping Schwarz preconditioners for randomized neural networks with domain decomposition"
+        ],
+        "author": [
+          {
+            "given": "Yong",
+            "family": "Shang",
+            "sequence": "first",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          },
+          {
+            "ORCID": "https://orcid.org/0000-0003-1578-8104",
+            "authenticated-orcid": false,
+            "given": "Alexander",
+            "family": "Heinlein",
+            "sequence": "additional",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          },
+          {
+            "given": "Siddhartha",
+            "family": "Mishra",
+            "sequence": "additional",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          },
+          {
+            "ORCID": "https://orcid.org/0000-0002-9745-1195",
+            "authenticated-orcid": false,
+            "given": "Fei",
+            "family": "Wang",
+            "sequence": "additional",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          }
+        ],
+        "DOI": "10.1016/j.cma.2025.118011",
+        "container-title": [
+          "Computer Methods in Applied Mechanics and Engineering"
+        ],
+        "volume": "442",
+        "issue": null,
+        "page": "118011",
+        "article-number": "118011",
+        "published": {
+          "date-parts": [
+            [
+              2025,
+              7
+            ]
+          ]
+        },
+        "URL": "https://doi.org/10.1016/j.cma.2025.118011"
+      }
+    ],
+    [
+      "doi_rar.json",
+      {
+        "title": [
+          "A comprehensive study of non-adaptive and residual-based adaptive sampling for physics-informed neural networks"
+        ],
+        "author": [
+          {
+            "ORCID": "https://orcid.org/0000-0002-6099-126X",
+            "authenticated-orcid": false,
+            "given": "Chenxi",
+            "family": "Wu",
+            "sequence": "first",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          },
+          {
+            "ORCID": "https://orcid.org/0000-0003-4550-5662",
+            "authenticated-orcid": false,
+            "given": "Min",
+            "family": "Zhu",
+            "sequence": "additional",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          },
+          {
+            "ORCID": "https://orcid.org/0000-0003-3545-2456",
+            "authenticated-orcid": false,
+            "given": "Qinyang",
+            "family": "Tan",
+            "sequence": "additional",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          },
+          {
+            "ORCID": "https://orcid.org/0000-0003-2914-8087",
+            "authenticated-orcid": false,
+            "given": "Yadhu",
+            "family": "Kartha",
+            "sequence": "additional",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          },
+          {
+            "ORCID": "https://orcid.org/0000-0002-5476-5768",
+            "authenticated-orcid": false,
+            "given": "Lu",
+            "family": "Lu",
+            "sequence": "additional",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          }
+        ],
+        "DOI": "10.1016/j.cma.2022.115671",
+        "container-title": [
+          "Computer Methods in Applied Mechanics and Engineering"
+        ],
+        "volume": "403",
+        "issue": null,
+        "page": "115671",
+        "article-number": "115671",
+        "published": {
+          "date-parts": [
+            [
+              2023,
+              1
+            ]
+          ]
+        },
+        "URL": "https://doi.org/10.1016/j.cma.2022.115671"
+      }
+    ],
+    [
+      "crossref_high_precision.json",
+      {
+        "title": [
+          "Optimization of Random Feature Method in the High-Precision Regime"
+        ],
+        "author": [
+          {
+            "given": "Jingrun",
+            "family": "Chen",
+            "sequence": "first",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          },
+          {
+            "given": "Weinan",
+            "family": "E",
+            "sequence": "additional",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          },
+          {
+            "ORCID": "https://orcid.org/0000-0002-4038-6441",
+            "authenticated-orcid": false,
+            "given": "Yifei",
+            "family": "Sun",
+            "sequence": "additional",
+            "affiliation": [],
+            "role": [
+              {
+                "vocabulary": "crossref",
+                "role": "author"
+              }
+            ]
+          }
+        ],
+        "DOI": "10.1007/s42967-024-00389-8",
+        "container-title": [
+          "Communications on Applied Mathematics and Computation"
+        ],
+        "volume": "6",
+        "issue": "2",
+        "page": "1490-1517",
+        "article-number": null,
+        "published": {
+          "date-parts": [
+            [
+              2024,
+              3,
+              30
+            ]
+          ]
+        },
+        "URL": "https://doi.org/10.1007/s42967-024-00389-8"
+      }
+    ]
+  ]
+}

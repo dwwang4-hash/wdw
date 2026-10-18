@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/workspace/Bachelor_Thesis_RaNN/experiments/exp04_sensitivity.py", line 103, in <module>
+    plot_only(Path(args.plot_run)) if args.plot_run else run_experiment(args.run_id)
+                                                         ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/Bachelor_Thesis_RaNN/experiments/exp04_sensitivity.py", line 68, in run_experiment
+    run=create_run("exp04",run_id)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/workspace/Bachelor_Thesis_RaNN/experiments/common.py", line 30, in create_run
+    run.mkdir(parents=True, exist_ok=False)
+  File "/opt/codex/runtimes/codex-primary-runtime/dependencies/python/lib/python3.12/pathlib.py", line 1311, in mkdir
+    os.mkdir(self, mode)
+FileExistsError: [Errno 17] File exists: '/workspace/Bachelor_Thesis_RaNN/results/runs/exp04_sensitivity_20261013'

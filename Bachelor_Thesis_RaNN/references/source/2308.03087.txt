@@ -1,0 +1,1149 @@
+                                                 Local Randomized Neural Networks Methods for Interface Problems
+
+
+                                                                              Yunlong Li1 , and Fei Wang2
+
+
+                                                Abstract: Accurate modeling of complex physical problems, such as fluid-structure interac-
+                                                tion, requires multiphysics coupling across the interface, which often has intricate geometry and
+                                                dynamic boundaries. Conventional numerical methods face challenges in handling interface con-
+arXiv:2308.03087v1 [math.NA] 6 Aug 2023
+
+
+
+
+                                                ditions. Deep neural networks offer a mesh-free and flexible alternative, but they suffer from
+                                                drawbacks such as time-consuming optimization and local optima. In this paper, we propose a
+                                                mesh-free approach based on Randomized Neural Networks (RNNs), which avoid optimization
+                                                solvers during training, making them more efficient than traditional deep neural networks. Our
+                                                approach, called Local Randomized Neural Networks (LRNNs), uses different RNNs to approxi-
+                                                mate solutions in different subdomains. We discretize the interface problem into a linear system
+                                                at randomly sampled points across the domain, boundary, and interface using a finite difference
+                                                scheme, and then solve it by a least-square method. For time-dependent interface problems, we
+                                                use a space-time approach based on LRNNs. We show the effectiveness and robustness of the
+                                                LRNNs methods through numerical examples of elliptic and parabolic interface problems. We
+                                                also demonstrate that our approach can handle high-dimension interface problems. Compared
+                                                to conventional numerical methods, our approach achieves higher accuracy with fewer degrees of
+                                                freedom, eliminates the need for complex interface meshing and fitting, and significantly reduces
+                                                training time, outperforming deep neural networks.
+                                                Keywords: Randomized neural networks, interface problems, space-time approach, least-square
+                                                method.
+                                                Mathematics Subject Classification. 65M06, 68T07, 41A46
+
+
+
+
+                                          1     Introduction
+                                              Many complex physical problems, such as multiphase flow and fluid-structure interaction, require interface
+                                          interactions to model multiphysics coupling ([16, 9, 12, 21, 13]). Therefore, the numerical treatment of the
+                                          interface problem is crucial for such problems. Various numerical methods have been developed to tackle
+                                          interface problems and achieve some success, such as the immersed boundary method ([30]), the interface-
+                                          fitted finite element method ([41, 3, 7]), the immersed interface method ([22, 23, 25]), the extended FEM
+                                          ([14, 38, 40]), the discontinuous Galerkin method ([27]), the weak Galerkin method ([28]), and the virtual
+                                          element method ([6]). However, these numerical methods often encounter difficulties in dealing with the
+                                          coupling conditions on the interface, which may have complex geometry and dynamic boundaries. Moreover,
+                                          these numerical methods face difficulties to handle high-dimensional problems.
+                                             1 School of Mathematics and Statistics, Xi’an Jiaotong University, Xi’an, Shaanxi 710049, P.R. China.     E-mail:
+                                          4122107033@stu.xjtu.edu.cn
+                                             2 School of Mathematics and Statistics, Xi’an Jiaotong University, Xi’an, Shaanxi 710049, China. The work of this
+                                          author was partially supported by the National Natural Science Foundation of China (Grant No. 12171383). Email:
+                                          feiwang.xjtu@xjtu.edu.cn
+
+
+
+
+                                                                                                   1
+    Neural network-based methods for solving partial differential equations (PDEs) have gained popularity
+in recent years, thanks to their universal approximation property ([2, 4]). Examples of such methods include
+the Deep Ritz Method ([11]), the Deep Galerkin Method ([34]), the Physics-Informed Neural Networks
+(PINNs, [31]), and so on. These methods are mesh-free and have demonstrated remarkable capabilities
+for solving high-dimensional PDEs and handling problems with complex geometry. However, conventional
+neural network training processes are inefficient because they involve solving nonlinear optimization problems
+that are time-consuming and may get stuck in local optima. Some deep neural networks have been proposed
+to solve interface problems in a mesh-free and flexible manner ([39, 42, 15]), but they still face challenges in
+terms of training efficiency and accuracy.
+    Randomized Neural Networks (RNNs, [29, 20]), which do not need optimization solvers during training,
+are a way to overcome this challenge. Extreme Learning Machine (ELM, [19, 17]) is a special type of RNN
+that has been applied in various contexts ([1, 18, 36, 10]). RNN works by randomly selecting and fixing all
+biases and weights except for those in the last layer, resulting in a linear combination. The weights of the
+last layer are then computed by solving a least-square problem. Lin et al. showed that ELM can generalize
+as well as fully parameterized NNs when the activation functions and initialization strategies are chosen
+properly ([26]). Based on RNN, some new methods have been proposed recently. Dong and Li developed
+a neural network-based method that combines local ELMs and domain decomposition to solve linear and
+nonlinear PDEs ([8]). Chen et al. extended this idea to overlapping domain decomposition ([5]). Shang et
+al. and Sun et al. incorporated RNNs with weak formulations, using the Petrov-Galerkin method ([32, 33])
+and discontinuous Galerkin method ([35, 37]) respectively, to solve PDEs. These methods can achieve higher
+accuracy with fewer degrees of freedom and can solve time-dependent problems in the space-time approach
+precisely and efficiently, which suggests that this new approach has great potential for solving PDEs.
+    In this paper, we propose a method for solving interface problems with multiple RNNs. The whole
+domain is partitioned into several subdomains by the interfaces, and the solution on each subdomain is
+approximated by one RNN. No stochastic gradient decent type training process is required, as we obtain
+the solution by a least-square method, which is easier to solve than an optimization problem. This method
+improves the accuracy and reduces the computational cost of the numerical solution, and it can handle
+diffusion coefficients with large variations. Furthermore, we apply a space-time approach to solve parabolic
+interface problems, which avoids time steps iteration and accumulation errors.
+    The paper is structured as follows. Section 2 presents the model problems. Section 3 describes the
+LRNNs methods and the general process for solving interface problems. Section 4 shows numerical results
+for elliptic and parabolic interface problems, illustrating the effectiveness and robustness of the proposed
+method. Section 5 concludes the paper and discusses some future directions.
+
+
+2    Interface problems
+    We present the interface problems in this section. For simplicity, we consider the case where a single
+closed interface in R2 splits the domain into two subdomains, as shown in Figure 1. Here, Ω ⊂ R2 is a
+bounded domain with Ω = Ω1 ∪ Ω2 and Γ = ∂Ω1 ∩ ∂Ω2 . Our method can handle more general cases, such
+as multiple interfaces and higher dimensions (Ω ∈ Rd , d > 2).
+
+
+
+
+                                                       2
+         Figure 1: Domain and subdomains of an interface problem with a single closed interface.
+
+
+2.1    Elliptic interface problem
+   We consider the following elliptic interface problem:
+                                      −∇ · (β(x)∇u) =                x ∈ Ω,
+                                  
+                                                             f,
+                                  
+                                                    [u] =     g1 ,   x ∈ Γ,
+                                  
+                                                                                                             (2.1)
+                                  
+                                        [β(x)∇u  ·  n] =     g2 ,   x ∈ Γ,
+                                  
+                                                      u =     gD ,   x ∈ ∂Ω,
+where the diffusion coefficient β(x) is a piecewise positive constant function given by
+                                                    (
+                                                     β 1 , x ∈ Ω1 ,
+                                            β(x) =
+                                                     β 2 , x ∈ Ω2 .
+The function u is the solution of the interface problem, let ui (i = 1, 2) be the restriction of u to Ωi , i.e.,
+                                                  (
+                                                   u1 (x), x ∈ Ω1 ,
+                                          u(x) =
+                                                   u2 (x), x ∈ Ω2 .
+The symbol [u] denotes the jump of u across the interface Γ, that is
+                                                  [u] = u1 − u2 .
+The vector n is the unit outward normal vector on Γ from Ω1 to Ω2 . The function f is the source term, g1
+and g2 are the jump conditions across the interface Γ, gD is the boundary condition on the domain boundary
+∂Ω. These functions satisfy appropriate regularity conditions.
+
+
+2.2    Parabolic interface problem
+   Similar to the set-up of the elliptic interface problem (2.1), we consider a parabolic interface problem
+that involves a time interval (0, T ). The parabolic interface problem can be written as:
+                         
+                             ∂u
+                             ∂t − ∇ · (β(x)∇u) = f,             (x, t) ∈ Ω × (0, T ),
+                         
+                         
+                         
+                         
+                         
+                                             [u] =    g1 ,     (x, t) ∈ Γ × (0, T ),
+                                     [β(x)∇u · n] = g2 ,        (x, t) ∈ Γ × (0, T ),                  (2.2)
+                                                                       ∈    ×
+                         
+                         
+                         
+                                         u(x, t) =    g(x, t), (x, t)   ∂Ω    (0, T  ),
+                         
+                                          u(x, 0) = u0 (x), x ∈ Ω,
+                         
+
+
+                                                        3
+where u0 is the initial condition. Unlike the elliptic interface problem, the interface Γ may be time-dependent,
+which means that it can move over time. We assume that the interface motion is known. The problem can
+model a heat conduction in a composite material with a dynamic interface.
+
+
+3     Local randomized neural networks methods
+   In this section, we begin by presenting the concept of randomized neural networks and their advantages.
+Next, we describe the LRNNs method and the mixed LRNNs method for solving elliptic interface problems.
+Finally, we propose the space-time LRNNs method for tackling the parabolic interface problem.
+
+
+3.1    Randomized neural networks
+    We consider a fully connected neural network Ψ : Rn0 → RnD with depth D, which is defined as follows:
+
+                                 Ψ0 (x) = x,
+                                 Ψl (x) = ρ(Wl Ψl−1 + bl ),   l = 1, ..., D − 1,
+                                 Ψ = ΨD = WD ΨD−1 ,
+
+where ρ is the activation function, and Wl ∈ Rnl × Rnl−1 and bl ∈ Rnl are the weights and the bias in the
+l-th layer. We denote the set of functions that can be represented by the above neural network by NρD . Note
+that NρD is not a vector space.
+    A randomized neural network (RNN) is a special type of NN, where the weights and bias in the hidden
+layers are randomly generated and fixed, and only the weights of the output layer are adjustable. Figure
+2 shows the structure of a two-hidden layers RNN. Note that NρD is a function space for RNNs, and
+{ψ1 , ..., ψnD−1 } is a basis for this space, where ψi is the i-th component of the vector ΨD−1 . Hence, any
+function uρ ∈ NρD (one neuron in the output layer) can be expressed as a linear combination of the basis
+functions
+                                                       nD−1
+                                                        X
+                                                  uρ =      αi ψi .                                     (3.3)
+                                                      i=1
+
+
+
+
+Figure 2: The structure of an RNN: the weights connecting the input layer, the first and the second hidden
+layers (denoted by black solid line) are randomly initialized and fixed, while the weights between the last
+hidden layer and output layer (denoted by red dotted line) are tunable.
+
+
+
+
+                                                       4
+3.2    Local RNNs method for elliptic interface problem
+    The domain Ω is partitioned into several subdomains by interfaces, and the solutions in different subdo-
+mains may have distinct characteristics, so one neural network may not be adequate to describe the solution
+in the whole domain. Therefore, we use multiple RNNs to learn interface problems. Specifically, we use one
+RNN for each subdomain, i.e., the number of RNNs equals the number of subdomains.
+    Consider the case where the domain Ω is split into two subdomains by interface Γ. We propose a local
+RNNs method to solve the elliptic interface problem (2.1). In this method, we use two RNNs to approximate
+the true solution in each subdomain denoted by u1ρ and u2ρ , which correspond to the subdomains Ω1 and Ω2 .
+For simplicity, we assume that both RNNs have the same number of neurons m in the hidden layer. Similar
+to (3.3), we assume that the outputs of the RNNs are given by
+                                                   m
+                                                   X                             m
+                                                                                 X
+                                           u1ρ =         αk1 ψk1 ,       u2ρ =         αk2 ψk2 .             (3.4)
+                                                   k=1                           k=1
+
+If we substitute (3.4) into the elliptic interface problem (2.1), and discretize the problem at randomly sampled
+N1 , N2 and N3 collocation points on Ω, Γ and ∂Ω, respectively, we obtain a linear system
+
+                                                              AX = F,
+                                                              BX = G1 ,
+                                                                                                             (3.5)
+                                                              CX = G2 ,
+                                                              DX = GD ,
+
+where A, B, C, D are matrices of order N1 × 2m, N2 × 2m, N2 × 2m and N3 × 2m, respectively. Specifically,
+                             (
+                                  −∇ · (β(xi )∇ψj1 (xi )), xi ∈ Ω1 , 1 ≤ j ≤ m,
+                      Ai,j =                  2
+                               −∇ · (β(xi )∇ψj−m   (xi )), xi ∈ Ω2 , m + 1 ≤ j ≤ 2m,
+                                           (
+                                                    ψj1 (xi ),       xi ∈ Γ, 1 ≤ j ≤ m,
+                                 Bi,j =          2
+                                               −ψj−m
+                                                 xi ∈ Γ, m + 1 ≤ j ≤ 2m,
+                                                     (xi ),
+           (                                                 (
+              ∇ψj1 · n(xi ), xi ∈ Γ, 1 ≤ j ≤ m,                       0, xi ∈ ∂Ω, 1 ≤ j ≤ m,
+  Ci,j =      2
+                                                      Di,j =   2
+           −∇ψj−m · n(xi ), xi ∈ Γ, m + 1 ≤ j ≤ 2m,           ψj−m (xi ), xi ∈ ∂Ω, m + 1 ≤ j ≤ 2m,
+
+                           Fi = f (xi ),       G1i = g1 (xi ),        G2i = g2 (xi ),       GD
+                                                                                             i = gD (xi ),
+
+and X = (α11 , ..., αm
+                     1
+                       , α12 , ..., αm
+                                     2 T
+                                       ) is the unknown vector.
+   Automatic differentiation is a method to compute derivatives of functions, but it can be inefficient for
+some applications. Therefore, we use finite difference schemes to approximate derivatives. For instance,
+we can use the 1st and 2nd order central difference schemes to approximate the 1st and 2nd order partial
+derivatives of uρ (x, y) with respect to x, as shown below
+
+                              ∂uρ (x, y)     uρ (x + hx , y) − uρ (x − hx , y)
+                                           =                                   ,                             (3.6)
+                                   ∂x                       2hx
+                             ∂ 2 uρ (x, y)   uρ (x + hx , y) − 2uρ (x, y) + uρ (x − hx , y)
+                                   2
+                                           =                                                .                (3.7)
+                                  ∂ x                              h2x
+
+Here, hx is the step size. By solving a least-square problem with the linear system (3.5), we can obtain the
+weights of the output layer for the RNNs.
+
+
+                                                                     5
+Remark 3.1 The local RNNs method has some advantages over the traditional NN method because we can
+train the RNNs by a least-squares method, which avoids the issues of local minima and time-consuming
+training process that may arise from solving a nonlinear optimization problem.
+
+Remark 3.2 We can adjust the weights γ1 , γ2 and γ3 in the linear system to account for the importance of
+different conditions:
+
+                                                             AX = F,
+                                                             γ1 BX = γ1 GΓ1 ,
+                                                             γ2 CX = γ2 GΓ2 ,
+                                                             γ3 DX = γ3 GD .
+
+We can choose different weights to control the attention of RNNs. For example, we can assign larger weights
+to the interface conditions and boundary conditions, which are usually more crucial for the accuracy of the
+solution.
+
+
+3.3    Mixed LRNNs method for elliptic interface problem
+   By introducing another vector-valued function p = β(x)∇u, we rewrite problem (2.1) as following mixed
+form:                             
+                                  
+                                         −∇ · p = f,      x ∈ Ω,
+                                  
+                                   p − β(x)∇u = 0,        x ∈ Ω,
+                                  
+                                  
+                                               [u] = g1 , x ∈ Γ,                                    (3.8)
+                                           [p · n] = g2 , x ∈ Γ,
+                                  
+                                  
+                                  
+                                  
+                                  
+                                                 u = gD , x ∈ ∂Ω,
+                                  
+
+where all notations are the same as before. More RNNs are needed to approximate p. Therefore, we set
+their outputs as follows:
+                         m
+                         X                              m
+                                                        X
+                 u1ρ =       αk1 ψk1 ,          u2ρ =         αk2 ψk2 ,
+                         k=1                            k=1
+                           m                    m
+                                                                    !                   m                     m
+                                                                                                                                  !
+                           X                    X                                       X                     X
+                 p1ρ =          τk1,1 ξk1,1 ,         τk1,2 ξk1,2       ,       p2ρ =         τk2,1 ξk2,1 ,         τk2,2 ξk2,2       .
+                          k=1                   k=1                                     k=1                   k=1
+
+Substitute them into the mixed elliptic interface problem (3.8), and add weights γi (i = 1, 2, 3), we achieve
+the linear system:
+
+                                                             A1 X = F,
+                                                             A2 X = 0,
+                                                             A3 X = 0,
+                                                             γ1 BX = γ1 G1 ,
+                                                             γ2 CX = γ2 G2 ,
+                                                             γ3 DX = γ3 GD ,
+
+where A1 , A2 , A3 , B, C, D are matrices of order N1 × 6m, N1 × 6m, N1 × 6m, N2 × 6m, N2 × 6m, N3 × 6m,
+respectively. Here,
+
+
+                                                                            6
+              1,1
+            ∂ξj−2m
+          −        (xi ),         xi ∈ Ω1 , 2m + 1 ≤ j ≤ 3m,
+        
+                                                                                                          ∂ψj1
+        
+                                                                                        
+             ∂x
+                                                                                                 −β1                    x ∈ Ω1 , 1 ≤ j ≤ m,
+                                                                                        
+        
+              1,2
+                                                                                         
+                                                                                                              (xi ),
+        
+        
+           ∂ξj−3m
+                                                                                         
+                                                                                         
+                                                                                                         ∂x
+        −         (xi ),         xi ∈ Ω1 , 3m + 1 ≤ j ≤ 4m,                                           2
+                                                                                        
+        
+              ∂y
+                                                                                         
+                                                                                                   ∂ψj−m
+A1i,j =                                                                        A2i,j =        −β2          (xi ),       x ∈ Ω2 , m + 1 ≤ j ≤ 2m,
+              2,1
+            ∂ξj−4m                                                                                   ∂x
+                                                                                                      1,1
+                                                                                        
+        
+         −        (xi ),         xi ∈ Ω2 , 4m + 1 ≤ j ≤ 5m,                             
+                                                                                                    ξj−2m (xi ),       x ∈ Ω1 , 2m + 1 ≤ j ≤ 3m,
+              ∂x
+        
+                                                                                        
+                                                                                         
+                                                                                        
+                                                                                                     2,1
+            ∂ξ 2,2                                                                                    ξj−4m (xi ),      x ∈ Ω2 , 4m + 1 ≤ j ≤ 5m,
+        
+                                                                                        
+        − j−5m (xi ),
+        
+                                  xi ∈ Ω2 , 5m + 1 ≤ j ≤ 6m,
+        
+              ∂y
+
+                      ∂ψj1
+          
+          
+               −β1        (xi ), xi ∈ Ω1 , 1 ≤ j ≤ m,                                          1,1
+                                                                                              (ξj−2m  n1 )(xi ),          xi ∈ Γ, 2m + 1 ≤ j ≤ 3m,
+                       ∂y
+          
+                                                                                           
+          
+                                                                                           
+                                                                                            
+                      2                                                                          1,2
+                                                                                           
+          
+                   ∂ψj−m                                                                    (ξ
+                                                                                            
+                                                                                                 j−3m n2 )(xi ),          xi ∈ Γ, 3m + 1 ≤ j ≤ 4m,
+A3i,j =       −β2           (xi ), xi ∈ Ω2 , m + 1 ≤ j ≤ 2m,                     Ci,j =
+          
+                     ∂y                                                                    
+                                                                                            
+                                                                                                 2,1
+                                                                                              −(ξj−4m n1 )(xi ),          xi ∈ Γ, 4m + 1 ≤ j ≤ 5m,
+                     1,2                                                                   
+          
+                    ξj−3m (xi ), xi ∈ Ω1 , 3m + 1 ≤ j ≤ 4m,                                
+                                                                                            −(ξ 2,2 n )(x ),
+                                                                                            
+          
+          
+                                                                                                j−5m 2     i             xi ∈ Γ, 5m + 1 ≤ j ≤ 6m,
+                     2,2
+                     ξj−5m (xi ), xi ∈ Ω2 , 5m + 1 ≤ j ≤ 6m,
+               (                                                                        (
+                        ψj1 (xi ), xi ∈ Γ, 1 ≤ j ≤ m,                                        2
+                                                                                            ψj−m (xi ), xi ∈ ∂Ω, m + 1 ≤ j ≤ 2m,
+      Bi,j =          2
+                                                                               Di,j =
+                    −ψj−m (xi ), xi ∈ Γ, m + 1 ≤ j ≤ 2m,                                                  0, xi ∈ ∂Ω, otherwise,
+
+and X = (α11 , · · · , αm
+                        1
+                          , α12 , ..., αm
+                                        2
+                                          , τ11,1 , ..., τm
+                                                          1,1 1,2            1,2 2,1
+                                                             , τ1 , · · · , τm               2,1 2,2
+                                                                                , τ1 , ..., τm               2,2
+                                                                                                , τ1 , ..., τm   ).
+
+
+3.4       Space-time LRNNs method for parabolic interface problem
+   We use a space-time approach to solve the parabolic interface problem (2.2). In the space-time approach,
+the time variable and space variables are treated equally. We assume that the interface has a smooth and
+known motion. When Ω ⊂ R2 , the interface becomes a surface in the 3-dimensional space-time domain,
+dividing it into two subdomains. The initial condition can be viewed as a boundary condition for the
+space-time domain. We employ two RNNs to approximate the solution in each sub-domain.
+
+
+                                                         m
+                                                         X                              m
+                                                                                        X
+                                                 u1ρ =         αk1 ψk1 ,        u2ρ =         αk2 ψk2 .                                   (3.9)
+                                                         k=1                            k=1
+
+Then we have:
+
+                                                               AX = F,                                                                   (3.10)
+                                                                                  Γ1
+                                                               γ1 BX = γ1 G ,                                                            (3.11)
+                                                                                  Γ2
+                                                               γ2 CX = γ2 G ,                                                            (3.12)
+                                                                                  D
+                                                               γ3 DX = γ4 G ,                                                            (3.13)
+                                                                                  0
+                                                               γ4 EX = γ3 U ,                                                            (3.14)
+                                                                                                                                         (3.15)
+
+where A, B, C, D, E are N1 × 2m, N2 × 2m, N2 × 2m, 4N      N3
+                                                    5 × 2m, 5 × 2m-order matrix, respectively,
+                                                     3
+
+
+
+
+                                                                           7
+                                                               !
+                                        ∂ψj1
+                            
+                                                            1
+                                             − ∇ · (β(xi )∇ψj ) (xi , t), xi ∈ Ω1 , 1 ≤ j ≤ m,
+                            
+                            
+                            
+                            
+                                        t
+                   Ai,j =                                      !
+                                 2
+                           
+                             ∂ψj−m                 2
+                           
+                                    − ∇ · (β(xi )∇ψj−m ) (xi , t), xi ∈ Ω2 , m + 1 ≤ j ≤ 2m,
+                                 t
+                           
+       (                                                         (
+              ψj1 (xi , t), xi ∈ Γ, 1 ≤ j ≤ m,                        (∇ψj1 · n)(xi , t), xi ∈ Γ, 1 ≤ j ≤ m,
+Bi,j =      2
+                                                      C  i,j =         2
+         −ψj−m    (xi , t), xi ∈ Γ, m + 1 ≤ j ≤ 2m,               (−∇ψj−m    · n)(xi , t), xi ∈ Γ, m + 1 ≤ j ≤ 2m,
+          (                                                        (
+                          0, xi ∈ ∂Ω, 1 ≤ j ≤ m,                       ψj1 (xi , 0), xi ∈ Ω1 , 1 ≤ j ≤ m,
+  Di,j =      2
+                                                          E  i,j =   2
+           ψj−m    (xi , t), xi ∈ ∂Ω, m + 1 ≤ j ≤ 2m,               ψj−m   (xi , 0), xi ∈ Ω2 , m + 1 ≤ j ≤ 2m,
+and X = (α11 , ..., αm
+                     1
+                       , α12 , ..., αm
+                                     2 T
+                                       ) .
+
+Remark 3.3 Breaking down a large problem into smaller pieces and solving them separately can be a good
+way to save memory and time for many problems. That is why finite difference methods are popular for the
+time variable, which follow this strategy. But this method has a problem: it can make errors that get bigger
+and bigger over time. The LRNNs method does not have this problem because it uses a space-time approach.
+It can solve time-dependent problems efficiently and accurately by solving one least square problem.
+
+
+4     Numerical examples
+    We demonstrate the performance of the local randomized neural network methods on several test problems
+in this section.
+    We approximate solutions using single-hidden layer RNNs with ρ = tanh as the activation function and
+finite difference schemes to approximate the gradient and Laplacian operators. The step sizes are hx = 10−6
+and hx = 5 × 10−4 for the 1st and 2nd order partial derivatives, respectively, in (3.6) and (3.7). We draw
+the initial weights and bias from the uniform distribution U(−ri , ri ) for each layer and fix them except for
+the last layer, where r ∈ R. We compute the L2 (Ω) errors in Example 4.1 – 4.6 using 20d Gauss-Legendre
+quadrature points, where d is the dimension of the domain (or space-time domain). We set γi = 50 for all
+weights in the linear system. We average the results over ten experiments for each problem to account for
+the randomness in the methods. We use PyTorch to implement the numerical experiments.
+
+Example 4.1 Two-dimensional Flower Shape Interface Problem. Let Ω = (−1, 1)2 , we consider an elliptic
+interface problem (2.1) with a flower shape interface
+
+                Γ : (x − xc )2 + (y − yc )2 = r2 (θ), r(θ) = 0.4 + 0.2 sin(20θ),        θ ∈ [0, 2π),
+                     √
+where xc = yc = 0.02 5. The exact solution is given by
+                                                 1 xy
+                                             
+                                              e , x ∈ Ω1 ,
+                                             
+                                             
+                                                β1
+                                     u(x) =
+                                                 1
+                                              sin(x) sin(y), x ∈ Ω2 ,
+                                             
+                                             
+                                                β2
+f , g1 and g2 can be calculated from the exact solution and coefficients.
+
+
+
+                                                             8
+    To learn the solution, we use two RNNs with the same structure: the input layer has n0 = 2 neurons,
+the output layer has n2 = 1 neuron and the hidden layer has n1 = m neurons. The weights and bias are
+initialized from the uniform distributions U(−r1 , r1 ) and U(−r2 , r2 ), respectively. We may choose different
+ranges of r1 and r2 for different cases.
+   Figure 3 shows the numerical solution uρ , the exact solution u and their error |u − uρ |. In this case, we
+choose the coefficients β1 = 0.0001 and β2 = 10000, set m = 320, r1 = 1.6, r2 = 0.7, and sample 5000 points
+uniformly from Ω, Γ and ∂Ω with the ratio of 3 : 1 : 1.
+
+
+
+
+          (a) approximationuρ                         (b) real solutionu                 (c) absolute error|u − uρ |
+
+Figure 3: Displays of uρ , u and |u − uρ | for LRNNs method with β1 = 0.0001, β2 = 10000, r1 = 1.6, r2 = 0.7,
+m = 320, N = 5000 in Example 4.1
+                                                      .
+
+   Table 1 shows the relative L2 errors for the LRNNs method with different numbers of sampled points N
+and neurons m in the hidden layers. The number of degrees of freedom is 2m, i.e., dof = 2m. The results
+reveal that the error decreases as the number of neurons increases, which enhances the expressiveness of
+the space NρD . The accuracy also improves with more sampled points, but the improvement is marginal for
+small values of m. This implies that the expressiveness of LRNNs and the data size should be balanced for
+optimal approximation.
+
+                          m
+                                  40         80             160            320     640         1280
+              N
+                    500         1.89E-02   1.73E-03      1.94E-05     4.17E-07   2.19E-07    4.68E-07
+                   1000         1.97E-02   1.18E-03      9.20E-06     3.94E-08   2.51E-08    3.23E-08
+                   2000         2.26E-02   1.46E-03      8.32E-06     3.15E-08   2.77E-08    1.20E-08
+                   5000         1.92E-02   1.10E-03      9.04E-06     3.17E-08   2.51E-08    1.77E-08
+                  10000         2.27E-02   1.33E-03      9.17E-06     2.93E-08   2.59E-08    2.43E-08
+
+Table 1: Relative L2 (Ω) errors of the LRNNs method with different N and m, where r1 = 1.6, r2 = 0.7,
+β1 = 1 and β2 = 10 in Example 4.1.
+
+   The LRNNs method’s performance with varying values of β1 and β2 is shown in Table 2, where N = 5000
+and m = 320. The results demonstrate that the LRNNs method can achieve high accuracy for interface
+problems with large coefficient variations. The method is also computationally efficient and has a competitive
+running time.
+   Let us apply the mixed LRNNs method to this problem with the mixed form (3.8). Table 3 shows the
+
+
+                                                            9
+                              (β1 , β2 )      (r1 , r2 )     relative L2 error     CPU time (s)
+                              (1, 102 )      (1.2,1.2)           1.36E-08              1.9
+                              (1, 104 )      (1.8,1.3)           1.03E-08              1.9
+                            (10−4 , 104 )    (1.6,0.7)           1.17E-09              1.9
+                            (10−6 , 106 )     (1,1.3)            1.20E-07              1.9
+                            (102 , 10−2 )    (1.3,1.6)           4.05E-08              2.4
+                            (104 , 10−4 )     (1,1.8)            6.26E-05              2.1
+
+Table 2: Relative L2 (Ω) errors of the LRNNs method for different β1 and β2 , where m = 320 and N = 5000
+in Example 4.1.
+
+
+relative L2 errors for different values of m and N , with β1 = 1, β2 = 10, r1 = 1, r2 = 1.1, r3 = 0.7 and
+r4 = 2.1. We can see that the mixed LRNNs method has a similar performance to the LRNNs method,
+meaning that both methods achieve higher accuracy with more neurons and larger N . Moreover, we notice
+that the mixed LRNNs method can obtain smaller errors when the number of sampling points is sufficiently
+large. This is because the mixed LRNNs method uses four RNNs to approximate the same problem, so it
+can capture the solution better with more data points.
+
+        m
+                         80                            160                         320                         640
+    N
+              ∥u−uρ ∥         ∥p−pρ ∥2       ∥u−uρ ∥         ∥p−pρ ∥2    ∥u−uρ ∥         ∥p−pρ ∥2    ∥u−uρ ∥         ∥p−pρ ∥2
+               ∥u∥2             ∥p∥2          ∥u∥2             ∥p∥2       ∥u∥2             ∥p∥2       ∥u∥2             ∥p∥2
+     500     3.02E-04         1.02E-02      1.65E-03       6.40E-03     1.27E-04     3.15E-05       1.11E-05     1.90E-05
+    1000     1.18E-04         2.48E-03      1.51E-06       3.36E-05     6.54E-07     1.01E-06       1.54E-07     3.22E-07
+    2000     2.29E-04         2.16E-03      1.08E-06       1.22E-05     1.96E-08     1.71E-07       3.75E-09     4.65E-08
+    5000     1.29E-04         2.02E-03      5.15E-07       9.81E-06     9.57E-10     4.04E-08       4.24E-10     8.59E-09
+    10000    1.66E-04         2.09E-03      4.71E-07       8.82E-06     8.98E-10     3.66E-08       1.71E-10     6.59E-09
+
+Table 3: Relative L2 (Ω) errors of the mixed LRNNs method with different N and m, where r1 = 1, r2 = 1.1,
+r3 = 0.7, r4 = 2.1, β1 = 1 and β2 = 10 in Example 4.1.
+
+   Table 4 shows the relative L2 error and CPU time for different diffusion coefficients, with m = 320 and
+N = 5000. Unlike the results of the LRNNs method in Table 2, the mixed LRNNs method takes more CPU
+time because it has more dof. The mixed LRNNs method is also robust to the diffusion coefficients.
+
+                          (β1 , β2 )      (r1 , r2 , r3 , r4 )   relative L2 error       CPU time (s)
+                          (1, 102 )      (1.2,0.8,2.6,0.9)           1.32E-09                8.7
+                          (1, 104 )       (1.9,0.6,1,1.2)            1.71E-07                8.5
+                        (10−4 , 104 )     (1,1.1,0.7,2.1)            2.15E-10                8.3
+                        (10−6 , 106 )     (1,0.5,0.5,1.4)            7.57E-09                8.5
+                        (102 , 10−2 )    (0.2,0.8,1.3,1.3)           7.32E-08                8.3
+                        (104 , 10−4 )    (2.3,0.7,1.4,1.6)           1.14E-04                8.2
+
+Table 4: Relative L2 (Ω) errors of uρ by the mixed LRNNs method for different β1 and β2 , where m = 320
+and N = 5000 in Example 4.1.
+
+
+
+
+                                                                 10
+Example 4.2 Three-dimensional Interface Problem. Let Ω = (−1, 1)3 , we consider an elliptic interface
+problem (2.1) with spherical interface
+
+                                            Γ : x2 + y 2 + z 2 = 0.752 .
+
+The exact solution                              ( 2 2 2
+                                                 5ex +y +z + 20,          x ∈ Ω1 ,
+                                       u(x) =
+                                                   10(x + y + z),         x ∈ Ω2 ,
+f , g1 and g2 can be derived from the exact solution u and coefficients.
+
+    Since Γ divides Ω into two subdomains, we use two RNNs with the same structure to approximate the
+solution. The RNNs have two layers with n0 = 3, n1 = m and n2 = 1. The weights and biases are randomly
+chosen from U(−2.54, 2.54) and U(−0.33, 0.33), respectively. We sample N points from Ω, Γ and ∂Ω with a
+proportion of 6:1:3.
+   Figure 4 shows the RNN solution uρ , the exact solution u, and the absolute error |u − uρ | at z = 0 for
+β1 = 1 and β2 = 1000. We use m = 640, N = 10000. Table 5 reports the relative L2 errors for different
+values of m and N . As in Example 4.1, increasing m and N improves the numerical solution.
+
+
+
+
+         (a) approximation uρ                       (b) real solution u                  (c) absolute error |u − uρ |
+
+Figure 4: Displays of uρ , u and |u − uρ | at z = 0 for the LRNNs method with β1 = 1, β2 = 1000, m = 640,
+N = 10000, r1 = 2.54, r2 = 0.33 in Example 4.2.
+
+
+                                 m
+                                       80          160           320            640      1280
+                     N
+                         1000        4.04E-03    1.66E-03     1.10E-03       1.22E-03   7.95E-04
+                         2000        4.31E-03    6.86E-04     3.90E-04       2.82E-04   1.25E-04
+                         5000        4.03E-03    5.63E-04     2.19E-04       9.87E-05   1.67E-05
+                         10000       3.86E-03    6.66E-04     1.27E-04       3.13E-05   1.93E-05
+                         20000       3.67E-03    6.61E-04     1.46E-04       1.84E-05   1.19E-06
+
+     Table 5: Relative L2 (Ω) errors with different N and m, where β1 = 1, β2 = 100 in Example 4.2.
+
+   Table 6 shows the relative L2 errors and CPU time for different diffusion coefficients β1 , β2 . We observe
+that the LRNNs method is robust to the diffusion coefficients. Consider the case where β1 = 1, β2 = 10,
+and compare our method with the virtual element method (Example 5.1 in [6]). We obtain a L2 error of
+2.37 × 10−3 , which is comparable to their error. However, our method takes only about 6.8 seconds, while
+
+
+                                                         11
+their method requires 22.4 seconds, even with the assistance of an algebraic multigrid solver for acceleration.
+This result highlights the superior efficiency of our approach.
+
+                                    (β1 , β2 )      relative L2 error         CPU time (s)
+                                     (1, 10)            1.11E-04                  6.8
+                                    (1, 103 )           1.17E-05                  6.9
+                                    (1, 105 )           1.79E-05                  6.8
+                                    (1, 107 )           5.75E-05                  6.8
+                                   (1, 10−2 )           7.19E-03                  6.7
+                                  (10−2 , 102 )         1.08E-05                  6.6
+                                  (10−4 , 104 )         5.09E-04                  6.7
+
+Table 6: Relative L2 (Ω) errors of uρ for different β1 and β2 , where m = 640, N = 10000, r1 = 2.54, r2 = 0.33
+in Example 4.2.
+
+
+Example 4.3 Two-dimensional Multiple Interfaces Problem. Let Ω = (−1, 1)2 , we consider the elliptic
+interface problem (2.1) with three interfaces given as follows:
+
+                                                    Γ0 : x2 + y 2 = 0.22 ,
+
+                          Γ1 : x2 + y 2 = r2 (θ),     r(θ) = 0.5 − 0.1 cos(5θ),       θ ∈ [0, 2π),
+                                                    Γ2 : x2 + y 2 = 0.82 .
+The exact solution                             
+                                               
+                                                cos(y) + 1.8, x ∈ Ω0 ,
+                                               
+                                               ex + 1.3, x ∈ Ω ,
+                                               
+                                                                  1
+                                        u(x) =
+                                               
+                                               
+                                                sin(x) + 0.5,  x ∈ Ω2 ,
+                                               
+                                                 − x + ln(y + 2), x ∈ Ω3 ,
+                                               
+
+f , g1i , g2i , i = 0, 1, 2 can be derived from the exact solution and coefficients.
+
+
+
+
+          (a) approximation uρ                          (b) real solution u                    (c) absolute error |u − uρ |
+
+Figure 5: Displays of uρ , u and |u − uρ | for βi = i (i = 1, 2, 3, 4) with m = 320, N = 5000 in Example 4.3.
+
+    We approximate the solution using four RNNs, one for each subdomain. The RNNs have the same
+structure: n0 = 2, n1 = m and n2 = 1. The weights and biases are randomly drawn from different uniform
+
+
+                                                             12
+distributions: U(−1.1, 1.1), U(−0.7, 0.7), U(−0.3, 0.3) and U(−1, 1). We sample N points from Ω, Γ1 , Γ2 ,
+Γ3 and ∂Ω with a ratio of 6 : 1 : 1 : 1 : 1.
+    Figure 5 shows the LRNNs solution uρ , the exact solution u, and the error |u − uρ | for β1 = 1, β2 = 2,
+β3 = 3, β4 = 4, m = 320 and N = 5000. Table 7 and Table 8 report the relative L2 errors for different
+values of N , m and the coefficients βi (i = 1, · · · , 4). We can see that the LRNNs method performs well for
+problems with multiple interfaces. Moreover, our method has a clear advantage over PINNs (Example 4.6
+in [15]) in terms of computational efficiency and accuracy under the same settings.
+
+                          m
+                                   40            80            160       320           640      1280
+              N
+                    500         6.80E-04     3.30E-04     1.68E-03    4.83E-08      2.72E-08   1.59E-08
+                   1000         2.50E-04     5.73E-06     6.47E-07    5.58E-06      2.89E-09   1.70E-09
+                   2000         1.99E-04     3.74E-06     3.78E-08    9.77E-09      2.19E-07   1.03E-09
+                   5000         2.15E-04     4.74E-06     2.95E-08    4.27E-09      1.30E-09   7.96E-10
+                  10000         7.93E-04     2.30E-05     7.15E-08    7.57E-09      2.58E-09   7.33E-10
+
+    Table 7: Relative L2 (Ω) errors with different N and m, where βi = i (i = 1, 2, 3, 4) in Example 4.3.
+
+
+                                  (β1 , β2 , β3 , β4 )   relative L2 error      CPU time (s)
+                                    (1, 2, 3, 4)             3.33E-09               3.5
+                                 (1, 10, 102 , 103 )         1.89E-07               2.9
+                                (1, 102 , 104 , 106 )        4.64E-05               3.6
+                              (1, 10−2 , 10−4 , 10−6 )       7.68E-07               3.6
+                                (106 , 104 , 102 , 1)        7.16E-05               2.9
+                              (10−6 , 10−4 , 10−2 , 1)       4.44E-06               3.5
+
+Table 8: Relative L2 (Ω) errors of uρ for different coefficients, where m = 320 and N = 5000 in Example 4.3.
+
+
+Example 4.4 High-dimensional Elliptic Interface Problem. Let Ω = (0, 1)d , we consider an elliptic interface
+problem (2.1) with a hyperplane interface
+                                             Γ : x1 = 0.5.
+The exact solution is given by                      
+                                                    
+                                                     ∥x∥2 /d,       x ∈ Ω1 ,
+                                                    
+                                                      d
+                                              u(x) = X
+                                                    
+                                                    
+                                                       xi /d,       x ∈ Ω2 ,
+                                                         i=1
+
+and we can derive f , g1 and g2 from u and the coefficients.
+
+   We use two RNNs with the same structure to approximate the solution on each subdomain. The RNNs
+have two layers with n0 = d, n1 = m and n2 = 1 respectively. The weights and biases are randomly
+chosen from the uniform distribution U(−0.01, 0.01). We sample 103 , 104 , 2d × 102 points from Ω, Γ and ∂Ω,
+respectively. We use the Monte Carlo method to compute the numerical integration, with 104 sample points.
+    Table 9 presents the relative L2 errors for various choices of d and m. As in the previous examples,
+increasing m enhances the accuracy of numerical solutions. The LRNNs method can handle high-dimensional
+problems effectively, since the degrees of freedom do not need to grow exponentially with the dimension d.
+
+                                                               13
+                                    m
+                                                225        450          900       1800
+                          d
+                                5         8.50E-07      4.74E-07      2.81E-07   1.56E-07
+                               10         8.13E-03      3.68E-06      1.79E-06   9.33E-07
+                               20         2.92E-02      2.09E-02      1.05E-02   6.98E-05
+
+Table 9: Relative L2 (Ω) errors with different d and m, where β1 = β2 = 1, r1 = r2 = 0.01 in Example 4.4.
+
+
+     Table 10 displays the relative L2 errors and computational time for various choices of diffusion coefficients
+β1 and β2 . The results show that the high-dimensional interface problem can be solved accurately and
+efficiently by the LRNNs method.
+
+                                  (β1 , β2 )      relative L2 error    CPU time (s)
+                                  (1, 103 )           7.24E-05            25.6
+                                  (1, 106 )           5.38E-04            25.6
+                                 (1, 10−3 )           6.88E-05            26.1
+                                 (1, 10−6 )           5.97E-05            25.3
+                                (102 , 10−2 )         4.54E-03            25.3
+                                (10−5 , 105 )         1.31E-04            25.7
+
+Table 10: Relative L2 (Ω) errors of uρ and CPU time for different β1 and β2 , where d = 20, m = 1800, r1 =
+r2 = 0.01 in Example 4.4.
+
+
+Example 4.5 Parabolic Interface Problem with a Fixed Interface. Set Ω = (−1, 1)2 and time interval as
+(0, 1). We consider the parabolic interface problem (2.2) with a circular interface Γ : x2 + y 2 = 0.52 . Let
+                                  
+                                   − e−t (8x2 + 8y 2 − 3.5); (x, y, t) ∈ Ω1 × (0, T ],
+                          u(x) =             π
+                                  ex−t cos( y); (x, y, t) ∈ Ω2 × (0, T ].
+                                             2
+
+    We treat time and space variables equally in the time-dependent problem, so the parabolic interface
+problem (2.2) can be seen as a 3-D interface problem with a cylindrical interface. We approximate the
+solution using two RNNs, one for each subdomain, with n0 = 3, n1 = m and n2 = 1. The weights
+and biases are randomly chosen from U(−0.6, 0.6). We sample N points from Ω × (0, T ), Γ × (0, T ) and
+(∂Ω × (0, T )) ∪ (Ω × {0}) with a proportion of 14 : 3 : 3.
+   Figure 6–10 show the RNN solution uρ , the exact solution u, and the error |u − uρ | at different time:
+t = 0, 0.25, 0.5, 0.75, 1. Here, we choose m = 320, N = 5000 for case of β1 = 1, β2 = 1. We observe that the
+LRNNs method achieves high accuracy with no error accumulation over time, unlike traditional numerical
+methods.
+    Table 11 reports the relative L2 errors for different values of N and m. Table 12 shows the relative L2
+errors and the computational time for different values of the coefficients. This time-dependent problem does
+not require any time discretization by the space-time LRNNs method, and only involves solving a linear
+least square problem. These results demonstrate the robustness and effectiveness of the LRNNs method for
+the parabolic interface problem.
+
+
+
+
+                                                          14
+                                m
+                                           80          160          320            640       1280
+                    N
+                        1000           4.05E-03     3.70E-04      1.01E-04      1.57E-05    1.44E-05
+                        2000           3.37E-03     2.17E-04      1.86E-05      1.09E-06    7.04E-07
+                        5000           3.37E-03     1.52E-04      5.94E-06      4.49E-07    7.39E-08
+                        10000          2.48E-03     1.87E-04      4.99E-06      3.34E-07    7.84E-08
+                        20000          3.29E-03     1.58E-04      5.37E-06      3.27E-07    1.00E-07
+
+Table 11: Relative L2 (Ω) errors with different N and m, where β1 = β2 = 1, r1 = r2 = 0.6 in Example 4.5.
+
+                                      (β1 , β2 )    relative L2 error        CPU time (s)
+                                      (1, 102 )         1.68E-06                 5.1
+                                      (1, 105 )         4.14E-04                 5.3
+                                    (10−2 , 102 )       3.50E-04                 5.1
+                                    (102 , 10−2 )       3.95E-05                 5.7
+                                      (104 , 1)         1.40E-04                 5.5
+                                      (102 , 1)         7.89E-07                 5.4
+
+Table 12: Relative L2 (Ω) errors of uρ for different β1 and β2 , where m = 320 and N = 5000 in Example 4.5.
+
+
+
+
+         (a) approximation uρ                          (b) real solution u                   (c) absolute error |u − uρ |
+
+                        Figure 6: Displays of uρ , u and |u − uρ | at t = 0 in Example 4.5.
+
+
+
+
+         (a) approximation uρ                          (b) real solution u                   (c) absolute error |u − uρ |
+
+                    Figure 7: Displays of uρ , u and |u − uρ | at t = 0.25 in Example 4.5.
+
+
+                                                             15
+(a) approximation uρ                    (b) real solution u                (c) absolute error |u − uρ |
+
+            Figure 8: Displays of uρ , u and |u − uρ | at t = 0.5 in Example 4.5.
+
+
+
+
+(a) approximation uρ                    (b) real solution u                (c) absolute error |u − uρ |
+
+           Figure 9: Displays of uρ , u and |u − uρ | at t = 0.75 in Example 4.5.
+
+
+
+
+(a) approximation uρ                    (b) real solution u                (c) absolute error |u − uρ |
+
+            Figure 10: Displays of uρ , u and |u − uρ | at t = 1 in Example 4.5.
+
+
+
+
+                                             16
+Example 4.6 Parabolic Interface Problem with a Dynamic Interface. Set Ω = (−1, 1)2 and time interval as
+(0, 1). We consider the parabolic interface problem 2.2 with a circular interface Γ : x2 + y 2 = (0.5 + 0.3t)2 .
+The exact solution is             
+                                   − e−t (8x2 + 8y 2 − 3.5); (x, y, t) ∈ Ω1 × (0, T ],
+                          u(x) =             π
+                                  ex−t cos( y); (x, y, t) ∈ Ω2 × (0, T ].
+                                             2
+
+    In this example, we consider a dynamic interface problem, where the interface is shaped like: the curved
+surface of a cone’s frustum in the space-time domain. We use two RNNs with n0 = 3, n1 = m and n2 = 1
+to approximate the solution on each subdomain. The weights and biases are randomly chosen from (−1, 1).
+We sample N points from Ω × (0, T ), Γ × (0, T ) and (∂Ω × (0, T )) ∪ (Ω × {0}) with a ratio of 14 : 3 : 3.
+   Figures 11 to 15 illustrate the comparison between the exact solution u, the RNN solution uρ , and the
+absolute error |u − uρ | at various time points: t = 0, 0.25, 0.5, 0.75, 1. We use β1 = 1, β2 = 1, m = 320 and
+N = 5000 for this case. The interface evolves over time, and the LRNNs method preserves high accuracy
+without accumulating errors.
+    In Table 13, we present the relative L2 errors for different choices of N and m. We also investigate the
+influence of the coefficients on the relative L2 errors in Table 14. These results confirm the robustness and
+effectiveness of the space-time LRNNs method for solving the parabolic moving interface problem.
+
+
+
+
+         (a) approximation uρ                    (b) real solution u                (c) absolute error |u − uρ |
+
+                     Figure 11: Displays of uρ , u and |u − uρ | at t = 0 in Example 4.6.
+
+
+
+
+         (a) approximation uρ                    (b) real solution u                (c) absolute error |u − uρ |
+
+                    Figure 12: Displays of uρ , u and |u − uρ | at t = 0.25 in Example 4.6.
+
+
+
+
+                                                      17
+(a) approximation uρ                   (b) real solution u                (c) absolute error |u − uρ |
+
+           Figure 13: Displays of uρ , u and |u − uρ | at t = 0.5 in Example 4.6.
+
+
+
+
+(a) approximation uρ                   (b) real solution u                (c) absolute error |u − uρ |
+
+          Figure 14: Displays of uρ , u and |u − uρ | at t = 0.75 in Example 4.6.
+
+
+
+
+(a) approximation uρ                   (b) real solution u                (c) absolute error |u − uρ |
+
+            Figure 15: Displays of uρ , u and |u − uρ | at t = 1 in Example 4.6.
+
+
+
+
+                                            18
+                               m
+                                          80          160          320         640       1280
+                   N
+                       1000           8.10E-03     2.33E-03      2.37E-04   7.18E-05    5.78E-05
+                       2000           6.80E-03     6.97E-04      8.23E-05   7.37E-06    1.63E-06
+                       5000           6.77E-03     5.72E-04      2.97E-05   2.22E-06    2.48E-07
+                       10000          6.12E-03     5.48E-04      2.24E-05   1.28E-06    2.27E-07
+                       20000          6.08E-03     4.96E-04      2.77E-05   2.56E-06    2.07E-07
+
+Table 13: Relative L2 (Ω) errors with different N and m, where β1 = β2 = 1, r1 = 1, r2 = 1 in Example 4.6.
+
+                                     (β1 , β2 )    relative L2 error     CPU time (s)
+                                     (1, 102 )         8.75E-06              3.7
+                                     (1, 105 )         4.34E-03              3.7
+                                   (10−2 , 102 )       1.30E-03              4.4
+                                   (102 , 10−2 )       5.20E-06              3.7
+                                     (104 , 1)         8.35E-05              3.7
+                                     (102 , 1)         9.02E-07              4.3
+
+Table 14: Relative L2 (Ω) errors of uρ for different β1 and β2 , where m = 320 and N = 5000 in Example 4.6.
+
+
+5    Summary
+    We develop LRNNs methods to solve interface problems with multiple RNNs. Each RNN works on a
+different sub-domain and approximates the solution there. We use the least-square method to solve the linear
+system. The LRNNs method has several benefits: it does not need a mesh, so it can handle complex interfaces
+easily; it can achieve high accuracy with fewer degrees of freedom; it does not need to solve an optimization
+problem, which saves a lot of computation time; it can solve time-dependent problems with a space-time
+approach, which avoids error accumulation from time iteration; it is robust for different coefficients.
+     We plan to explore more features and applications of the LRNNs method in the future. Some of our
+research directions are: finding a suitable range of weights (and bias) for the RNNs, which may depend on
+the source term and other information; developing an adaptive strategy for sampling points to improve the
+efficiency of the LRNNs method; establishing the numerical analysis for the LRNNs methods; applying the
+LRNNs method to other complex problems, such as two-phase flow problems and fluid-structure interaction
+problems.
+
+
+References
+ [1] S. Balasundaram, Kapil, Application of error minimized extreme learning machine for simultaneous
+     learning of a function and its derivatives, Neurocomputing 74 (2011), 2511–2519.
+
+ [2] A. R. Barron, Universal approximation bounds for superpositions of a sigmoidal function, IEEE Trans-
+     actions on Information Theory 39 (1993), 930–945.
+
+ [3] J. Bramble and J. King, A finite element method for interface problems in domains with smooth
+     boundaries and interfaces, Advances in Computational Mathematics 6 (1996), 109–138.
+
+
+
+                                                            19
+ [4] T. Chen and H. Chen, Universal approximation to nonlinear operators by neural networks with arbitrary
+     activation functions and its application to dynamical systems, IEEE Transactions on Neural Networks
+     6 (1995), 911–917.
+
+ [5] J. Chen, X. Chi, W. E and Z. Yang, Bridging Traditional and Machine Learning-based Algorithms for
+     Solving PDEs: The Random Feature Method, ArXiv Preprint (2022), arXiv:2207.13380.
+
+ [6] L. Chen, H. Wei and M. Wen, An interface-fitted mesh generator and virtual element methods for
+     elliptic interface problems, Journal of Computational Physics 334 (2017), 327–348.
+
+ [7] Z. Chen and J. Zou, Finite element methods and their convergence for elliptic and parabolic interface
+     problems, Numerische Mathematik 79 (1998), 175–202.
+
+ [8] S. Dong and Z. Li, Local extreme learning machines and domain decomposition for solving linear and
+     nonlinear partial differential equations, Computer Methods in Applied Mechanics and Engineering 387
+     (2021), 114129.
+
+ [9] E.H. Dowell and K.C. Hall, Modeling of fluid-structure interaction, Annual Review of Fluid Mechanics
+     33 (2001), 445–490.
+
+[10] V. Dwivedi, B. Srinivasan, Physics Informed Extreme Learning Machine (PIELM)–A rapid method for
+     the numerical solution of partial differential equations, Neurocomputing 391 (2020), 96–118.
+
+[11] W. E and B. Yu, The deep Ritz method: A deep learning-based numerical algorithm for solving varia-
+     tional problems, Communications in Mathematics and Statistics 6 (2017), 6–12.
+
+[12] A. Gerstenberger and W. A. Wall, An eXtended Finite Element Method/Lagrange multiplier based
+     approach for fluid-structure interaction, Computer Methods in Applied Mechanics and Engineering 197
+     (2008), 1699–1714.
+
+[13] S. Gross and A. Reusken, Numerical Methods for Two-phase Incompressible Flows, Springer Series in
+     Computational Mathematics, Vol. 40., 2011.
+
+[14] A. Hansbo and P. Hansbo, An unfitted finite element method, based on Nitsche’s method, for elliptic
+     interface problems, Computer Methods in Applied Mechanics and Engineering 191 (2002), 5537–5552.
+
+[15] C. He, X. Hu and L. Mu, A mesh-free method using piecewise deep neural network for elliptic interface
+     problems, Journal of Computational and Applied Mathematics 412 (2022), 114358.
+
+[16] T. Y. Hou, Z. Li, S. Osher, and H. Zhao, A hybrid method for moving interface problems with application
+     to the Hele–Shaw flow, Journal of Computational Physics 134 (1997), 236–252.
+
+[17] G. Huang, D. Wang and Y. Lan, Extreme learning machines: A survey, International Journal of Machine
+     Learning and Cybernetics 2 (2011), 107–122.
+
+[18] G. Huang, H. Zhou, X. Ding and R. Zhang, Extreme learning machine for regression and multiclass
+     classification, IEEE Transactions on Systems, Man, and Cybernetics, Part B (Cybernetics) 42 (2011),
+     513–529.
+
+[19] G. Huang, Q. Zhu and C. K. Siew, Extreme learning machine: theory and applications, Neurocomputing
+     70 (2006), 489–501.
+
+[20] B. Igelnik and Y.H. Pao, Stochastic choice of basis functions in adaptive function approximation and
+     the functional-link net, IEEE Transactions on Neural Networks 6 (1995), 1320–1329.
+
+
+                                                    20
+[21] B. Khoo, Z. Li, and P. Lin, Interface Problems and Methods in Biological and Physical Flows, World
+     Scientific, 2009.
+
+[22] R. Leveque and Z. L. Li, The immersed interface method for elliptic equations with discontinuous
+     coefficients and singular sources, SIAM Journal on Numerical Analysis 31 (1994), 1019–1044.
+
+[23] Z. Li and K. Ito, The Immersed Interface Method: Numerical Solutions of PDEs Involving Interfaces
+     and Irregular Domains, SIAM, 2006.
+
+[24] Z. Li, T. Lin, Y. Lin and R. Rogers, An immersed finite element space and its approximation capability,
+     Numerical Methods for Partial Differential Equations 20 (2004), 338–367.
+
+[25] T. Lin, Y. Lin, and X. Zhang, Partially penalized immersed finite element methods for elliptic interface
+     problems. SIAM Journal on Numerical Analysis 53 (2015), 1121–1144.
+
+[26] S. Lin, X. Liu, J. Fang, and Z. Xu, Is extreme learning machine feasible? A theoretical assessment (Part
+     II), IEEE Transactions on Neural Networks and Learning Systems 26 (2014), 21–34.
+
+[27] R. Massjung, An unfitted discontinuous Galerkin method applied to elliptic interface problems, SIAM
+     Journal on Numerical Analysis 50 (2012), 3134–3162.
+
+[28] L. Mu, J. Wang, G. Wei, X. Ye and S. Zhao, Weak Galerkin methods for second order elliptic interface
+     problems, Journal of Computational Physics 250 (2013), 106–125.
+
+[29] Y. Pao, G. Park and D. Sobajic, Learning and generalization characteristics of the random vector
+     functional-link net, Neurocomputing 6 (1994), 163–180.
+
+[30] C. S. Peskin, Numerical analysis of blood flow in the heart, Journal of Computational Physics 25 (1977),
+     220–252.
+
+[31] M. Raissi, P. Perdikaris and G. E. Karniadakis, Physics-informed neural networks: A deep learning
+     framework for solving forward and inverse problems involving nonlinear partial differential equations,
+     Journal of Computational Physics 378 (2019), 686–707.
+
+[32] Y. Shang, F. Wang and J. Sun, Deep Petrov-Galerkin method for solving partial differential equations,
+     arXiv preprint (2022), arXiv:2201.12995.
+
+[33] Y. Shang and F. Wang, Randomized neural networks with Petrov-Galerkin methods for solving linear
+     elasticity problems, submitted.
+
+[34] J. Sirignano and K. Spiliopoulos, DGM: A deep learning algorithm for solving partial differential equa-
+     tions, Journal of Computational Physics 375 (2018), 1339–1364.
+
+[35] J. Sun, S. Dong and F. Wang, Local randomized neural networks with discontinuous Galerkin methods
+     for partial differential equations, arXiv preprint (2022), arXiv:2206.05577.
+
+[36] H. Sun, M. Hou, Y. Yang, T. Zhang, F. Weng and F. Han, Solving partial differential equation based
+     on Bernstein neural network and extreme learning machine algorithm, Neural Processing Letters 50
+     (2019), 1153–1172.
+
+[37] J. Sun and F. Wang, Local randomized neural networks with discontinuous Galerkin methods for
+     diffusive-viscous wave equation, arXiv preprint (2023), arXiv:2305.16060.
+
+
+
+                                                     21
+[38] F. Wang, S. Zhang, Optimal quadratic Nitsche extended finite element method for solving interface
+     problems, Journal of Computational Mathematics 36 (2018), 693–717.
+
+[39] Z. Wang, Z. Zhang, A mesh-free method for interface problems using the deep learning approach,
+     Journal of Computational Physics 400 (2020), 108963.
+
+[40] Y. Xiao, J. Xu and F. Wang, High-order extended finite element methods for solving interface problems,
+     Computer Methods in Applied Mechanics and Engineering 364 (2020), 112964.
+
+[41] J. Xu, Finite element methods and their convergence for elliptic and parabolic interface problems,
+     Natural Science Journal of Xiangtan University 1 (1982), 1–5.
+
+[42] X. Zhu, X. Hu and P. Sun, A deep neural network/meshfree method for solving dynamic two-phase
+     interface problems, arXiv preprint (2022), arXiv:2207.10725.
+
+
+
+
+                                                    22
+

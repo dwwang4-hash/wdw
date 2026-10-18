@@ -1,0 +1,26 @@
+{
+  "urls": {
+    "pg_publisher.html": "https://www.sciencedirect.com/science/article/pii/S1007570423004392",
+    "pg_api.xml": "https://api.elsevier.com/content/article/PII:S1007570423004392?httpAccept=text/xml",
+    "pg_ssrn.html": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4420653",
+    "dg_publisher.html": "https://www.sciencedirect.com/science/article/pii/S0377042724001560"
+  },
+  "outcomes": [
+    [
+      "pg_publisher.html",
+      "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    ],
+    [
+      "pg_api.xml",
+      "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    ],
+    [
+      "pg_ssrn.html",
+      "HTTP Error 403: Forbidden"
+    ],
+    [
+      "dg_publisher.html",
+      "<urlopen error Tunnel connection failed: 403 Forbidden>"
+    ]
+  ]
+}

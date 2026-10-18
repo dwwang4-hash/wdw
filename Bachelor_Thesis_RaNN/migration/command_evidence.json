@@ -1,0 +1,38 @@
+[
+  {
+    "research_log_line": 7,
+    "text": "执行：`pwd`、`rg --files ...`、`find /workspace -name AGENTS.md -print`、`python --version`、`python -m venv /workspace/Bachelor_Thesis_RaNN/.venv`、`.venv/bin/python -m pip install numpy==2.2.6 scipy==1.15.3 matplotlib==3.10.3`、`pip freeze`、`pip check`。检查cloud-environment运行技能及网络策略，不查看秘密/凭据值。未做系统安装或删除既有文件。"
+  },
+  {
+    "research_log_line": 17,
+    "text": "执行：工具输出中的Python urllib下载脚本（URL与状态保存在`references/source/download_log*.json`）、Crossref主题搜索与arXiv API组合查询、`pdftotext`、`.venv/bin/python references/build_catalog.py`。来源全文校验值在manifest。"
+  },
+  {
+    "research_log_line": 29,
+    "text": "执行：`.venv/bin/python -m unittest discover -s tests -v > results/raw/test_basics.log 2>&1`（5测试通过）；`.venv/bin/python -m experiments.exp01_poisson > results/raw/exp01_run.log 2>&1`（退出0）；读取全部CSV；检查FDM解图。后续增加了拒绝覆盖/--rerun归档保护、执行--plot-only并用数据哈希验证重绘不改CSV。"
+  },
+  {
+    "research_log_line": 45,
+    "text": "执行：`.venv/bin/python -m unittest discover -s tests -v`（13测试通过）；`python -m experiments.exp02_interface --run-id exp02_interface_20261013`（150次、失败0）；`python -m experiments.exp03_sampling --run-id exp03_sampling_20261013`（180次完整算法、失败0）；后续预登记`python -m experiments.exp04_sensitivity --run-id exp04_sensitivity_20261013`（285次、失败0）；`python -m experiments.build_stage_report`；三个`--plot-run`入口重绘并校验CSV哈希、case0系数解重建、重复run_id拒绝覆盖。"
+  },
+  {
+    "research_log_line": 65,
+    "text": "执行：`.venv/bin/python -m unittest discover -s tests -v`（15通过）；`python -m experiments.exp06_peaks --run-id exp06_peaks_20261013`（400完整算法、异常0）；`python -m experiments.exp07_stability --run-id exp07_stability_20261013`（15谱、90扰动观察）；两任务初期并发，披露主峰时间的限制。两任务完成后`python -m experiments.exp08_efficiency --run-id exp08_efficiency_20261013`（25串行重复，系数与主case一致）；`python -m experiments.build_peak_report`；三个重绘入口、原始CSV哈希、系数重建及重复run_id保护核查。"
+  },
+  {
+    "research_log_line": 81,
+    "text": "执行：`python -m unittest discover -s tests -v`（18通过）；`python -m experiments.exp09_reproduction --run-id exp09_reproduction_20261013`（110、异常0）；`python -m experiments.exp09_reproduction --literal-only --run-id exp09_literal_20261013`（60、异常0）；重绘入口、CSV哈希、case0系数/独立误差重建；`python -m experiments.build_thesis_assets`生成7表7图及报告。"
+  },
+  {
+    "research_log_line": 89,
+    "text": "执行编译：`mkdir -p thesis/build/chapters`；在thesis中多遍`xelatex -interaction=nonstopmode -halt-on-error -output-directory=build main.tex`；`pdftotext -layout`；`python -m experiments.check_thesis`。首次缺少build/chapters写辅助文件失败，日志保留，创建后成功；随后修正表头转义、英文标识/长命令溢出、字体形状与引用顺序。最终编译无未定义引用/缺字/溢出警告。抽查数学正文与复现图。"
+  },
+  {
+    "research_log_line": 99,
+    "text": "错误：长行溢出改独立公式；标签变化再次编译解决；全局-W error触发第三方pyparsing弃用警告，正常生成成功，未修改第三方库。未新增数值实验，不声称再次执行18项算法测试。v1/v2归档保留。待办：导师审阅、文献全文与查新缺口、学校模板、Windows实机与高精度稳定性核查。"
+  },
+  {
+    "research_log_line": 105,
+    "text": "运行：python -m experiments.build_thesis_v3_evidence；python -m experiments.build_model_illustration；python -m experiments.audit_thesis_v3；python -m unittest discover -s tests -v；XeLaTeX多遍；pdftotext；python -m experiments.check_thesis。真实结果：52页，正文叙述20388汉字（非学校认证），摘要536汉字/462词，11引用，13生成表另2说明表，8图。18测试、18封存原始CSV哈希通过。"
+  }
+]

@@ -1,0 +1,117 @@
+\chapter{预备知识与数学模型}
+\section{椭圆型界面问题}
+设单位正方形$\Omega=(0,1)^2$被$\Gamma=\{x=1/2,0<y<1\}$分为$\Omega_1$与$\Omega_2$，法向$n=(1,0)$从左指向右。系数$\beta_i>0$在子域内为常数。本文约定跳跃$[v]=v_2-v_1$，与参考预印本的相反约定须同时转换约束行和数据。
+\begin{equation}\label{eq:interface}
+\begin{cases}
+-\beta_i\Delta u_i=f_i,&\text{在 }\Omega_i,\ i=1,2,\\
+u=g_D,&\text{在 }\partial\Omega,\\
+[u]=g_u,\quad[\beta\nabla u\cdot n]=g_q,&\text{在 }\Gamma.
+\end{cases}
+\end{equation}
+本研究使用分片光滑制造解，把各项数据从同一函数严格导出。方程在每侧求导，不对跨界面不连续的总函数直接应用普通中心差分。
+
+\section{符号与分析层次}
+表\ref{tab:symbols}统一本文的主要记号。内部、外边界和界面是不同采样对象；$\Gamma$上的一个物理位置会产生两条标量约束。所有奇异值和条件数均针对当前加权矩阵，而非未注明权重的抽象PDE算子。
+\begin{table}[htbp]\centering\small
+\caption{主要符号及含义}\label{tab:symbols}
+\begin{tabular}{ll}\toprule
+符号 & 含义\\\midrule
+$\Omega_i,\Gamma,n$ & 子区域、界面、从第1侧指向第2侧的单位法向\\
+$\beta_i,f_i,g_D,g_u,g_q$ & 扩散系数、源项、边界及两类跳跃数据\\
+$N_i,K=N_1+N_2$ & 每侧及总随机特征数\\
+$m_k,m_{\rm eq}$ & 第$k$组点数、叠置系统标量行数\\
+$\lambda_k,s_k$ & 目标中的平方权重、固定残差尺度\\
+$B,d,c$ & 加权矩阵、加权数据、输出系数\\
+$\tau,\Pi_\tau$ & 相对SVD阈值、保留右奇异子空间的正交投影\\
+$P,v$ & 独立验证点预测矩阵、对应精确解值向量\\
+$\rho,\rho_0$ & 连续抽样密度与目标密度（第四章简化情形）\\
+$q(x),p(x)$ & 制造解中的多项式；不同于奇异向量$q_j$\\
+\bottomrule\end{tabular}\end{table}
+
+需要区分三个分析层次。连续模型规定式\eqref{eq:interface}；有限维离散把它变为配置点约束；浮点求解产生实际系数。本文验证了具体模型数据和离散组装，并分析固定矩阵的一些性质，尚未建立从有限配置点残差到一般连续解范数的统一误差定理。将这三个层次分开，才能避免把线性求解准确误写为PDE整体准确。
+
+\section{Poisson制造解与差分验证}
+令$u=\sin(\pi x)\sin(\pi y)$。由于$u_{xx}=u_{yy}=-\pi^2u$，有$f=2\pi^2u$及零Dirichlet边界。每向$n$个内部节点、$h=1/(n+1)$时五点格式为
+\begin{equation}\label{eq:fdm}
+\frac{4U_{ij}-U_{i-1,j}-U_{i+1,j}-U_{i,j-1}-U_{i,j+1}}{h^2}=f_{ij}.
+\end{equation}
+按$x$方向快序铺平，矩阵为$A=I\otimes T+T\otimes I$，其中$T=h^{-2}\operatorname{tridiag}(-1,2,-1)$。零边界不增加右端，非零边界则须把已知邻点贡献移至右端。
+
+\begin{proposition}[正弦算例的离散误差]
+对上述节点和制造解，五点差分解恰为
+\[U=(2\pi^2/\lambda_h)u|_{\rm grid},\qquad\lambda_h=8h^{-2}\sin^2(\pi h/2).\]
+相对离散$\ell^2$误差为$\pi^2h^2/12+O(h^4)$。
+\end{proposition}
+\begin{proof}
+一维节点正弦是$T$的特征向量，特征值$4h^{-2}\sin^2(\pi h/2)$；二维张量积对应两个特征值之和。右端为$2\pi^2u|_{\rm grid}$，故解的倍数关系成立。由正弦平方的Taylor展开得
+\[\lambda_h=2\pi^2-\pi^4h^2/6+O(h^4),\]
+展开$2\pi^2/\lambda_h-1$即得结论。
+\end{proof}
+这是经典差分性质在特定真解上的初等推导，不是一般PDE或随机网络的新收敛定理。
+
+\section{直线界面的分片制造解}
+记$q=x(1-x)$、$p=q(x)(x-1/2)$，定义
+\begin{align}
+u_i&=\left(\sin\pi x+a_iq+\frac{t_i}{\beta_i}p\right)\sin\pi y,\label{eq:manufactured}\\
+f_i&=\left[2\beta_i\pi^2\sin\pi x+\beta_i a_i(2+\pi^2q)-t_i(3-6x)+t_i\pi^2p\right]\sin\pi y.
+\end{align}
+因为$q''=-2$、$p''=3-6x$，式\eqref{eq:manufactured}满足内部方程。外边界为零，界面上$p=0,q=1/4,p'=1/4$，于是
+\begin{equation}
+g_u=\frac{a_2-a_1}{4}\sin\pi y,\qquad g_q=\frac{t_2-t_1}{4}\sin\pi y.
+\end{equation}
+连续模型取$a_1=a_2=0,t_1=t_2=1$，此时通量本身为$\sin\pi y/4$，并非恒零，能有效检验通量行。非零跳跃取$a_1=0,a_2=.4,t_1=1,t_2=1.2$，所以$g_u=.1\sin\pi y,g_q=.05\sin\pi y$。
+
+\figurefile{model_geometry}{直线界面、法向及非零跳跃制造解剖面；此图为解析模型示意，不是网络数值解。}{fig:model_geometry}
+
+\section{固定特征最小二乘与截断}
+最小二乘、SVD和伪逆属于标准数值线性代数内容\cite{golub}。以下给出本文所需结论的自含推导，不将其列为原创定理。对实矩阵$B\in\R^{m\times n}$，求$\min_c\norm{Bc-d}_2^2$。SVD写为$B=Q\Sigma V^T$，保留$\sigma_j>\tau\sigma_1$的方向后，截断解为
+\begin{equation}\label{eq:tsvd}
+c_\tau=\sum_{\sigma_j>\tau\sigma_1}\frac{q_j^Td}{\sigma_j}v_j.
+\end{equation}
+满列秩时$\kappa_2(B)=\sigma_1/\sigma_n$。由正规矩阵特征值$\sigma_j^2$可知$\kappa_2(B^TB)=\kappa_2(B)^2$，这解释了为什么不直接用正规方程替代QR/SVD。本文使用SciPy的gelsd型求解，并单独记录奇异值诊断\cite{scipy}。
+
+\begin{proposition}[固定矩阵右端扰动]
+若$B$满列秩、$c=B^\dagger d$、$\widetilde c=B^\dagger(d+\delta d)$，则$\norm{\widetilde c-c}_2\le\norm{\delta d}_2/\sigma_n$。固定截断子空间时以最小保留奇异值替换$\sigma_n$。
+\end{proposition}
+\begin{proof}
+差值为$B^\dagger\delta d$。由SVD，$\norm{B^\dagger}_2=1/\sigma_n$，应用算子范数不等式即得。固定截断空间的线性映射具有相同推导。若扰动沿最小保留左奇异向量，上界在精确算术中取到。
+\end{proof}
+这一标准线性代数结论不覆盖矩阵扰动或秩变化。若预测矩阵为$P$，函数变化是$P\delta c$，所以大的系数变化也不自动意味着大的函数变化。岭目标$\norm{Bc-d}^2+\alpha\norm c^2$对奇异方向使用$\sigma/(\sigma^2+\alpha)$，抑制放大但引入偏差，不能保证更小真解误差。
+
+\section{有限维误差分解及其限制}
+下面只使用固定矩阵和标准SVD恒等式\cite{golub}，为实验提供可检查的解释。设$B\in\R^{m\times K}$，保留集合非空，$B_\tau^\dagger$为固定截断伪逆，$\Pi_\tau$为对应右奇异向量张成空间上的正交投影，因而$B_\tau^\dagger B=\Pi_\tau$。验证矩阵$P\in\R^{n_v\times K}$作用于系数得到独立验证点的解值，精确值为$v$。
+
+\begin{proposition}[固定离散系统的误差恒等式]\label{prop:finite_error}
+给定任意参考系数$c_{\rm ref}$，记$r_{\rm ref}=d-Bc_{\rm ref}$。数据扰动为$\delta d$，实际系数写为
+\[\widehat c=B_\tau^\dagger(d+\delta d)+\epsilon_c.\]
+则有
+\begin{align}
+P\widehat c-v={}&(Pc_{\rm ref}-v)-P(I-\Pi_\tau)c_{\rm ref}\nonumber\\
+&+PB_\tau^\dagger(r_{\rm ref}+\delta d)+P\epsilon_c.\label{eq:error_decomposition}
+\end{align}
+从而
+\begin{align}
+\norm{P\widehat c-v}_2\le{}&\norm{Pc_{\rm ref}-v}_2+\norm{P(I-\Pi_\tau)c_{\rm ref}}_2\nonumber\\
+&+\norm{PB_\tau^\dagger}_2(\norm{r_{\rm ref}}_2+\norm{\delta d}_2)
++\norm P_2\norm{\epsilon_c}_2.\label{eq:finite_bound}
+\end{align}
+\end{proposition}
+\begin{proof}
+代入$d=Bc_{\rm ref}+r_{\rm ref}$，利用$B_\tau^\dagger B=\Pi_\tau$，得到$\widehat c=\Pi_\tau c_{\rm ref}+B_\tau^\dagger(r_{\rm ref}+\delta d)+\epsilon_c$。左右乘$P$并加减$Pc_{\rm ref}$即得恒等式；三角不等式和算子范数性质给出式\eqref{eq:finite_bound}。
+\end{proof}
+
+第一项衡量参考特征组合在验证点上的近似，第二项是截断丢弃分量，第三项包含参考组合的离散残差与数据扰动，第四项描述系数求解误差的传播。这个分解不要求真解属于特征空间，但选取$c_{\rm ref}$及控制各项本身并不自动容易。它也没有分析矩阵装配误差、候选点选择的概率保证或连续Sobolev范数。本文将其作为标准有限维代数的自含整理，不列为原创收敛定理。
+
+特别地，真实函数值近似好，不保证其二阶导数近似也好；参考组合的$\norm{r_{\rm ref}}$仍需考虑。反之，若只在训练点测到小残差，也不能据此控制未知的$P$或连续全域误差。式\eqref{eq:error_decomposition}说明为什么表达力、配置点、截断和浮点计算必须分别检查。
+
+\section{新增约束与条件数的非单调性}
+\begin{proposition}[固定列空间的增行性质]\label{prop:rows}
+设旧矩阵$B$与新增行$C$具有相同列数，$\widetilde B=[B;C]$，旧行权重保持不变。以$\min_{\norm z=1}\norm{Bz}$定义最小奇异值，必要时包含零，则$\sigma_{\min}(\widetilde B)\ge\sigma_{\min}(B)$。但条件数不必降低。
+\end{proposition}
+\begin{proof}
+对每个单位向量$z$，$\norm{\widetilde Bz}^2=\norm{Bz}^2+\norm{Cz}^2\ge\norm{Bz}^2$，取最小值得第一结论。取$B=I_2,C=(L,0)$，增行后奇异值为$\sqrt{1+L^2}$和1，条件数由1变为$\sqrt{1+L^2}$，因此并无降低保证。
+\end{proof}
+
+这一定性例子说明，更多行既可能提高最小奇异值，也可能提高最大奇异值，不能只看点数推断条件数。更重要的是，本算法按组均方归一化：增加组内点数$m_k$会把旧行的因子从$m_k^{-1/2}$改为新的更小因子。新系统不只是保持旧行不变的简单增行，因此第一结论也不能直接用于当前自适应矩阵。相对截断$\tau\sigma_1$还随最大奇异值变化，有效秩的变化须实际记录。
+
+\input{chapters/02_model_analysis}

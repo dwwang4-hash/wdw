@@ -1,0 +1,27 @@
+[
+  {
+    "file": "management_public.pdf",
+    "url": "https://dgc.dlut.edu.cn/__local/9/8D/40/8220BE4DF840ABE493EAE05F38B_50D4B891_1DD28D.pdf",
+    "error": "<urlopen error [Errno 1] Operation not permitted>"
+  },
+  {
+    "file": "management_2024_download.html",
+    "url": "https://drise.dlut.edu.cn/system/_content/download.jsp?owner=1558733889&urltype=news.DownloadAttachUrl&wbfileid=1B986DC89BF2D4EDFBF6BABD199E323E",
+    "error": "<urlopen error [Errno 1] Operation not permitted>"
+  },
+  {
+    "file": "template_2025_download.html",
+    "url": "https://drise.dlut.edu.cn/system/_content/download.jsp?owner=1558733889&urltype=news.DownloadAttachUrl&wbfileid=1A7835761BDB1F2B4D5677C1EC44005D",
+    "error": "<urlopen error [Errno 1] Operation not permitted>"
+  },
+  {
+    "file": "math_2010.html",
+    "url": "https://math.dlut.edu.cn/info/1024/1341.htm",
+    "error": "<urlopen error [Errno 1] Operation not permitted>"
+  },
+  {
+    "file": "notice_2026.html",
+    "url": "https://drise.dlut.edu.cn/info/1363/24014.htm",
+    "error": "<urlopen error [Errno 1] Operation not permitted>"
+  }
+]

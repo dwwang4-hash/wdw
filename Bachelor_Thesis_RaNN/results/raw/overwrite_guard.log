@@ -1,0 +1,12 @@
+mkdir -p failed for path /home/agent/.config/matplotlib: [Errno 30] Read-only file system: '/home/agent/.config/matplotlib'
+Matplotlib created a temporary cache directory at /tmp/matplotlib-_803otu7 because there was an issue with the default path (/home/agent/.config/matplotlib); it is highly recommended to set the MPLCONFIGDIR environment variable to a writable directory, in particular to speed up the import of Matplotlib and to better support multiprocessing.
+Fontconfig error: No writable cache directories
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/workspace/Bachelor_Thesis_RaNN/experiments/exp01_poisson.py", line 129, in <module>
+    redraw() if args.plot_only else run(args.rerun)
+                                    ^^^^^^^^^^^^^^^
+  File "/workspace/Bachelor_Thesis_RaNN/experiments/exp01_poisson.py", line 74, in run
+    raise FileExistsError("已有exp01结果。仅重绘用 --plot-only；重跑并自动归档旧结果用 --rerun。")
+FileExistsError: 已有exp01结果。仅重绘用 --plot-only；重跑并自动归档旧结果用 --rerun。

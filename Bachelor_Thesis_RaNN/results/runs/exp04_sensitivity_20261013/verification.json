@@ -1,0 +1,12 @@
+{
+  "run": "exp04_sensitivity_20261013",
+  "rows": 285,
+  "failures": 0,
+  "csv_unchanged_after_redraw": true,
+  "raw_sha256": {
+    "sensitivity.csv": "03b6938cc63e686e2765090029bdae0cb92f7d49e4fc055a1f427883b0f1ec50"
+  },
+  "case0_reconstruction_relative_l2": 0.00010050189556400867,
+  "saved_coefficient_reconstruction": true,
+  "existing_run_protected": true
+}

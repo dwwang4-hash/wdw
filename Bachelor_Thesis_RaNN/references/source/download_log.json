@@ -1,0 +1,86 @@
+[
+  {
+    "file": "2206.05577.html",
+    "url": "https://arxiv.org/abs/2206.05577",
+    "bytes": 41445,
+    "status": "downloaded"
+  },
+  {
+    "file": "2308.03087.html",
+    "url": "https://arxiv.org/abs/2308.03087",
+    "bytes": 42194,
+    "status": "downloaded"
+  },
+  {
+    "file": "2408.17225.html",
+    "url": "https://arxiv.org/abs/2408.17225",
+    "bytes": 41537,
+    "status": "downloaded"
+  },
+  {
+    "file": "2412.19207.html",
+    "url": "https://arxiv.org/abs/2412.19207",
+    "bytes": 42617,
+    "status": "downloaded"
+  },
+  {
+    "file": "2206.05577.pdf",
+    "url": "https://arxiv.org/pdf/2206.05577",
+    "bytes": 3687790,
+    "status": "downloaded"
+  },
+  {
+    "file": "2308.03087.pdf",
+    "url": "https://arxiv.org/pdf/2308.03087",
+    "bytes": 2127780,
+    "status": "downloaded"
+  },
+  {
+    "file": "2408.17225.pdf",
+    "url": "https://arxiv.org/pdf/2408.17225",
+    "bytes": 6224997,
+    "status": "downloaded"
+  },
+  {
+    "file": "2412.19207.pdf",
+    "url": "https://arxiv.org/pdf/2412.19207",
+    "bytes": 2606841,
+    "status": "downloaded"
+  },
+  {
+    "file": "crossref_pg.json",
+    "url": "https://api.crossref.org/works?query.title=Randomized+Neural+Network+with+Petrov+Galerkin+Methods+for+Solving+Linear+and+Nonlinear+Partial+Differential+Equations&rows=5",
+    "bytes": 41002,
+    "status": "downloaded"
+  },
+  {
+    "file": "crossref_interface.json",
+    "url": "https://api.crossref.org/works?query.title=Local+Randomized+Neural+Networks+with+Finite+Difference+Methods+for+Interface+Problems&rows=5",
+    "bytes": 41345,
+    "status": "downloaded"
+  },
+  {
+    "file": "crossref_adaptive.json",
+    "url": "https://api.crossref.org/works?query.title=Adaptive+Growth+Randomized+Neural+Networks+for+PDEs+Algorithms+and+Numerical+Analysis&rows=5",
+    "bytes": 113722,
+    "status": "downloaded"
+  },
+  {
+    "file": "crossref_schwarz.json",
+    "url": "https://api.crossref.org/works?query.title=Overlapping+Schwarz+Preconditioners+for+Randomized+Neural+Networks+with+Domain+Decomposition&rows=5",
+    "bytes": 77882,
+    "status": "downloaded"
+  },
+  {
+    "file": "crossref_dg.json",
+    "url": "https://api.crossref.org/works?query.title=Local+Randomized+Neural+Networks+with+Discontinuous+Galerkin+Methods+for+Partial+Differential+Equations&rows=5",
+    "status": "failed",
+    "error": "HTTP Error 429: Too Many Requests"
+  },
+  {
+    "file": "crossref_recent.json",
+    "url": "https://api.crossref.org/works?query.title=randomized+neural+networks+adaptive+collocation+interface+least+squares&rows=5",
+    "bytes": 30724,
+    "status": "downloaded"
+  }
+]

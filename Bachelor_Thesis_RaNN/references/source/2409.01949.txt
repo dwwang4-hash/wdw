@@ -1,0 +1,2305 @@
+                                            ELM-FBPINNs: An Efficient Multilevel Random
+                                                        Feature Method
+
+                                                   Samuel Anderson1 , Victorita Dolean2*† , Ben Moseley3† ,
+                                                                     Jennifer Pestana1†
+                                           1*
+arXiv:2409.01949v3 [math.NA] 18 May 2026
+
+
+
+
+                                                Department of Mathematics and Statistics, University of Strathclyde,
+                                                                      Glasgow, G1 1XH, UK.
+                                                 2
+                                                   Department of Mathematics and Computer Science, Eindhoven
+                                                 University of Technology, Eindhoven, 5600 MB, The Netherlands.
+                                                 3
+                                                   Department of Earth Science and Engineering, Imperial College
+                                                                 London, London, SW7 2AZ, UK.
+
+
+                                                   *Corresponding author(s). E-mail(s): v.dolean.maini@tue.nl;
+                                                       Contributing authors: sam.anderson@strath.ac.uk;
+                                                    b.moseley@imperial.ac.uk; jennifer.pestana@strath.ac.uk;
+                                                        †
+                                                          These authors contributed equally to this work.
+
+
+                                                                                  Abstract
+                                                Domain-decomposed variants of physics-informed neural networks (PINNs) such
+                                                as finite basis PINNs (FBPINNs) mitigate some of PINNs’ issues like slow
+                                                convergence and spectral bias through localisation, but still rely on iterative
+                                                nonlinear optimisation within each subdomain. In this work, we propose a
+                                                hybrid approach that combines multilevel domain decomposition and partition-
+                                                of-unity constructions with random feature models, yielding a method referred
+                                                to as multilevel ELM-FBPINN. By replacing trainable subdomain networks
+                                                with extreme learning machines, the resulting formulation eliminates back-
+                                                propagation entirely and reduces training to a structured linear least-squares
+                                                problem. We provide a systematic numerical study comparing ELM-FBPINNs
+                                                and multilevel ELM-FBPINNs with standard PINNs and FBPINNs on represen-
+                                                tative benchmark problems, demonstrating that ELM-FBPINNs and multilevel
+                                                ELM-FBPINNs achieve competitive errors while significantly accelerating con-
+                                                vergence and improving robustness with respect to architectural and optimisation
+                                                parameters. Through ablation studies, we further clarify the distinct roles of
+                                                domain decomposition and random feature enrichment in controlling expressivity,
+                                                conditioning, and scalability.
+
+
+
+                                                                                       1
+     Keywords: Domain decomposition; Physics-informed neural networks; Extreme
+     learning machines; Linear least-squares; Random feature methods; Multiscale PDEs.
+
+
+
+
+1 Introduction
+Accurate and efficient numerical solution of partial differential equations (PDEs)
+remains a central challenge in computational science and engineering. Classical dis-
+cretisation techniques such as finite difference and finite element methods have
+matured into highly reliable tools, yet they can become costly or difficult to apply
+in problems involving high dimensionality, complex geometries, or strongly multiscale
+behaviour. These challenges have motivated increasing interest in alternative compu-
+tational paradigms capable of combining flexible function approximation with physical
+constraints. In recent years, scientific machine learning (SciML) has emerged as a
+promising framework for tackling such problems. Among the various approaches pro-
+posed in this area, physics-informed neural networks (PINNs) [1, 2] have attracted
+considerable attention. In PINNs, the solution of a PDE is approximated by a neural
+network whose parameters are trained by minimising a loss function that penalises the
+residual of the governing PDE and its boundary conditions. This formulation allows
+PDE solving to be recast as a continuous optimisation problem and offers several
+appealing features, including mesh-free discretisation, straightforward implementation
+through automatic differentiation, and a unified framework for forward and inverse
+problems.
+    Despite these advantages, standard PINNs trained via gradient-based optimisa-
+tion exhibit several well-documented difficulties. Training can be slow and sensitive
+to hyperparameters, and the resulting optimisation problem is often poorly condi-
+tioned. Moreover, neural networks trained by gradient descent are known to display
+a spectral bias toward low-frequency functions [3], which limits their ability to resolve
+highly oscillatory or multiscale solutions. As a result, classical PINNs frequently
+struggle with problems containing high-frequency content or widely separated spatial
+scales [4]. To address these limitations, a variety of domain decomposition strate-
+gies have been proposed. Conservative PINNs (cPINNs) [5] enforce flux continuity
+across non-overlapping subdomains, while extended PINNs (XPINNs) [6] allow flexible
+space–time decompositions.
+    A particularly effective approach is the Finite Basis Physics-Informed Neural
+Network (FBPINN) method introduced by Moseley et al. [4]. In FBPINNs, the com-
+putational domain is decomposed into overlapping subdomains, each equipped with a
+small neural network whose output is multiplied by a smooth window function forming
+a partition of unity. The global solution is obtained by summing the local contribu-
+tions across all subdomains. This localisation substantially mitigates spectral bias by
+reducing the complexity of the function each network must approximate [7, 8]. Nev-
+ertheless, FBPINNs still rely on gradient-based training of all network parameters,
+which remains computationally expensive and can limit robustness.
+
+
+
+
+                                             2
+     An alternative strategy is to replace fully trainable neural networks with random
+feature models. In particular, Extreme Learning Machines (ELMs) [9] fix the hidden-
+layer weights at random and determine only the output weights by solving a linear
+least-squares problem. This idea transforms training from a nonlinear optimisation
+problem into a linear algebra problem and is closely related to the Random Feature
+Method (RFM) [10]. Randomised neural network models have a long history, including
+random vector functional-link networks [11] and reservoir computing [12], and have
+recently been applied to PDE solving. Examples include the Local Extreme Learn-
+ing Machine method of Dong and Li [13], distributed learning machine approaches
+[14], and the Extreme Theory of Functional Connections framework [15]. These meth-
+ods demonstrate that fixed random features can provide competitive accuracy while
+dramatically simplifying training [10, 16, 17].
+     In this work, we investigate the combination of these two ideas: domain localisation
+and random feature approximation. Specifically, we replace the trainable subdomain
+networks in the FBPINN framework with extreme learning machines, yielding a
+method we refer to as ELM-FBPINN. A preliminary study was performed in the first
+version of [16]. In the current work, we go one step further by pushing deeper the study
+of its performance and exploring numerically both a one-level method and its multi-
+level generalisation. The resulting formulation retains the partition-of-unity domain
+decomposition structure of FBPINNs while eliminating gradient-based optimisation
+entirely. Instead, the PDE solution is obtained by solving a global linear least-squares
+system for the output weights associated with randomly initialised basis functions.
+     This reformulation raises several fundamental questions regarding the role of
+optimisation, localisation, and model capacity in physics-informed learning. In par-
+ticular, we seek to understand whether replacing nonlinear optimisation with linear
+least-squares solves can improve robustness and convergence behaviour without sac-
+rificing accuracy, and how the resulting method behaves as problem difficulty and
+model capacity vary. The present study is therefore guided by the following research
+questions:
+• RQ1: Does replacing gradient-based optimisation with a linear least-squares for-
+  mulation improve convergence speed and robustness while maintaining solution
+  accuracy?
+• RQ2: To what extent does domain localisation mitigate spectral bias and enable
+  accurate approximation of highly oscillatory or multiscale solutions?
+• RQ3: How does the number of random basis functions per subdomain influence
+  model expressivity, redundancy, and the conditioning of the resulting least-squares
+  system?
+• RQ4: Can the method maintain stable performance as problem difficulty increases
+  when model capacity is scaled accordingly, and can multilevel modeling improve
+  this performance?
+    To address these questions, we compare three architectures: a standard PINN, an
+FBPINN, and the proposed ELM-FBPINN. This comparison allows us to isolate the
+effects of domain decomposition and training strategy independently. The methods
+are evaluated on three benchmark problems: a one-dimensional damped harmonic
+
+
+
+                                           3
+oscillator, which exhibits highly oscillatory temporal dynamics; a two-dimensional
+multi-scale Laplacian problem designed to test spatial multiscale behaviour; and a two-
+dimensional inhomogeneous Helmholtz problem on a non-convex L-shaped domain
+with oscillatory, non-separable spatial structure.
+    Through these experiments, we aim to clarify the respective roles of localisation,
+random feature representations, and linear least-squares formulations in physics-
+informed neural networks. More broadly, the results contribute to an emerging
+perspective in which neural PDE solvers are viewed not only as trainable black-box
+models but also as approximation schemes whose design choices directly influence their
+numerical behaviour.
+
+2 Related work
+The present work can be viewed as a generalisation of the random feature formu-
+lation introduced in the first version of [16], extending it to a multilevel domain-
+decomposition setting. It is also closely related to the Random Feature Method (RFM)
+proposed in [10]. The main differences with respect to [10] lie in the treatment of
+domain localisation and the exploitation of sparsity. In the present work, the neural
+basis functions are organised through a domain-decomposition framework and evalu-
+ated only on the collocation points associated with their corresponding subdomains.
+This leads to a naturally sparse system matrix, which we explicitly exploit by assem-
+bling the matrix in sparse form and solving the resulting least-squares problem using
+sparse iterative solvers. In contrast, existing RFM formulations typically construct
+dense systems and do not exploit the sparsity induced by localisation.
+     Several recent works have also explored random-feature and frozen-network
+approaches for PDE solvers, including multiscale and domain-decomposition settings.
+In particular, [18] proposes a multiscale PDE solver based on domain decomposition
+and random features, and [17] introduces frozen physics-informed neural networks
+to accelerate training through linear least-squares formulations. Finally, other works
+have investigated preconditioning strategies for random-feature-based PDE solvers.
+In particular, [19] and [20] propose preconditioning techniques aimed at improving
+the conditioning of the resulting least-squares systems and do not consider multilevel
+formulations.
+     While these works share the same general philosophy of replacing gradient-based
+training with linear solvers, the present study provides a more thorough assessment of
+the multilevel domain-decomposition framework, with a particular focus on approx-
+imation properties, sparsity structure, conditioning, and scalability. In particular,
+we explicitly study how localisation, multilevel decomposition, and basis enrichment
+interact, and how these design choices affect accuracy, robustness, and computational
+efficiency.
+
+
+
+
+                                          4
+3 The multilevel ELM-FBPINN method
+We now extend the random-feature FBPINN formulation introduced in [16] and used
+in [20] to a multilevel domain-decomposition setting. The goal is to retain the local-
+ization advantages of the FBPINN framework while replacing gradient-based training
+by a linear least-squares solve using randomised neural features.
+
+Problem and model definition
+We start with a PDE defined in a domain Ω ⊂ Rd
+
+                                  N [u(x)] = f (x), x ∈ Ω,
+
+under boundary conditions given by
+
+                    Bb [u(x)] = gb (x), x ∈ Γb ⊂ ∂ Ω, b = 1, . . . , B,
+
+where N and the Bb are assumed to be linear operators and f and gb are forcing and
+boundary functions. Instead of using a single decomposition into J subdomains, we
+introduce a hierarchy of decompositions indexed by levels ℓ = 1, . . . , L. At each level
+                                                              SJ ℓ        (ℓ)
+ℓ, the domain is covered by Jℓ overlapping subdomains Ω = j=1           Ωj . Associated
+                                                                          (ℓ)
+with these subdomains are compactly supported window functions {ωj (x)}Jj=1
+                                                                         ℓ
+                                                                            , which
+form a partition of unity at each level,
+
+                                 Jℓ
+                                           (ℓ)
+                                 X
+                                        ωj (x) = 1,       x ∈ Ω.
+                                 j=1
+
+
+The window functions are defined on finite subdomains and are taken to be zero out-
+side their prescribed support. At the domain boundaries, subdomains are truncated
+accordingly, and the partition-of-unity normalisation ensures that the sum of all win-
+dow functions remains equal to one. This construction is standard in overlapping
+domain decomposition methods and guarantees a consistent global representation.
+    Typically the decompositions become progressively finer as the level increases, so
+that level ℓ = 1 corresponds to a coarse representation of the solution and higher levels
+introduce increasingly localised corrections. Using this hierarchy, we approximate the
+PDE solution as a sum of localised random feature expansions across all levels,
+
+                                      ℓL     J        K
+                                 1 XX    (ℓ)
+                                               X (ℓ) (ℓ)     (ℓ)
+                    û(x, a) =          ωj (x)  ajk ϕjk (x, θjk ).                   (1)
+                                 L  j=1
+                                   ℓ=1                k=1
+
+      (ℓ)     (ℓ)
+Here ϕjk (x, θjk ) are neural network basis functions, K denotes the number of random
+                                  (ℓ)
+features per subdomain and ajk are trainable output weights. As in the single-level
+
+
+
+
+                                                 5
+formulation, the neural features are taken to be shallow fully connected networks
+                    (ℓ,0)
+                   zj       = x,
+                                                             
+                   (ℓ,m)             (ℓ,m) (ℓ,m−1)    (ℓ,m)
+                  zj     =Ξ         Wj    zj       + bj           ,     m = 1, . . . , h − 1,   (2)
+                                              
+             (ℓ)     (ℓ)        (ℓ)    (ℓ,h−1)
+            ϕjk (x, θjk ) = Ξ (wjk )⊤ zj         ,
+
+where Ξ is a nonlinear activation function applied elementwise. The parameters
+                              (ℓ)        (ℓ,m)      (ℓ,m) h−1     (ℓ)
+                             θjk = {Wj           , bj    }m=1 ∪ {wjk }
+
+                                                                                                (ℓ)
+are randomly initialised and then kept fixed. Consequently, only the coefficients ajk
+remain as unknown parameters. This formulation therefore produces a multilevel
+random-feature approximation in which each level contributes localised neural basis
+                                                             (ℓ)
+functions with support determined by the window functions ωj .
+
+Remark on multilevel coupling.
+The effect of the multilevel construction can be understood by analogy with multi-
+grid methods and hierarchical basis representations. In a single-level decomposition,
+information propagates between distant subdomains only indirectly through overlap-
+ping window functions, which can lead to slow global coordination when the solution
+contains long-range or low-frequency components. By introducing multiple levels,
+the approximation space is enriched in a hierarchical manner: coarse levels provide
+basis functions with large spatial support that capture the global structure of the
+solution, while finer levels introduce increasingly localised corrections that resolve
+high-frequency features. The partition-of-unity construction ensures that these contri-
+butions are smoothly combined across levels, yielding a stable global approximation.
+This results in a basis in which low-frequency components are represented on coarse
+levels and high-frequency components on fine levels, analogous to the separation
+of error modes in multigrid. In this sense, the multilevel ELM-FBPINN facilitates
+“global subdomain communication” by enabling long-range interactions to be repre-
+sented explicitly at coarse scales, rather than relying solely on local overlap between
+neighbouring subdomains. However, in contrast to multigrid methods, multilevel ELM-
+FBPINN does not follow a classical residual-correction structure. Instead, it can be
+interpreted as a hierarchical basis construction, where each level contributes functions
+with different spatial support, as described above.
+
+Loss function and least-squares formulation
+The unknown coefficients are determined by minimizing the physics-informed loss
+functional
+                                                                  (b)
+           NI                                B        NB                                     2
+        1 X                              2
+                                            X    λb X                 (b)                (b)
+ L(a) =        (N [û(xn , a)] − f (xn )) +       (b)
+                                                           B b [û ( xi   , a )] − gb ( xi   )   .
+        NI n=1
+                                            b=1 NB i=1
+                                                                                               (3)
+
+
+                                                    6
+                                                               (b)
+                                                       (b) N
+Here {xn }N n=1 are interior collocation points and {xi }i=1 are boundary collocation
+             I                                               B
+
+
+points associated with boundary operators Bb . Since the operators N and Bb are
+linear, the loss functional remains quadratic in the coefficients a even in the multilevel
+setting. Consequently,
+               PL        the training problem reduces to a linear least-squares problem.
+    Let NΦ = ℓ=1 Jℓ K denote the total number of random features across all levels.
+                                                      (ℓ)
+The parameter vector collects all coefficients a = {ajk } ∈ RNΦ . Proceeding as in [20],
+the loss functional can be written as
+
+                             min ∥Na − f ∥2 + ∥Ba − g∥2 ,                             (4)
+                            a∈RNΦ
+
+
+where N and B denote the system matrices associated with the PDE residuals and
+the boundary conditions, respectively. The vectors f and g contain evaluations of
+the forcing term and boundary terms at interior and boundary collocation points,
+respectively.
+    As in the single-level formulation, the two residual contributions can be combined
+into a single global least-squares problem
+                                                                         
+                                                      N                    f
+                min ∥Ma − h∥2 ,       where M =          ,           h=       .       (5)
+               a∈RNΦ                                  B                    g
+
+Remark on linearity and extension to nonlinear PDEs.
+The formulation above relies critically on the assumption that the differential operator
+N and boundary operators Bk are linear, which enables the reduction of the training
+problem to a global least-squares system. This assumption, however, restricts the
+applicability of the current method to linear PDEs. For nonlinear problems, the direct
+least-squares formulation is no longer available. One possible extension would be to
+employ iterative linearisation strategies, such as Newton or Gauss–Newton methods,
+where each iteration involves solving a linearised least-squares problem. We note that
+such extensions would partially reintroduce iterative procedures but depending on the
+problem - like in the case of Newton-Krylov methods - resulting linear systems are
+likely to be related and similar “tricks” can be reused to regain efficiency. A systematic
+investigation of nonlinear extensions is left for future work.
+
+Indexing conventions
+To describe the structure of the system matrices, we introduce the following indexing
+conventions.
+• Let q = ℓ−1
+          P
+                 Jm K + (j − 1)K + k map the triple (ℓ, j, k ) to a global column index.
+          Pm=1 (m)
+• Let p = b−1m=1 NB    + i map the pair (i, b) to a global boundary collocation index.
+                      PB       (b)
+We also denote NB = b=1 NB as the total number of boundary collocation points.
+
+
+
+
+                                            7
+Definition of vectors
+The vectors appearing in (5) are defined as
+                               NI                                                    s
+                        1                                                                    λb      (b)
+            f=         √ f (xn )     ,            g = {gp }N
+                                                           p=1 ,
+                                                            B
+                                                                                gp =             g (x ).
+                                                                                              (b) b i
+                        NI       n=1                                                         NB
+
+Definition of the system matrices
+The matrices N ∈ RNI ×NΦ and B ∈ RNB ×NΦ are defined componentwise by
+                                                                     s
+                 1     h
+                          (ℓ) (ℓ)
+                                      i                                     λb 1 h (ℓ) (ℓ) (b) i
+        Nn,q = √      N (ωj ϕjk )(xn ) ,                    Bp,q =           (b)
+                                                                                 Bb (ωj ϕjk )(xi ) .
+                 NI L                                                      N L  B
+
+   Each column therefore corresponds to the action of the PDE or boundary operator
+                                       (ℓ)   (ℓ)
+applied to a localised random feature ωj (x)ϕjk (x).
+
+Multilevel domain-decomposition structure
+                                        (ℓ)
+Because the window functions ωj               have compact support, the resulting matrix
+
+                                           M ∈ R(NI +NB )×NΦ
+                                                                                       (ℓ)
+is sparse. In particular, an entry Mr,q is nonzero only when ωj (xr ) ̸= 0. We therefore
+define the index sets
+                                                  ℓ−1                                             ℓ−1
+  (ℓ)            (ℓ)                (ℓ)
+                                                  X                                               X
+Ij      = {r | ωj (xr ) ̸= 0},     Kj      ={           Jm K + (j − 1)K + 1, . . . ,                    Jm K + jK},
+                                                  m=1                                             m=1
+
+           (ℓ)
+where Ij         contains the rows corresponding to collocation points influenced by
+                                    (ℓ)
+subdomain j at level ℓ, and Kj             contains the associated feature indices. Let
+
+                                              (ℓ)
+                                           Mj = M|I (ℓ) ×K (ℓ)
+                                                              j     j
+
+
+
+denote the corresponding submatrix. Introducing restriction matrices
+                                     (ℓ)
+                             (ℓ)                                         (ℓ)
+                           Vj ∈ R|Ij |×(NI +NB ) ,                 Wj ∈ RK×NΦ ,
+
+we can write
+                                            (ℓ)         (ℓ)        (ℓ)T
+                                Mj = Vj MWj                                .
+This yields the multilevel decomposition
+
+                                             Jℓ
+                                           L X
+                                                         (ℓ)T      (ℓ)         (ℓ)
+                                           X
+                                   M=                   Vj        Mj Wj .                                        (6)
+                                           ℓ=1 j=1
+
+
+
+                                                        8
+                                    PINN           FBPINN               ELM-FBPINN
+
+ Domain decomposition / POU            ✗                ✓                       ✓
+ Local (subdomain) models              ✗                ✓                       ✓
+ Hidden features trainable?            ✓                ✓                       ✗
+ Training strategy                GD (Adam)       GD (Adam)           LS solver (e.g. LSQR)
+ Unknowns solved for               all weights     all weights         output weights only
+ Linear solve required?                ✗                ✗                       ✓
+ Expected effect                  spectral bias   mitigates bias   mitigates bias + faster solve
+                     Table 1: Summary of the three compared approaches.
+
+
+
+Equation (6) reveals the hierarchical block-sparse structure of the system matrix
+induced by the multilevel domain decomposition. An example plot of this sparse struc-
+ture is shown in Figure 1. In practice, this structure enables efficient assembly of M
+using sparse data structures and efficient solution of (5) using iterative least-squares
+solvers such as LSQR. Once the coefficient vector a has been computed, the approxi-
+mate solution û can be evaluated at arbitrary points by assembling the corresponding
+localised random feature expansions across all levels.
+
+4 Numerical assessment of the ELM-FBPINN method
+Our objective is to assess whether replacing gradient-based subdomain training by
+a random-feature least-squares solve can improve the efficiency and robustness of
+physics-informed solvers without increasing the error in the solution. To isolate the
+effect of the training strategy from the effect of domain localisation, we compare
+three models: (i) a standard single-domain PINN trained by gradient descent, (ii) an
+FBPINN that uses a domain decomposition and partition-of-unity construction and
+trainable subdomain networks, and (iii) the proposed ELM-FBPINN, which retains
+the FBPINN domain decomposition and partition-of-unity structure while replacing
+each subdomain network by a random-feature model and solving for the output coeffi-
+cients via least squares (Table 1). We also assess the performance impact of including
+multiple levels in the ELM-FBPINN. Three representative test cases are considered:
+• 1D damped harmonic oscillator. This problem yields oscillatory solutions with
+  controlled frequency content and exponential decay. It provides a controlled setting
+  to probe spectral bias, the benefit of domain localisation, and the scaling of solver
+  performance as the oscillation frequency increases.
+• 2D multi-scale Laplacian problem. This elliptic PDE admits an analytic solu-
+  tion composed of multiple sine modes, allowing systematic control of multiscale
+  complexity in a higher-dimensional setting.
+
+
+
+
+                                            9
+• 2D inhomogeneous Helmholtz equation problem. This problem is defined on
+  an L-shaped domain with spatially varying Dirichlet boundary conditions and a non-
+  trivial manufactured solution with a frequency parameter which allows systematic
+  control of oscillatory complexity and optimisation difficulty.
+The numerical study is designed to isolate the influence of a small number of exper-
+imental parameters corresponding to the research questions introduced in Section 1.
+In particular, we vary the following levers:
+• RQ1: Training strategy-gradient descent (GD) versus linear least-squares (LSQ).
+• RQ2: Domain localisation-number of subdomains Jl .
+• RQ3: Basis enrichment-number of basis functions per subdomain K .
+• RQ4: Problem difficulty-frequency or multiscale content scaled with Jl , and
+  assessing the impact of including multiple levels, L.
+Although it is also possible to alter the depth (h) of the networks used, preliminary
+experiments indicated that this did not offer much benefit, and that shallow networks
+were optimal or near-optimal. The comparisons in Table 1 and the research questions
+define our experimental framework. By separating localisation (shared by FBPINN
+and ELM-FBPINN) from training strategy (gradient descent versus least-squares),
+and by systematically varying capacity, and problem difficulty, the numerical study is
+designed to disentangle approximation effects from optimisation effects.
+
+
+Remark on experimental scope.
+The experimental study focuses on comparisons with PINN and FBPINN in order to
+isolate the effect of the proposed ELM-based formulation within a controlled setting.
+While this enables a clear assessment of the methodological contribution, it does not
+aim to provide an exhaustive benchmark against all existing approaches. Extending
+the comparison to other scientific machine learning methods and more complex PDE
+settings is an important direction for future work.
+
+4.1 Common implementation details
+We now describe the common implementation choices used across all experiments
+which also represent a practical compromise as there are many possible choices of
+hyperparameters. These details ensure that comparisons are fair and that observed
+differences can be attributed to structural properties of the methods rather than
+to incidental training or sampling choices. Several aspects of the training and eval-
+uation setup are shared across all experiments in one and two dimensions. Unless
+stated otherwise, the settings introduced below are fixed throughout all numerical
+experiments.
+
+Domain decomposition
+Both the FBPINN and ELM-FBPINN employ the same domain decomposition
+strategy. We assume that the global computational domain has a tensor-product
+
+
+
+                                         10
+structure,
+                                      d
+                                      O
+                                 Ω=         [ximin , ximax ],
+                                      i=1
+and at each level, ℓ, we decompose Ω into overlapping equally sized intervals in one
+dimension and overlapping rectangular subdomains arranged on a uniform grid in two
+dimensions. Example domain decompositions in one and two dimensions are shown
+in Figures 1 and 7. When studying a two dimensional L-shaped problem domain in
+Section 4.4, we discard rectangular subdomains outside of the L-shaped domain, as
+shown in Figure 12.
+    Localisation is enforced through a partition-of-unity (POU) construction at each
+level. The window functions are defined as
+                          (ℓ)                                     xi − µ(ℓ)  2
+                                                       d
+                                                             "                #
+             (ℓ)       ω̂j (x)           (ℓ)
+                                                       Y                   ji
+            ωj (x) = PJ       (ℓ)
+                                  ,    ω̂j (x) =          1 + cos π    (ℓ)
+                                                                                 ,   (7)
+                        ℓ
+                      j=1 ω̂j (x)                     i=1             σji
+
+        (ℓ)        (ℓ)
+where µji and σji denote the centre and half-width of the j th subdomain in dimension
+i at level ℓ. For a one-dimensional domain, the subdomain bounds are defined as
+
+               (ℓ)      (ℓ) δ (ℓ)  (ℓ)             (ℓ)      (ℓ) δ (ℓ)    (ℓ)
+              xj,min = µj − (µj − µj−1 ),         xj,max = µj + (µj+1 − µj ),        (8)
+                            2                                   2
+      (ℓ)                                              (ℓ)       (ℓ)   (ℓ)
+with µj equally spaced over the domain and σji = (xj,max − xj,min )/2, where δ is
+a width ratio that controls the degree of overlap and therefore information exchange
+between subdomains. An analogous definition is used for two dimensional domains
+with the same δ along each dimension. Note that a width ratio of less than one means
+that the subdomains no longer overlap. This cosine-based construction yields smooth
+window functions with compact support, ensuring locality while preserving a smooth
+global approximation.
+
+Neural network architecture and weight initialisation
+All models employ fully connected neural networks with tanh activation functions.
+In the PINN and FBPINN models, all network parameters are trainable. In contrast,
+the ELM-FBPINN fixes the hidden-layer parameters after random initialisation and
+trains only the linear output coefficients. All network weights are initialised using
+                                                                         (ℓ,m) (ℓ,m)
+uniform LeCun initialisation [21], i.e. randomly sampled according to Wj      , bj   ∼
+                       q
+                               1
+U (−a, a), where a = R dim(z(ℓ,m−1) ) . Here R is a positive parameter which we use to
+test the sensitivity of our models to the magnitude of the initialized weights.
+
+Optimisation and solvers
+The PINN and FBPINN models are trained using the Adam optimiser with a learning
+rate of 10−3 for 15, 000 iterations. The ELM-FBPINN replaces gradient-based optimi-
+sation with a sparse linear least-squares solve, which is performed using the iterative
+LSQR solver from SciPy [22], with a maximum of 15, 000 iterations. Unless stated
+
+
+                                             11
+otherwise, the solver is allowed to run for the full iteration budget in order to facil-
+itate comparison of convergence behaviour. We note, however, that one iteration of
+LSQR may not be equivalent to one iteration of Adam. In practice, many problems
+studied here converge much faster than the maximum number iterations and could be
+stopped early with an appropriate stopping condition. Model performance is assessed
+using the test error, measured in the eL1 norm, given by
+
+                                           M
+                                       1 X
+                              eL1 =           |û(xi ) − u(xi )|,                   (9)
+                                      M ς i=1
+
+where M is the number of test points, and ς is the standard deviation of the set
+of true solutions {u(xi )}Mi . Training and test points are sampled on a regular grid,
+with sufficient resolution per subdomain to accurately capture local approximation
+quality. For fairness exactly the same collocation points and random seeds are used for
+each model compared (PINN/FBPINN/ELM-FBPINN). For robustness each model
+is retrained using five independent random seeds, and test errors are reported as
+the median value, with error bars indicating the range between the best and worst
+observed values. Training times are reported as the mean with error bars indicating
+one standard deviation. For the ELM-FBPINN, training time includes every stage of
+the computation; construction of the local bases, assembly of the global system, and
+iterative solution time.
+
+Software and hardware implementation
+All models are implemented in Python using JAX [23], building upon the highly
+optimised open-source FBPINN library [4]. All models are trained on a single AMD
+EPYC 7742 CPU core with 50 GB RAM, using the SciPy library [24] for defining
+sparse linear solvers.
+
+4.2 1D problem – Damped harmonic oscillator
+The damped harmonic oscillator provides a controlled setting in which the solution
+exhibits oscillations with tunable frequency and exponential decay. This setting probes
+robustness to increasing frequency, the benefit of domain decomposition, and the effect
+of replacing nonlinear optimisation by a linear least-squares solve.
+
+Problem definition
+We consider the displacement u(t) on t ∈ (0, 1] governed by
+                        
+                            mutt + µut + ku(t) = 0,       t ∈ (0, 1],
+                                                                                   (10)
+                            u(0) = u0 , ut (0) = v0 ,
+
+where m is the mass, µ the damping coefficient, and k the spring constant.
+
+
+
+
+                                              12
+Under-damped regime and tunable frequency
+Defining                                       r
+                                 µ                k
+                            β=     ,     ω0 =       ,
+                                2m               m
+the under-damped regime corresponds to β < ω0 , with oscillation frequency
+                                          q
+                                     ω=    ω02 − β 2 .
+
+We fix u0 = 1, v0 = 0, m = 1 and µ = 4 (hence β = 2) and vary ω0 to control
+difficulty: increasing ω0 introduces higher-frequency components while preserving the
+decay rate. The exact solution is
+
+                              u(t) = e−βt 2A cos(ϕ + ωt),                           (11)
+
+with
+                           u0                     (v /u ) + β 
+                                                     0  0
+                   A=            ,     ϕ = arctan −              .
+                        2 cos(ϕ)                        ω
+
+Physics-informed objective
+All models minimise the same residual-based loss,
+
+                                                 (u )     (v )
+                           L = Lphys + λu0 Lic 0 + λv0 Lic 0 ,                      (12)
+
+with
+                              N I
+                         1 X                         2
+                 Lphys =          mûtt + µût + k û (ti ),     ti ∈ (0, 1],       (13)
+                         NI i=1
+                  (u )              2
+                 Lic 0 = û(0) − u0 ,                                               (14)
+                  (v )               2
+                 Lic 0 = ût (0) − v0 .                                             (15)
+
+We set λu0 = k 2 = ω04 and λv0 = k = ω02 , which normalises all loss terms to the same
+physical unit and we find provides a reasonable balance between them as the solution
+frequency increases.
+
+Summary of observed behaviour
+On highly oscillatory instances, a standard PINN fails to converge within the training
+budget, whereas both FBPINN and ELM-FBPINN converge reliably. Across ablations,
+ELM-FBPINN attains comparable or lower errors than FBPINN while converging
+faster in terms of number of iteration steps and wall-clock time, provided each sub-
+domain has sufficient local capacity. Failure modes are dominated by insufficient
+localisation (small Jl ) or feature degeneracy (small K ), rather than optimisation speed
+alone.
+
+
+
+                                            13
+Ablation roadmap
+Starting from a baseline configuration, we vary (i) local capacity (K ), (ii) localisation
+resolution (Jl ), and (iii) frequency scaling via coupled ω0 and Jl , comparing one-level
+with multilevel models. When relevant, we report the condition number and numerical
+rank of the ELM-FBPINN system matrix to interpret stability trends.
+
+4.2.1 Baseline
+We consider the under-damped oscillator with ω0 = 80, yielding a highly oscillatory
+solution with slowly decaying amplitude. The PINN uses h = 2 hidden layers and
+K = 64 basis functions per layer. Both the FBPINN and ELM-FBPINN use a single
+hidden layer (h = 1) with K = 12 basis functions per subdomain, and a one-level
+decomposition into J1 = 20 subdomains with width ratio δ = 2.9. The PINN and
+FBPINN use a fully connected network (FCN) architecture, while the ELM-FBPINN
+uses an extreme learning machine (ELM) architecture. All models use a weight scaling
+of R = 1 and are trained on 260 regularly spaced collocation points.
+    Figure 2 shows the test error, measured in the eL1 norm, with M = 1000 regularly
+spaced test points versus iteration count. The PINN does not converge to an accept-
+able solution within the training budget, consistent with the well-known difficulty
+of gradient-based PINNs in resolving high-frequency components. Both decomposed
+methods converge, and ELM-FBPINN reaches the lowest final error while converg-
+ing faster in terms of number of iteration steps than FBPINN. While PINN fails to
+capture the real solution leading to large errors, the two decomposed methods yield
+similar predictions. Table 2 summarises final test errors and wall-clock times. In this
+baseline, ELM-FBPINN attains the best median test error, measured in the eL1 norm,
+with a faster training time to the PINN and FBPINN.
+
+
+     Model        (ω0 , J) (h, K)   δ    κ(M )   Optimiser       eL1         Time (s)
+    PINN     (80, 1) (2, 64) 2.9 N/A               Adam      6.1±0.4e-01 2.9±0.0e+01
+   FBPINN   (80, 20) (1, 12) 2.9 N/A               Adam      1.3±0.3e-03 1.9±0.0e+01
+ ELM-FBPINN (80, 20) (1, 12) 2.9 8.5e+18           LSQR      1.1±0.5e-04    5.4±0.0
+Table 2: Baseline results for the 1D damped harmonic oscillator problem, where J
+lists the number of subdomains for each level (here, in all cases L = 1). The values
+for the test error, measured in the eL1 norm, state the median value together with
+the range between the best and worst observed values. For runtime measurements, we
+report the mean together with one standard deviation.
+
+
+
+    We also show the model predictions in Figure 1 for the same ELM-FBPINN, but
+with L = 3 and J = [1, 10, 20] subdomains, where J lists the number of subdomains
+for each level (i.e., J1 = 1, J2 = 10, and J3 = 20). The multilevel solution is visually
+indistinguishable from the exact solution. The figure also illustrates the randomly
+generated basis functions and the sparse multilevel structure of the system matrix M,
+which is a key feature of the proposed approach.
+
+
+                                           14
+       1.0                                    Exact solution                              1.0                                      Exact solution
+                                              ELM-FBPINN                                                                           φljk (t)
+       0.5                                    δ : 2.9 K : 12 J : [1, 10, 20]              0.5
+       0.0                                                                                0.0
+
+     u 0.5                                                                           φljk 0.5
+       1.0                                                                                1.0
+
+
+
+
+             0.2   0.0   0.2   0.4        0.6        0.8         1.0           1.2              0.2   0.0   0.2   0.4       0.6   0.8         1.0   1.2
+                                     t                                                                                  t
+                                                                                      M
+                                              0        50 100 150 200 250 300 350 400
+                                         0
+                                         50
+                                     100
+                                     150
+                                     200
+                                     250
+
+
+Fig. 1: Model predictions versus the exact solution for the 1D damped harmonic
+oscillator with a multilevel ELM-FBPINN, where J lists the number of subdomains
+for each level; basis functions generated by randomisation; sparse multilevel structure
+of the system matrix M in Equation (6).
+
+
+4.2.2 Varying number of basis functions
+We vary the number of basis functions K of the baseline L = 1 model to probe
+how each method exploits increased local capacity. This ablation distinguishes (i)
+expressivity limitations at small K from (ii) redundancy/feature correlation at large
+K . Convergence curves and final errors are shown in Figure 3 and Table 3. Note,
+for the baseline PINN which uses h = 2, varying K also varies the number of basis
+functions per hidden layer as we use K basis functions per hidden layer.
+
+Key observations
+(i) All PINN configurations fail to converge, even as K increases, reinforcing that addi-
+tional capacity alone does not resolve the optimisation difficulty on this high-frequency
+problem. (ii) Both decomposed methods converge for moderate K , but ELM-FBPINN
+is the only method that shows a strong and systematic improvement with increasing
+K before saturating. (iii) At very small K , FBPINN can outperform ELM-FBPINN:
+in this low-capacity regime, the random-feature trial space is too limited to generalise
+accurately, and the linear solve cannot compensate for missing expressivity.
+
+
+                                                                                     15
+                                                                            100
+
+
+
+
+                                         Normalised L1 test error (eL1 )
+                                                                           10 1
+                                                                                                                                                                                   PINN ω0 = 80, J = 1, δ = 2.9, K = 64
+                                                                           10 2                                                                                                    FBPINN ω0 = 80, J = 20, δ = 2.9, K = 12
+                                                                                                                                                                                   ELM-FBPINN ω0 = 80, J = 20, δ = 2.9, K = 12
+                                                                           10 3
+
+                                                                           10 4
+                                                                                  0      2500 5000 7500 10000 12500 15000
+                                                                                                Iteration step
+Fig. 2: Test error, measured in the eL1 norm, versus iteration count for the baseline
+1D damped harmonic oscillator problem, where J lists the number of subdomains for
+each level (here, in all cases L = 1). The median test error is denoted by a solid line,
+while the shaded region indicates the range between the best and worst seeds.
+
+
+    For the ELM-FBPINN, the error decreases rapidly as the number of basis func-
+tions K increases from very small values, and then plateaus for larger K , indicating
+that once the dominant oscillatory structure is resolved, additional basis functions
+provide diminishing returns. This occurs despite a rapid increase in the condition num-
+ber κ(M ), suggesting growing linear dependence among the random basis functions,
+although the least-squares solver remains stable in practice. In contrast, the PINN
+shows only marginal improvement as K increases while the computational cost grows
+significantly, whereas the FBPINN reaches good test error for moderate K but also
+plateaus. Overall, the ELM-FBPINN achieves the lowest errors across all tested val-
+ues of K while maintaining faster runtimes, since training reduces to the solution of
+a linear least-squares problem rather than iterative gradient-based optimisation.
+
+
+                                   100                                                                                                       100
+
+                                                                                                                                                                                PINN ω0 = 80, δ = 2.9, K = 2, J = 1      FBPINN ω0 = 80, δ = 2.9, K = 16, J = 20
+Normalised L1 test error (eL1 )
+
+
+
+
+                                                                                                          Normalised L1 test error (eL1 )
+
+
+
+
+                                  10 1                                                                                                      10 1                                PINN ω0 = 80, δ = 2.9, K = 4, J = 1      FBPINN ω0 = 80, δ = 2.9, K = 32, J = 20
+                                                                                                                                                                                PINN ω0 = 80, δ = 2.9, K = 8, J = 1      FBPINN ω0 = 80, δ = 2.9, K = 64, J = 20
+                                                                                                                                                                                PINN ω0 = 80, δ = 2.9, K = 16, J = 1     ELM-FBPINN ω0 = 80, δ = 2.9, K = 2, J = 20
+                                  10 2                                                                                                      10 2                                PINN ω0 = 80, δ = 2.9, K = 32, J = 1     ELM-FBPINN ω0 = 80, δ = 2.9, K = 4, J = 20
+                                                                                                                                                                                PINN ω0 = 80, δ = 2.9, K = 64, J = 1     ELM-FBPINN ω0 = 80, δ = 2.9, K = 8, J = 20
+                                                                                                                                                                                FBPINN ω0 = 80, δ = 2.9, K = 2, J = 20   ELM-FBPINN ω0 = 80, δ = 2.9, K = 16, J = 20
+                                  10 3                                                                                                      10 3                                FBPINN ω0 = 80, δ = 2.9, K = 4, J = 20   ELM-FBPINN ω0 = 80, δ = 2.9, K = 32, J = 20
+                                                                                                                                                                                FBPINN ω0 = 80, δ = 2.9, K = 8, J = 20   ELM-FBPINN ω0 = 80, δ = 2.9, K = 64, J = 20
+                                  10 4                                                                                                      10 4
+
+                                                 0                     2500 5000 7500 10000 12500 15000                                                 101               102
+                                                                              Iteration step                                                       Total time elapsed (s)
+
+Fig. 3: Test error, measured in the eL1 norm, vs number of basis functions, K , for
+the 1D damped harmonic oscillator problem, where J lists the number of subdomains
+for each level (here, in all cases L = 1). In the left-hand plot, the median test error is
+denoted by a solid line, while the shaded region indicates the range between the best
+and worst seeds. In the right-hand plot, the median final test error is denoted by a
+circle, and the range between the best and worst seeds by a vertical bar.
+
+
+                                                                                                                                                                       16
+     Model        (ω0 , J) (h, K)   δ   κ(M )   Optimiser       eL1        Time (s)
+    PINN     (80, 1) (2, 2) 2.9 N/A               Adam      7.2±0.1e-01    1.5±0.0
+    PINN     (80, 1) (2, 4) 2.9 N/A               Adam      6.9±0.5e-01    1.9±0.0
+    PINN     (80, 1) (2, 8) 2.9 N/A               Adam      6.6±0.2e-01    3.1±0.0
+    PINN     (80, 1) (2, 16) 2.9 N/A              Adam      6.2±0.5e-01    7.8±0.0
+    PINN     (80, 1) (2, 32) 2.9 N/A              Adam      6.1±0.4e-01 2.7±0.0e+01
+    PINN     (80, 1) (2, 64) 2.9 N/A              Adam      6.0±0.4e-01 1.4±0.0e+02
+   FBPINN   (80, 20) (1, 2) 2.9 N/A               Adam      2.8±4.7e-02    6.8±0.1
+   FBPINN   (80, 20) (1, 4) 2.9 N/A               Adam      3.8±4.3e-03    8.3±0.2
+   FBPINN   (80, 20) (1, 8) 2.9 N/A               Adam      1.0±0.8e-03 1.3±0.0e+01
+   FBPINN   (80, 20) (1, 16) 2.9 N/A              Adam      1.4±0.6e-03 2.4±0.0e+01
+   FBPINN   (80, 20) (1, 32) 2.9 N/A              Adam      1.1±0.3e-03 5.7±0.0e+01
+   FBPINN   (80, 20) (1, 64) 2.9 N/A              Adam      1.1±0.3e-03 1.9±0.0e+02
+ ELM-FBPINN (80, 20) (1, 2) 2.9 1.1e+06           LSQR      4.8±4.6e-02    4.4±0.0
+ ELM-FBPINN (80, 20) (1, 4) 2.9 2.1e+09           LSQR      5.3±5.2e-03    4.4±0.0
+ ELM-FBPINN (80, 20) (1, 8) 2.9 1.6e+17           LSQR      6.8±7.9e-04    4.7±0.0
+ ELM-FBPINN (80, 20) (1, 16) 2.9 2.1e+19          LSQR      6.7±4.4e-05    5.4±0.0
+ ELM-FBPINN (80, 20) (1, 32) 2.9 2.0e+20          LSQR      6.3±2.8e-05    6.8±0.0
+ ELM-FBPINN (80, 20) (1, 64) 2.9 3.0e+20          LSQR      3.7±1.7e-05 1.6±0.0e+01
+Table 3: Test error and runtime when varying number of basis functions, K , for the
+1D damped harmonic oscillator problem, where J lists the number of subdomains for
+each level (here, in all cases L = 1). The values for the test error, measured in the
+eL1 norm, state the median value together with the range between the best and worst
+observed values. For runtime measurements, we report the mean together with one
+standard deviation.
+
+
+
+
+Interpretation via linear-system diagnostics
+As K increases, κ(M) grows rapidly and the numerical rank saturates, consistent with
+the introduction of increasingly correlated random features. This provides a qualitative
+explanation for the observed plateau in the test error: beyond moderate K , additional
+basis functions add limited independent information.
+    Overall, except for very small K (K = 2, 4), ELM-FBPINN outperforms both
+FBPINN and PINN in terms of the test error while avoiding gradient-based optimi-
+sation. Despite the growth of κ(M) with K , the least-squares problems are evidently
+solved well enough to obtain accurate ELM-FBPINN solutions. This suggests that
+the full least-squares system is not as numerically problematic as κ(M) alone might
+indicate.
+
+4.2.3 Varying number of subdomains
+We vary the number of subdomains J1 of the baseline L = 1 model to test how localisa-
+tion affects approximation quality and convergence. Unlike increasing K , increasing J1
+
+
+
+                                          17
+                                                                                                                                                         FBPINN ω0 = 80, δ = 2.9, K = 12, J = 2     ELM-FBPINN ω0 = 80, δ = 2.9, K = 12, J = 2
+                                                                                                                                                         FBPINN ω0 = 80, δ = 2.9, K = 12, J = 4     ELM-FBPINN ω0 = 80, δ = 2.9, K = 12, J = 4
+                                   100                                                                             100                                   FBPINN ω0 = 80, δ = 2.9, K = 12, J = 6     ELM-FBPINN ω0 = 80, δ = 2.9, K = 12, J = 6
+                                                                                                                                                         FBPINN ω0 = 80, δ = 2.9, K = 12, J = 8     ELM-FBPINN ω0 = 80, δ = 2.9, K = 12, J = 8
+
+
+
+
+Normalised L1 test error (eL1 )
+
+
+
+
+                                                                                Normalised L1 test error (eL1 )
+                                                                                                                                                         FBPINN ω0 = 80, δ = 2.9, K = 12, J = 10    ELM-FBPINN ω0 = 80, δ = 2.9, K = 12, J = 10
+                                  10 1                                                                            10 1                                   FBPINN ω0 = 80, δ = 2.9, K = 12, J = 12    ELM-FBPINN ω0 = 80, δ = 2.9, K = 12, J = 12
+                                                                                                                                                         FBPINN ω0 = 80, δ = 2.9, K = 12, J = 14    ELM-FBPINN ω0 = 80, δ = 2.9, K = 12, J = 14
+                                                                                                                                                         FBPINN ω0 = 80, δ = 2.9, K = 12, J = 16    ELM-FBPINN ω0 = 80, δ = 2.9, K = 12, J = 16
+                                  10 2                                                                            10 2                                   FBPINN ω0 = 80, δ = 2.9, K = 12, J = 18    ELM-FBPINN ω0 = 80, δ = 2.9, K = 12, J = 18
+                                                                                                                                                         FBPINN ω0 = 80, δ = 2.9, K = 12, J = 20    ELM-FBPINN ω0 = 80, δ = 2.9, K = 12, J = 20
+                                                                                                                                                         FBPINN ω0 = 80, δ = 2.9, K = 12, J = 24    ELM-FBPINN ω0 = 80, δ = 2.9, K = 12, J = 24
+                                  10 3                                                                            10 3                                   FBPINN ω0 = 80, δ = 2.9, K = 12, J = 32    ELM-FBPINN ω0 = 80, δ = 2.9, K = 12, J = 32
+                                                                                                                                                         FBPINN ω0 = 80, δ = 2.9, K = 12, J = 48    ELM-FBPINN ω0 = 80, δ = 2.9, K = 12, J = 48
+                                                                                                                                                         FBPINN ω0 = 80, δ = 2.9, K = 12, J = 64    ELM-FBPINN ω0 = 80, δ = 2.9, K = 12, J = 64
+                                  10 4                                                                            10 4                                   FBPINN ω0 = 80, δ = 2.9, K = 12, J = 92    ELM-FBPINN ω0 = 80, δ = 2.9, K = 12, J = 92
+                                                                                                                                                         FBPINN ω0 = 80, δ = 2.9, K = 12, J = 128   ELM-FBPINN ω0 = 80, δ = 2.9, K = 12, J = 128
+                                         0   2500 5000 7500 10000 12500 15000                                             101                      102
+                                                    Iteration step                                                       Total time elapsed (s)
+
+Fig. 4: Test error, measured in the eL1 norm, vs number of subdomains, J , for
+FBPINN and ELM-FBPINN, for the 1D damped harmonic oscillator problem, where
+J lists the number of subdomains for each level (here, in all cases L = 1). In the left-
+hand plot, the median test error is denoted by a solid line, while the shaded region
+indicates the range between the best and worst seeds. In the right-hand plot, the
+median final test error is denoted by a circle, and the range between the best and
+worst seeds by a vertical bar.
+
+
+primarily adds spatially distinct basis functions, which should improve representation
+of highly oscillatory solutions once subdomains are sufficiently small.
+
+Key observations
+Figure 4 shows that both methods improve with increasing J1 , but a minimum level of
+localisation is required: J1 = 2 and J1 = 4 fail to converge reliably for either approach.
+For J1 ≳ 8, ELM-FBPINN converges faster in terms of number of iteration steps than
+FBPINN and typically attains lower errors. Final errors and times are summarised in
+Table 4. The test error improves significantly as the number of subdomains J1 increases
+from very small values, reflecting the benefit of domain localisation for resolving the
+oscillatory structure of the solution. The error decreases rapidly up to moderate values
+of J1 (approximately J1 = 12–20), after which the test error saturates and may slightly
+degrade for very large J1 , indicating diminishing returns once each local subproblem
+becomes sufficiently simple and the decomposition becomes excessively fine. In contrast
+to increasing K , increasing J1 does not dramatically worsen κ(M), which remains
+in the range 1017 –1019 , while the numerical rank grows approximately linearly with
+J1 , indicating that additional subdomains introduce largely independent degrees of
+freedom. This supports the interpretation that increasing J1 expands the trial space
+by adding spatially distinct basis functions rather than correlated features. Finally,
+we observe that the computational cost grows significantly with J1 for FBPINN due
+to the increased optimisation cost, whereas for ELM-FBPINN the runtime increases
+only mildly.
+
+4.2.4 Scaling solution frequency with subdomains
+We test scalability to harder (higher-frequency) solutions by increasing ω0 while simul-
+taneously increasing J1 (and the number of collocation points proportionally) for the
+baseline L = 1 model. This keeps the effective resolution per subdomain approxi-
+mately constant, so that changes in performance reflect the optimisation/solve strategy
+
+
+                                                                                                                                                  18
+     Model        (ω0 , J)   (h, K)   δ   κ(M )   Optimiser       eL1        Time (s)
+   FBPINN     (80, 2) (1, 12) 2.9 N/A              Adam        8.0±0.0e-01    5.3±0.1
+   FBPINN     (80, 4) (1, 12) 2.9 N/A              Adam        7.2±0.5e-01    6.9±0.0
+   FBPINN     (80, 6) (1, 12) 2.9 N/A              Adam        6.3±0.8e-01    8.3±0.1
+   FBPINN     (80, 8) (1, 12) 2.9 N/A              Adam        5.7±1.8e-01 1.3±0.0e+01
+   FBPINN    (80, 10) (1, 12) 2.9 N/A              Adam        2.9±0.7e-01 1.5±0.0e+01
+   FBPINN    (80, 12) (1, 12) 2.9 N/A              Adam        1.9±3.9e-02 1.3±0.0e+01
+   FBPINN    (80, 14) (1, 12) 2.9 N/A              Adam        1.0±0.9e-02 1.6±0.0e+01
+   FBPINN    (80, 16) (1, 12) 2.9 N/A              Adam        2.4±2.2e-03 1.7±0.0e+01
+   FBPINN    (80, 18) (1, 12) 2.9 N/A              Adam        1.4±0.5e-03 1.6±0.0e+01
+   FBPINN    (80, 20) (1, 12) 2.9 N/A              Adam        1.3±0.3e-03 1.7±0.0e+01
+   FBPINN    (80, 24) (1, 12) 2.9 N/A              Adam        2.9±0.9e-03 2.4±0.0e+01
+   FBPINN    (80, 32) (1, 12) 2.9 N/A              Adam        6.2±1.7e-03 3.6±0.0e+01
+   FBPINN    (80, 48) (1, 12) 2.9 N/A              Adam        9.2±2.9e-03 4.8±0.0e+01
+   FBPINN    (80, 64) (1, 12) 2.9 N/A              Adam        8.3±1.1e-03 4.9±0.1e+01
+   FBPINN    (80, 92) (1, 12) 2.9 N/A              Adam        4.8±1.4e-03 7.5±0.1e+01
+   FBPINN   (80, 128) (1, 12) 2.9 N/A              Adam        1.2±0.3e-02 1.1±0.0e+02
+ ELM-FBPINN (80, 2) (1, 12) 2.9 5.1e+17            LSQR        7.6±0.2e-01    4.0±0.0
+ ELM-FBPINN (80, 4) (1, 12) 2.9 1.7e+18            LSQR        5.6±1.3e-01    3.7±0.0
+ ELM-FBPINN (80, 6) (1, 12) 2.9 3.2e+18            LSQR        1.8±1.1e-01    3.8±0.0
+ ELM-FBPINN (80, 8) (1, 12) 2.9 4.9e+18            LSQR       9.4±14.4e-03    4.6±0.0
+ ELM-FBPINN (80, 10) (1, 12) 2.9 1.0e+18           LSQR       9.1±12.2e-04    4.4±0.0
+ ELM-FBPINN (80, 12) (1, 12) 2.9 2.2e+18           LSQR        2.9±3.3e-04    5.3±0.0
+ ELM-FBPINN (80, 14) (1, 12) 2.9 2.3e+18           LSQR        1.6±0.7e-04    5.3±0.0
+ ELM-FBPINN (80, 16) (1, 12) 2.9 4.5e+18           LSQR        1.2±0.5e-04    4.2±0.0
+ ELM-FBPINN (80, 18) (1, 12) 2.9 1.7e+19           LSQR        1.1±0.7e-04    4.8±0.0
+ ELM-FBPINN (80, 20) (1, 12) 2.9 8.5e+18           LSQR        1.1±0.5e-04    4.8±0.0
+ ELM-FBPINN (80, 24) (1, 12) 2.9 1.8e+19           LSQR        2.9±1.5e-04    4.8±0.1
+ ELM-FBPINN (80, 32) (1, 12) 2.9 1.5e+19           LSQR        4.7±5.0e-04    5.9±0.0
+ ELM-FBPINN (80, 48) (1, 12) 2.9 9.2e+18           LSQR       7.6±14.4e-05    5.3±0.0
+ ELM-FBPINN (80, 64) (1, 12) 2.9 1.4e+19           LSQR       7.7±13.5e-05    6.0±0.0
+ ELM-FBPINN (80, 92) (1, 12) 2.9 6.9e+19           LSQR       6.7±16.1e-05    6.6±0.1
+ ELM-FBPINN (80, 128) (1, 12) 2.9 8.6e+18          LSQR       1.4±0.9e-04     7.5±0.1
+Table 4: Test error and runtime when varying number of subdomains, J , for the 1D
+damped harmonic oscillator problem, where J lists the number of subdomains for each
+level (here, in all cases L = 1). The values for the test error, measured in the eL1 norm,
+state the median value together with the range between the best and worst observed
+values. For runtime measurements, we report the mean together with one standard
+deviation.
+
+
+
+rather than a trivial loss of spatial resolution. In this section, we also assess whether
+including multiple levels can improve scaling performance by aiding global subdomain
+communication with the addition of coarser levels.
+
+
+
+
+                                           19
+                                   100                                                                             100                                   FBPINN ω0 = 20, δ = 2.9, K = 12, J = 10
+                                                                                                                                                         FBPINN ω0 = 40, δ = 2.9, K = 12, J = 20
+                                  10 1                                                                            10 1                                   FBPINN ω0 = 80, δ = 2.9, K = 12, J = 40
+                                                                                                                                                         FBPINN ω0 = 160, δ = 2.9, K = 12, J = 80
+
+
+
+Normalised L1 test error (eL1 )
+
+
+
+
+                                                                                Normalised L1 test error (eL1 )
+                                                                                                                                                         FBPINN ω0 = 320, δ = 2.9, K = 12, J = 160
+                                  10 2                                                                            10 2                                   ELM-FBPINN ω0 = 20, δ = 2.9, K = 12, J = 10
+                                                                                                                                                         ELM-FBPINN ω0 = 40, δ = 2.9, K = 12, J = 20
+                                  10 3                                                                            10 3                                   ELM-FBPINN ω0 = 80, δ = 2.9, K = 12, J = 40
+                                                                                                                                                         ELM-FBPINN ω0 = 160, δ = 2.9, K = 12, J = 80
+                                  10 4                                                                            10 4                                   ELM-FBPINN ω0 = 320, δ = 2.9, K = 12, J = 160
+                                                                                                                                                         ELM-FBPINN ω0 = 20, δ = 2.9, K = 12, J = [1, 5, 10]
+                                  10 5                                                                            10 5                                   ELM-FBPINN ω0 = 40, δ = 2.9, K = 12, J = [1, 10, 20]
+                                                                                                                                                         ELM-FBPINN ω0 = 80, δ = 2.9, K = 12, J = [1, 20, 40]
+                                  10 6                                                                            10 6                                   ELM-FBPINN ω0 = 160, δ = 2.9, K = 12, J = [1, 40, 80]
+                                                                                                                                                         ELM-FBPINN ω0 = 320, δ = 2.9, K = 12, J = [1, 80, 160]
+                                         0   2500 5000 7500 10000 12500 15000                                            101                       102
+                                                    Iteration step                                                        Total time elapsed (s)
+
+Fig. 5: Test error, measured in the eL1 norm, as the solution frequency ω0 increases
+(with J scaled accordingly) for the 1D damped harmonic oscillator problem, where J
+lists the number of subdomains for each level. In the left-hand plot, the median test
+error is denoted by a solid line, while the shaded region indicates the range between
+the best and worst seeds. In the right-hand plot, the median final test error is denoted
+by a circle, and the range between the best and worst seeds by a vertical bar.
+
+
+Key observations
+Figure 5 and Table 5 show that both the FBPINN and ELM-FBPINN converge
+more slowly as ω0 increases, but ELM-FBPINN consistently achieves lower errors and
+shorter runtimes across all tested frequencies. Moreover adding multiple levels signif-
+icantly improves the test error of the ELM-FBPINN, with only a small increase in
+training time. This suggests that adding corse levels aids global subdomain commu-
+nication and facilitates faster convergence, whilst keeping the least squares system
+sparse and efficient to solve.
+
+4.2.5 Summary of 1D findings
+The 1D experiments support four consistent conclusions: (i) localisation is essential
+on this oscillatory problem (PINN fails; decomposed methods succeed), (ii) for suffi-
+cient localisation and local width, ELM-FBPINN provides a faster route to accurate
+solutions than gradient-trained FBPINN, (iii) increasing J1 expands the trial space
+primarily via spatially distinct degrees of freedom, whereas increasing K eventu-
+ally introduces correlated features and ill-conditioning with diminishing reduction of
+the test error, and (iv) using multilevel models with coarse levels further improves
+performance by aiding global subdomain communication.
+
+4.3 2D – Multi-scale Laplacian problem
+We next evaluate all models with a 2D multi-scale Laplacian problem, as defined in
+[8]. Compared to the 1D oscillator, this problem combines higher dimensionality with
+multi-frequency spatial structure, increasing both representational and optimisation
+difficulty.
+
+
+
+
+                                                                                                                              20
+     Model           (ω0 , J)         (h, K)    δ        κ(M )   Optimiser      eL1       Time (s)
+   FBPINN         (20, 10)      (1, 12) 2.9 N/A                   Adam       5.7±4.4e-04 1.1±0.0e+01
+   FBPINN         (40, 20)      (1, 12) 2.9 N/A                   Adam       2.0±0.6e-03 2.5±0.1e+01
+   FBPINN         (80, 40)      (1, 12) 2.9 N/A                   Adam       7.6±0.7e-03 3.2±0.0e+01
+   FBPINN        (160, 80)      (1, 12) 2.9 N/A                   Adam       3.1±0.5e-02 6.3±0.2e+01
+   FBPINN      (320, 160)       (1, 12) 2.9 N/A                   Adam       1.4±0.1e-01 1.3±0.0e+02
+ ELM-FBPINN       (20, 10)      (1, 12) 2.9 1.2e+18               LSQR       9.5±9.6e-07    4.4±0.0
+ ELM-FBPINN       (40, 20)      (1, 12) 2.9 3.5e+18               LSQR       1.4±1.7e-05    4.5±0.0
+ ELM-FBPINN       (80, 40)      (1, 12) 2.9 1.6e+19               LSQR       1.3±2.5e-04    5.1±0.0
+ ELM-FBPINN      (160, 80)      (1, 12) 2.9 1.4e+19               LSQR       2.6±2.0e-03    5.8±0.0
+ ELM-FBPINN     (320, 160)      (1, 12) 2.9 8.0e+19               LSQR       2.1±0.9e-02    8.0±0.1
+ ELM-FBPINN (20, [1, 5, 10]) (1, 12) 2.9 6.3e+15                  LSQR       8.8±7.9e-07    6.5±0.1
+ ELM-FBPINN (40, [1, 10, 20]) (1, 12) 2.9 9.3e+14                 LSQR       7.2±4.3e-06    7.3±0.1
+ ELM-FBPINN (80, [1, 20, 40]) (1, 12) 2.9 7.1e+14                 LSQR       3.3±1.1e-05    6.7±0.0
+ ELM-FBPINN (160, [1, 40, 80]) (1, 12) 2.9 6.1e+14                LSQR       7.2±2.6e-05    8.6±0.0
+ ELM-FBPINN (320, [1, 80, 160]) (1, 12) 2.9 7.9e+14               LSQR       3.1±1.2e-04 1.6±0.0e+01
+Table 5: Test error and runtime when varying ω0 for the 1D damped harmonic oscil-
+lator problem, where J lists the number of subdomains for each level. The values for
+the test error, measured in the eL1 norm, state the median value together with the
+range between the best and worst observed values. For runtime measurements, we
+report the mean together with one standard deviation.
+
+
+
+Problem definition
+The problem is given by
+
+                                                     in Ω = [0, 1]2 ,
+                                
+                                    −∆u = f,
+                                                                                                 (16)
+                                    u = 0,           on ∂ Ω.
+
+with a source term given by
+                                        nω
+                                     2 X       2
+                   f (x1 , x2 ) =          ωi π sin(ωi πx1 ) sin(ωi πx2 ).                       (17)
+                                    nω i=1
+
+In this case the exact solution is
+                                            n
+                                            ω
+                                        1 X
+                       u(x1 , x2 ) =          sin(ωi πx1 ) sin(ωi πx2 ).                         (18)
+                                       nω i=1
+
+We choose ωi such that the solution is highly multi-scale, with the number of multi-
+scale components controlled by the parameter nω , and we vary nω and ωi to control
+the problem difficulty.
+
+
+
+
+                                                    21
+Hard boundary constraints
+For this problem, we use a hard-constraining approach, as originally described by [1],
+to assert boundary conditions. Specifically, we use the following solution ansatz
+
+ũ(x1 , x2 ) = tanh(ωnω x1 ) tanh(ωnω (1 − x1 )) tanh(ωnω x2 ) tanh(ωnω (1 − x2 )) û(x1 , x2 ).
+                                                                                           (19)
+It is straightforward to verify that this ansatz inherently satisfies the boundary con-
+dition in Equation (16). As a result, the boundary loss terms in Equation (3) can be
+omitted. Importantly, with this ansatz, Equation (3) remains quadratic in a, ensuring
+that the least-squares system in Equation (4) can still be formed. We also note that
+the tanh terms become sharper with increasing ωnω , which is crucial to guarantee
+that the effect of the constraining operator is negligible at a distance of one solution
+half-cycle (1/ωnω ) from the boundary.
+
+Physics-informed objective
+With the use of hard boundary constraints, the loss function reduces to
+
+                                        N
+                                        I
+                                   1 X             2
+                    L = Lphys =           − ∆ũ − f (xi ),         xi ∈ Ω.                 (20)
+                                   NI i=1
+
+4.3.1 Baseline
+We establish a baseline configuration. We fix nω = 4, choosing frequency components
+ω1 = 4, ω2 = 8, ω3 = 12, and ω4 = 16. The resulting solution (see Figure 7) contains
+multiple interacting sine modes, introducing progressively finer spatial oscillations that
+are challenging for globally trained networks. The PINN uses h = 2 hidden layers with
+K = 64 basis functions per layer, matching the 1D configuration. Both the FBPINN
+and ELM-FBPINN use a single hidden layer (h = 1) with K = 16, and a one-level
+decomposition with J1 = 16 × 16 = 256 subdomains with a width ratio δ = 2.9. All
+models use a weight scaling of R = 1 and are trained on 80 × 80 = 6400 regularly
+spaced collocation points and tested on M = 96 × 96 = 9216 regularly spaced points.
+    Figure 6 shows the convergence curves. The PINN does not converge fully within
+the allotted budget, reflecting the difficulty of fitting multi-scale structure with a sin-
+gle global network trained by gradient descent. Both FBPINN and ELM-FBPINN
+converge to acceptable eL1 values, with FBPINN achieving the lowest final error.
+The improvement over PINN highlights the benefit of domain localisation. ELM-
+FBPINN exhibits rapid initial convergence, corresponding to the early iterations of
+the least-squares solver efficiently reducing dominant residual components, followed
+by a slower phase as finer-scale interactions dominate. Table 6 reports final eL1 val-
+ues and wall-clock times. The PINN and FBPINN are nearly two orders of magnitude
+slower in runtime than the ELM-FBPINN, reflecting increased expense of nonlinear
+optimisation in the higher-dimensional multi-scale setting.
+    We also show the model predictions in Figure 6 for the same ELM-FBPINN, but
+with L = 3 and J = [1, 8, 16] subdomains, where J lists the number of subdomains
+along each input dimension for each level (i.e., J1 = 1 × 1, J2 = 8 × 8, and J3 = 16 ×
+
+
+                                              22
+                                       100
+
+
+    Normalised L1 test error (eL1 )                                                     PINN nω = 4, J = 1, δ = 2.9, K = 64
+                                      10 1
+                                                                                        FBPINN nω = 4, J = 16, δ = 2.9, K = 16
+                                                                                        ELM-FBPINN nω = 4, J = 16, δ = 2.9, K = 16
+                                      10 2
+
+
+
+                                             0   2500 5000 7500 10000 12500 15000
+                                                        Iteration step
+Fig. 6: Test error, measured in the eL1 norm, versus iteration count for the baseline
+2D multi-scale Laplacian problem, where J lists the number of subdomains along each
+input dimension for each level (here, in all cases L = 1). The median test error is
+denoted by a solid line, while the shaded region indicates the range between the best
+and worst seeds.
+
+
+                   Model                         (nω , J) (h, K)    δ    κ(M )      Optimiser          eL1              Time (s)
+    PINN     (4, 1) (2, 64) 2.9 N/A                                                  Adam       8.1±38.4e-02 1.8±0.0e+03
+   FBPINN   (4, 16) (1, 16) 2.9 N/A                                                  Adam       1.8±0.4e-03 2.4±0.0e+03
+ ELM-FBPINN (4, 16) (1, 16) 2.9 1.4e+09                                              LSQR       3.8±1.2e-03 6.2±0.0e+01
+Table 6: Baseline results for the 2D multi-scale Laplacian problem, where J lists the
+number of subdomains along each input dimension for each level (here, in all cases
+L = 1). The values for the test error, measured in the eL1 norm, state the median
+value together with the range between the best and worst observed values. For runtime
+measurements, we report the mean together with one standard deviation.
+
+
+
+16). The multilevel solution is visually indistinguishable from the exact solution, and
+recovers not only the dominant spatial oscillations but also the finer-scale components.
+
+4.3.2 Varying number of basis functions
+We vary the number of basis functions K of the baseline L = 1 model to probe how
+each method exploits increased local capacity while keeping domain decomposition
+and sampling fixed. This ablation separates (i) expressivity limitations at small K
+from (ii) redundancy and conditioning effects at larger K . As for the 1D problem,
+for the baseline PINN which uses h = 2, varying K also varies the number of basis
+functions per hidden layer as we use K basis functions per hidden layer.
+
+
+
+
+                                                                            23
+                                                        ELM-FBPINN
+               Exact solution                      δ : 2.9 K : 16 J : [1, 8, 16]                   Difference
+     1.0                                    1.0                                         1.0
+                                                                                                                           0.6
+     0.8                                    0.8                                         0.8                                0.4
+     0.6                                    0.6                                         0.6                                0.2
+x2                                                                                                                         0.0
+
+
+
+
+                                       x2
+
+
+
+
+                                                                                   x2
+     0.4                                    0.4                                         0.4                                  0.2
+     0.2                                    0.2                                         0.2                                  0.4
+                                                                                                                             0.6
+     0.0                                    0.0                                         0.0
+        0.0 0.2 0.4 0.6 0.8 1.0                0.0 0.2 0.4 0.6 0.8 1.0                     0.0 0.2 0.4 0.6 0.8 1.0
+                      x1                                       x1                                       x1
+           Domain decomposition                   Domain decomposition                         Domain decomposition
+                  level 1                                level 2                                      level 3
+     1.0                                    1.0                                          1.0
+     0.8                                    0.8                                          0.8
+     0.6                                    0.6                                          0.6
+x2
+
+
+
+
+                                       x2
+
+
+
+
+                                                                                    x2
+     0.4                                    0.4                                          0.4
+     0.2                                    0.2                                          0.2
+     0.0                                    0.0                                          0.0
+
+             0.0 0.2 0.4 0.6 0.8 1.0                0.0 0.2 0.4 0.6 0.8 1.0                      0.0 0.2 0.4 0.6 0.8 1.0
+                      x1                                       x1                                         x1
+Fig. 7: Model predictions versus the exact solution for the 2D multi-scale Laplacian
+problem with a multilevel ELM-FBPINN, where J lists the number of subdomains
+along each input dimension for each level; multilevel domain decomposition.
+
+
+Key observations
+Figure 8 shows the convergence behaviour and Table 7 summarises the final errors and
+runtimes. All PINN configurations exhibit similar non-convergent trends, indicating
+that increasing width alone does not resolve the optimisation difficulty associated with
+multi-scale structure in a single global network. Both decomposed methods converge
+for moderate K . FBPINN improves steadily as K increases and achieves the lowest
+final errors, demonstrating that additional trainable local basis functions enhance
+expressivity in the 2D multi-scale setting. ELM-FBPINN also improves with increasing
+K , although very small values (K = 2, 4) lead to instability or large variance due
+to insufficient capacity and sensitivity to random feature alignment. ELM-FBPINN
+consistently exhibits faster initial convergence in terms of number of iteration steps
+than FBPINN, reflecting the efficiency of solving a single least-squares problem for
+the dominant coefficients. For moderate to large K , its final errors remain within
+approximately one order of magnitude of FBPINN while requiring nearly two orders
+of magnitude less wall-clock time, highlighting a precision–efficiency trade-off.
+
+Interpretation
+In the low-capacity regime, both decomposed methods are limited by insufficient local
+expressivity, with ELM-FBPINN particularly sensitive to random feature alignment.
+
+
+                                                               24
+                                                                                                                                                            PINN nω = 4, δ = 2.9, K = 2, J = 1       FBPINN nω = 4, δ = 2.9, K = 12, J = 16
+                                                                                                                                                            PINN nω = 4, δ = 2.9, K = 4, J = 1       FBPINN nω = 4, δ = 2.9, K = 14, J = 16
+                                   100                                                                             100                                      PINN nω = 4, δ = 2.9, K = 6, J = 1       FBPINN nω = 4, δ = 2.9, K = 16, J = 16
+                                                                                                                                                            PINN nω = 4, δ = 2.9, K = 8, J = 1       FBPINN nω = 4, δ = 2.9, K = 18, J = 16
+Normalised L1 test error (eL1 )
+
+
+
+
+                                                                                Normalised L1 test error (eL1 )
+                                                                                                                                                            PINN nω = 4, δ = 2.9, K = 10, J = 1      FBPINN nω = 4, δ = 2.9, K = 20, J = 16
+                                                                                                                                                            PINN nω = 4, δ = 2.9, K = 12, J = 1      ELM-FBPINN nω = 4, δ = 2.9, K = 2, J = 16
+                                  10 1                                                                            10 1                                      PINN nω = 4, δ = 2.9, K = 14, J = 1      ELM-FBPINN nω = 4, δ = 2.9, K = 4, J = 16
+                                                                                                                                                            PINN nω = 4, δ = 2.9, K = 16, J = 1      ELM-FBPINN nω = 4, δ = 2.9, K = 6, J = 16
+                                                                                                                                                            PINN nω = 4, δ = 2.9, K = 18, J = 1      ELM-FBPINN nω = 4, δ = 2.9, K = 8, J = 16
+                                                                                                                                                            PINN nω = 4, δ = 2.9, K = 20, J = 1      ELM-FBPINN nω = 4, δ = 2.9, K = 10, J = 16
+                                  10 2                                                                            10 2                                      FBPINN nω = 4, δ = 2.9, K = 2, J = 16    ELM-FBPINN nω = 4, δ = 2.9, K = 12, J = 16
+                                                                                                                                                            FBPINN nω = 4, δ = 2.9, K = 4, J = 16    ELM-FBPINN nω = 4, δ = 2.9, K = 14, J = 16
+                                                                                                                                                            FBPINN nω = 4, δ = 2.9, K = 6, J = 16    ELM-FBPINN nω = 4, δ = 2.9, K = 16, J = 16
+                                                                                                                                                            FBPINN nω = 4, δ = 2.9, K = 8, J = 16    ELM-FBPINN nω = 4, δ = 2.9, K = 18, J = 16
+                                  10 3                                                                            10 3                                      FBPINN nω = 4, δ = 2.9, K = 10, J = 16   ELM-FBPINN nω = 4, δ = 2.9, K = 20, J = 16
+                                         0   2500 5000 7500 10000 12500 15000                                            101         102              103
+                                                    Iteration step                                                             Total time elapsed (s)
+
+Fig. 8: Test error, measured in the eL1 norm, vs number of basis functions, K , for
+the 2D multi-scale Laplacian problem, where J lists the number of subdomains along
+each input dimension for each level (here, in all cases L = 1). In the left-hand plot, the
+median test error is denoted by a solid line, while the shaded region indicates the range
+between the best and worst seeds. In the right-hand plot, the median final test error is
+denoted by a circle, and the range between the best and worst seeds by a vertical bar.
+
+
+As K increases, the test error improves until diminishing returns appear. The per-
+sistent failure of PINN across all K confirms that width alone does not compensate
+for optimisation difficulty in multi-scale, two-dimensional problems. Overall, FBPINN
+benefits from the flexibility of trainable hidden weights, whereas ELM-FBPINN offers
+competitive errors at significantly reduced computational cost.
+
+4.3.3 Varying number of subdomains
+We vary the number of subdomains J1 of the baseline L = 1 model while fixing
+all other parameters for FBPINN and ELM-FBPINN. Here we use J to denote the
+number of subdomains along each input dimension, i.e. J1 = J × J .
+
+Key observations
+Figure 9 shows the convergence behaviour. For small J , both methods struggle, with
+J = 2 failing for both and J = 4 exhibiting instability. In this regime, localisation is
+too coarse to isolate the multi-frequency structure of the solution. For moderate and
+large J , both methods converge reliably. FBPINN consistently attains lower eL1 values
+than ELM-FBPINN, with the gap remaining approximately one order of magnitude
+across most tested values. In contrast to the 1D case, increasing localisation alone
+is insufficient for ELM-FBPINN to match the errors of fully trainable subdomain
+networks. ELM-FBPINN exhibits faster initial convergence in terms of number of
+iteration steps for J ≳ 10, reflecting the efficiency of the global least-squares solve. The
+subsequent slower decay phase suggests residual inter-subdomain interactions that are
+more difficult to capture with fixed random features. Final errors and runtimes are
+summarised in Table 8. While ELM-FBPINN retains a significant runtime advantage
+of nearly two orders of magnitude, this gain comes at the cost of reduced precision.
+
+Interpretation
+In the 2D multi-scale setting, localisation alone is insufficient for fixed random fea-
+tures to match the flexibility of trainable hidden weights. While increasing J improves
+
+
+                                                                                                                                                     25
+     Model       (nω , J) (h, K)   δ    κ(M )   Optimiser       eL1         Time (s)
+    PINN     (4, 1) (2, 2) 2.9 N/A                Adam       7.0±0.3e-01 3.8±0.0e+01
+    PINN     (4, 1) (2, 4) 2.9 N/A                Adam       6.8±0.9e-01 9.6±0.0e+01
+    PINN     (4, 1) (2, 6) 2.9 N/A                Adam       6.7±0.5e-01 1.2±0.1e+02
+    PINN     (4, 1) (2, 8) 2.9 N/A                Adam       6.6±0.8e-01 1.1±0.0e+02
+    PINN     (4, 1) (2, 10) 2.9 N/A               Adam      6.7±1.2e-01 3.2±0.1e+02
+    PINN     (4, 1) (2, 12) 2.9 N/A               Adam      7.0±1.1e-01 2.4±0.1e+02
+    PINN     (4, 1) (2, 14) 2.9 N/A               Adam      7.0±2.0e-01 2.8±0.1e+02
+    PINN     (4, 1) (2, 16) 2.9 N/A               Adam      7.4±1.5e-01 4.5±0.0e+02
+    PINN     (4, 1) (2, 18) 2.9 N/A               Adam      7.1±2.1e-01 4.7±0.0e+02
+    PINN     (4, 1) (2, 20) 2.9 N/A               Adam      6.6±2.4e-01 5.9±0.1e+02
+   FBPINN   (4, 16) (1, 2) 2.9 N/A                Adam      8.8±13.2e-02 2.6±0.0e+02
+   FBPINN   (4, 16) (1, 4) 2.9 N/A                Adam       1.8±1.2e-02 6.0±0.0e+02
+   FBPINN   (4, 16) (1, 6) 2.9 N/A                Adam       1.2±1.8e-02 6.9±0.0e+02
+   FBPINN   (4, 16) (1, 8) 2.9 N/A                Adam       1.9±1.1e-02 7.3±0.0e+02
+   FBPINN   (4, 16) (1, 10) 2.9 N/A               Adam      2.9±4.7e-03 1.4±0.0e+03
+   FBPINN   (4, 16) (1, 12) 2.9 N/A               Adam      3.5±2.5e-03 1.4±0.0e+03
+   FBPINN   (4, 16) (1, 14) 2.9 N/A               Adam      3.7±1.8e-03 1.7±0.0e+03
+   FBPINN   (4, 16) (1, 16) 2.9 N/A               Adam      1.8±0.4e-03 2.4±0.1e+03
+   FBPINN   (4, 16) (1, 18) 2.9 N/A               Adam      1.7±1.2e-03 2.4±0.0e+03
+   FBPINN   (4, 16) (1, 20) 2.9 N/A               Adam      1.7±1.3e-03 2.8±0.0e+03
+ ELM-FBPINN (4, 16) (1, 2) 2.9 1.9e+03            LSQR      6.9±0.0e-01     9.4±0.2
+ ELM-FBPINN (4, 16) (1, 4) 2.9 5.6e+04            LSQR      8.1±4.6e-02 1.1±0.0e+01
+ ELM-FBPINN (4, 16) (1, 6) 2.9 1.1e+06            LSQR      3.2±1.6e-02 1.3±0.0e+01
+ ELM-FBPINN (4, 16) (1, 8) 2.9 5.1e+17            LSQR      2.5±0.8e-02 1.6±0.0e+01
+ ELM-FBPINN (4, 16) (1, 10) 2.9 5.3e+07           LSQR       7.9±2.1e-03 2.4±0.0e+01
+ ELM-FBPINN (4, 16) (1, 12) 2.9 5.9e+08           LSQR       7.7±5.5e-03 2.3±0.0e+01
+ ELM-FBPINN (4, 16) (1, 14) 2.9 2.5e+10           LSQR       6.5±0.9e-03 2.9±0.1e+01
+ ELM-FBPINN (4, 16) (1, 16) 2.9 1.4e+09           LSQR       3.8±1.2e-03 4.4±0.0e+01
+ ELM-FBPINN (4, 16) (1, 18) 2.9 1.6e+10           LSQR       3.5±0.7e-03 4.8±0.1e+01
+ ELM-FBPINN (4, 16) (1, 20) 2.9 1.6e+11           LSQR       3.6±0.9e-03 9.9±0.4e+01
+Table 7: Test error and runtime when varying number of basis functions, K , for the
+2D multi-scale Laplacian problem, where J lists the number of subdomains along each
+input dimension for each level (here, in all cases L = 1). The values for the test error,
+measured in the eL1 norm, state the median value together with the range between
+the best and worst observed values. For runtime measurements, we report the mean
+together with one standard deviation.
+
+
+
+the test loss errors for both methods, the persistent performance gap indicates that
+adaptivity within subdomains becomes increasingly important as spatial complexity
+grows. ELM-FBPINN remains computationally attractive, but its fixed feature basis
+limits its ability to fully capture interacting frequency components in two dimensions.
+
+
+
+
+                                           26
+                                   101                                                                             101
+
+                                                                                                                                                          FBPINN nω = 4, δ = 2.9, K = 16, J = 2    ELM-FBPINN nω = 4, δ = 2.9, K = 16, J = 2
+Normalised L1 test error (eL1 )
+                                   100
+
+
+
+
+                                                                                Normalised L1 test error (eL1 )
+                                                                                                                   100                                    FBPINN nω = 4, δ = 2.9, K = 16, J = 4    ELM-FBPINN nω = 4, δ = 2.9, K = 16, J = 4
+                                                                                                                                                          FBPINN nω = 4, δ = 2.9, K = 16, J = 6    ELM-FBPINN nω = 4, δ = 2.9, K = 16, J = 6
+                                                                                                                                                          FBPINN nω = 4, δ = 2.9, K = 16, J = 8    ELM-FBPINN nω = 4, δ = 2.9, K = 16, J = 8
+                                  10 1                                                                            10 1                                    FBPINN nω = 4, δ = 2.9, K = 16, J = 10   ELM-FBPINN nω = 4, δ = 2.9, K = 16, J = 10
+                                                                                                                                                          FBPINN nω = 4, δ = 2.9, K = 16, J = 12   ELM-FBPINN nω = 4, δ = 2.9, K = 16, J = 12
+                                                                                                                                                          FBPINN nω = 4, δ = 2.9, K = 16, J = 14   ELM-FBPINN nω = 4, δ = 2.9, K = 16, J = 14
+                                                                                                                                                          FBPINN nω = 4, δ = 2.9, K = 16, J = 16   ELM-FBPINN nω = 4, δ = 2.9, K = 16, J = 16
+                                  10 2                                                                            10 2                                    FBPINN nω = 4, δ = 2.9, K = 16, J = 18   ELM-FBPINN nω = 4, δ = 2.9, K = 16, J = 18
+                                                                                                                                                          FBPINN nω = 4, δ = 2.9, K = 16, J = 20   ELM-FBPINN nω = 4, δ = 2.9, K = 16, J = 20
+
+                                  10 3                                                                            10 3
+                                         0   2500 5000 7500 10000 12500 15000                                            101           102          103
+                                                    Iteration step                                                             Total time elapsed (s)
+
+Fig. 9: Test error, measured in the eL1 norm, vs number of subdomains, J , for
+FBPINN and ELM-FBPINN, for the 2D multi-scale Laplacian problem, where J lists
+the number of subdomains along each input dimension for each level (here, in all cases
+L = 1). In the left-hand plot, the median test error is denoted by a solid line, while
+the shaded region indicates the range between the best and worst seeds. In the right-
+hand plot, the median final test error is denoted by a circle, and the range between
+the best and worst seeds by a vertical bar.
+
+
+4.3.4 Scaling solution frequency with subdomains
+We investigate robustness under increasing spectral complexity by varying the number
+of frequency components nω in the exact solution. Specifically, our most complex
+problem is defined as nω = 7 with ωi ∈ {4, 8, 12, 16, 20, 24, 28}, i = 1, . . . , 7, with
+simpler problems defined by taking the first nω elements of this set. To maintain
+approximately constant resolution per subdomain, we scale the number of subdomains
+J alongside nω (and the number of collocation points proportionally). This isolates the
+effect of increasing global complexity while preserving local resolution. In this section,
+we also assess whether including multiple levels can improve scaling performance.
+
+Key observations
+Figure 10 shows the convergence behaviour and Table 9 reports final errors. ELM-
+FBPINN and multilevel ELM-FBPINNs consistently exhibit the fastest initial con-
+vergence across all values of nω , reflecting the efficiency of the global least-squares
+solve. Although convergence curves appear visually distinct, the absolute differences
+in final eL1 values across all models tested remain modest for most nω , with the
+multilevel ELM-FBPINN most accurate on average, particularly for the highest fre-
+quencies tested. The max–min range of the ELM-FBPINN is slightly smaller than
+the FBPINN, indicating marginally more uniform performance as spectral richness
+increases. All methods maintain stable convergence as frequency increases, with no
+catastrophic degradation observed.
+
+Interpretation
+All methods scale reasonably well as spectral richness increases, whilst the ELM-
+FBPINN and multilevel ELM-FBPINN remain nearly two orders of magnitude faster
+than the FBPINN; we note adaptive stopping for the least-squares solver could further
+reduce ELM-FBPINN cost without affecting accuracy.
+
+
+
+                                                                                                                                                    27
+     Model        (nω , J) (h, K)      δ     κ(M )     Optimiser         eL1       Time (s)
+   FBPINN    (4, 2) (1, 16) 2.9 N/A                      Adam       7.2±1.5e-01 2.0±0.0e+01
+   FBPINN    (4, 4) (1, 16) 2.9 N/A                      Adam       2.2±0.2e-01 1.3±0.0e+02
+   FBPINN    (4, 6) (1, 16) 2.9 N/A                      Adam       1.5±0.6e-02 4.5±0.2e+02
+   FBPINN    (4, 8) (1, 16) 2.9 N/A                      Adam       5.3±2.1e-03 5.3±0.1e+02
+   FBPINN   (4, 10) (1, 16) 2.9 N/A                      Adam       1.6±1.3e-03 9.6±0.2e+02
+   FBPINN   (4, 12) (1, 16) 2.9 N/A                      Adam       2.0±0.5e-03 1.4±0.0e+03
+   FBPINN   (4, 14) (1, 16) 2.9 N/A                      Adam       1.8±1.2e-03 1.9±0.0e+03
+   FBPINN   (4, 16) (1, 16) 2.9 N/A                      Adam       1.8±0.4e-03 2.4±0.0e+03
+   FBPINN   (4, 18) (1, 16) 2.9 N/A                      Adam       1.8±0.5e-03 3.2±0.1e+03
+   FBPINN   (4, 20) (1, 16) 2.9 N/A                      Adam       1.7±1.9e-03 3.9±0.0e+03
+ ELM-FBPINN (4, 2) (1, 16) 2.9 1.3e+10                   LSQR       6.2±0.0e-01    4.3±0.0
+ ELM-FBPINN (4, 4) (1, 16) 2.9 7.6e+08                   LSQR       5.7±0.1e-01    6.4±0.0
+ ELM-FBPINN (4, 6) (1, 16) 2.9 6.6e+08                   LSQR       4.1±0.1e-01 1.1±0.0e+01
+ ELM-FBPINN (4, 8) (1, 16) 2.9 1.1e+09                   LSQR       2.2±0.5e-01 1.3±0.0e+01
+ ELM-FBPINN (4, 10) (1, 16) 2.9 2.6e+09                  LSQR       7.9±1.4e-03 1.8±0.0e+01
+ ELM-FBPINN (4, 12) (1, 16) 2.9 1.1e+09                  LSQR       4.7±3.3e-03 2.7±0.0e+01
+ ELM-FBPINN (4, 14) (1, 16) 2.9 1.8e+09                  LSQR       3.7±0.8e-03 3.0±0.0e+01
+ ELM-FBPINN (4, 16) (1, 16) 2.9 1.4e+09                  LSQR       3.8±1.2e-03 4.1±0.0e+01
+ ELM-FBPINN (4, 18) (1, 16) 2.9 5.7e+09                  LSQR       3.4±0.8e-03 7.0±0.0e+01
+ ELM-FBPINN (4, 20) (1, 16) 2.9 3.3e+09                  LSQR       3.3±0.5e-03 6.6±0.0e+01
+Table 8: Test error and runtime when varying number of subdomains, J , for the 2D
+multi-scale Laplacian problem, where J lists the number of subdomains along each
+input dimension for each level (here, in all cases L = 1). The values for the test error,
+measured in the eL1 norm, state the median value together with the range between
+the best and worst observed values. For runtime measurements, we report the mean
+together with one standard deviation.
+
+
+
+4.4 2D – Inhomogeneous Helmholtz equation
+    We finally evaluate all models on a 2D Helmholtz problem with an inhomoge-
+neous right-hand side on an L-shaped domain. Compared to the Laplacian problem,
+which has a simplifying tensor-product solution structure and homogeneous boundary
+conditions, we use a non-trivial manufactured solution which contains non-separable
+oscillatory solution components and spatially varying Dirichlet boundary condi-
+tions, yielding a more challenging and representative benchmark, particularly in the
+high-frequency regime.
+
+Problem definition
+The problem is given by
+
+                     ∆u + k 2 u = f,       in Ω = [0, 1]2 \ [0.5, 1] × [0.5, 1],
+                 
+                                                                                          (21)
+                     u = g,                on ∂ Ω,
+
+
+
+                                                28
+                                   100                                                                              100
+
+                                                                                                                                                                 FBPINN nω = 1, δ = 2.9, K = 16, J = 4          ELM-FBPINN nω = 5, δ = 2.9, K = 16, J = 20
+                                                                                                                                                                 FBPINN nω = 2, δ = 2.9, K = 16, J = 8          ELM-FBPINN nω = 6, δ = 2.9, K = 16, J = 24
+Normalised L1 test error (eL1 )
+
+
+
+
+                                                                                 Normalised L1 test error (eL1 )
+                                  10 1                                                                             10 1                                          FBPINN nω = 3, δ = 2.9, K = 16, J = 12         ELM-FBPINN nω = 7, δ = 2.9, K = 16, J = 28
+                                                                                                                                                                 FBPINN nω = 4, δ = 2.9, K = 16, J = 16         ELM-FBPINN nω = 1, δ = 2.9, K = 16, J = [1, 2, 4]
+                                                                                                                                                                 FBPINN nω = 5, δ = 2.9, K = 16, J = 20         ELM-FBPINN nω = 2, δ = 2.9, K = 16, J = [1, 4, 8]
+                                  10 2                                                                             10 2                                          FBPINN nω = 6, δ = 2.9, K = 16, J = 24         ELM-FBPINN nω = 3, δ = 2.9, K = 16, J = [1, 6, 12]
+                                                                                                                                                                 FBPINN nω = 7, δ = 2.9, K = 16, J = 28         ELM-FBPINN nω = 4, δ = 2.9, K = 16, J = [1, 8, 16]
+                                                                                                                                                                 ELM-FBPINN nω = 1, δ = 2.9, K = 16, J = 4      ELM-FBPINN nω = 5, δ = 2.9, K = 16, J = [1, 10, 20]
+                                                                                                                                                                 ELM-FBPINN nω = 2, δ = 2.9, K = 16, J = 8      ELM-FBPINN nω = 6, δ = 2.9, K = 16, J = [1, 12, 24]
+                                  10 3                                                                             10 3                                          ELM-FBPINN nω = 3, δ = 2.9, K = 16, J = 12     ELM-FBPINN nω = 7, δ = 2.9, K = 16, J = [1, 14, 28]
+                                                                                                                                                                 ELM-FBPINN nω = 4, δ = 2.9, K = 16, J = 16
+
+
+                                         0    2500 5000 7500 10000 12500 15000                                            101       102          103      104
+                                                     Iteration step                                                             Total time elapsed (s)
+
+Fig. 10: Test error, measured in the eL1 norm, as the number of frequency components
+nω increases (with J scaled accordingly) for the 2D multi-scale Laplacian problem,
+where J lists the number of subdomains along each input dimension for each level. In
+the left-hand plot, the median test error is denoted by a solid line, while the shaded
+region indicates the range between the best and worst seeds. In the right-hand plot,
+the median final test error is denoted by a circle, and the range between the best and
+worst seeds by a vertical bar.
+
+
+                                             Model                      (nω , J)                                                (h, K)             δ     κ(M )        Optimiser                               eL1                   Time (s)
+                           FBPINN         (1, 4)     (1, 16) 2.9 N/A                                                                                                       Adam                    2.1±1.1e-04 1.1±0.0e+02
+                           FBPINN         (2, 8)     (1, 16) 2.9 N/A                                                                                                       Adam                    7.2±2.7e-04 5.4±0.0e+02
+                           FBPINN        (3, 12)     (1, 16) 2.9 N/A                                                                                                       Adam                    1.3±0.3e-03 1.5±0.0e+03
+                           FBPINN        (4, 16)     (1, 16) 2.9 N/A                                                                                                       Adam                    1.8±0.4e-03 2.4±0.1e+03
+                           FBPINN        (5, 20)     (1, 16) 2.9 N/A                                                                                                       Adam                    3.3±3.1e-03 4.3±0.0e+03
+                           FBPINN        (6, 24)     (1, 16) 2.9 N/A                                                                                                       Adam                    2.8±2.1e-03 5.6±0.0e+03
+                           FBPINN        (7, 28)     (1, 16) 2.9 N/A                                                                                                       Adam                    3.3±3.3e-03 8.6±0.2e+03
+                         ELM-FBPINN       (1, 4)     (1, 16) 2.9 1.0e+09                                                                                                   LSQR                    8.6±5.0e-04    6.2±0.0
+                         ELM-FBPINN       (2, 8)     (1, 16) 2.9 1.3e+09                                                                                                   LSQR                    2.3±0.9e-03 1.2±0.0e+01
+                         ELM-FBPINN     (3, 12)      (1, 16) 2.9 1.3e+09                                                                                                   LSQR                    3.5±0.5e-03 2.5±0.0e+01
+                         ELM-FBPINN     (4, 16)      (1, 16) 2.9 1.4e+09                                                                                                   LSQR                    3.8±1.2e-03 2.0±0.1e+02
+                         ELM-FBPINN     (5, 20)      (1, 16) 2.9 2.8e+09                                                                                                   LSQR                    4.4±0.7e-03 2.7±0.5e+02
+                         ELM-FBPINN     (6, 24)      (1, 16) 2.9 4.0e+09                                                                                                   LSQR                    5.7±1.1e-03 2.3±0.1e+02
+                         ELM-FBPINN     (7, 28)      (1, 16) 2.9 4.9e+09                                                                                                   LSQR                    6.9±1.8e-03 4.3±0.2e+02
+                         ELM-FBPINN (1, [1, 2, 4]) (1, 16) 2.9 3.8e+16                                                                                                     LSQR                    6.7±6.7e-04    8.1±0.1
+                         ELM-FBPINN (2, [1, 4, 8]) (1, 16) 2.9 3.0e+16                                                                                                     LSQR                    2.6±0.4e-03 2.9±0.1e+01
+                         ELM-FBPINN (3, [1, 6, 12]) (1, 16) 2.9 2.3e+16                                                                                                    LSQR                    4.1±0.5e-03 5.8±0.1e+01
+                         ELM-FBPINN (4, [1, 8, 16]) (1, 16) 2.9 2.2e+16                                                                                                    LSQR                    3.7±1.5e-03 9.9±0.1e+01
+                         ELM-FBPINN (5, [1, 10, 20]) (1, 16) 2.9 1.8e+16                                                                                                   LSQR                    3.3±1.4e-03 1.5±0.0e+02
+                         ELM-FBPINN (6, [1, 12, 24]) (1, 16) 2.9 2.1e+16                                                                                                   LSQR                    3.3±1.1e-03 2.4±0.0e+02
+                         ELM-FBPINN (7, [1, 14, 28]) (1, 16) 2.9 2.1e+16                                                                                                   LSQR                    3.5±0.9e-03 7.4±0.6e+02
+Table 9: Test error and runtime when varying nω for the 2D multi-scale Laplacian
+problem, where J lists the number of subdomains along each input dimension for each
+level. The values for the test error, measured in the eL1 norm, state the median value
+together with the range between the best and worst observed values. For runtime
+measurements, we report the mean together with one standard deviation.
+
+
+
+
+                                                                                                                                                         29
+where k > 0 is the wavenumber and is fixed at k = 1. We define a manufactured
+solution
+                u(x1 , x2 ) = sin(ωπx1 ) sin(2ωπx2 ) + sin(3ωπx1 x2 ),   (22)
+from which the source term is derived as
+
+   f (x1 , x2 ) =∆u(x1 , x2 ) + k 2 u(x1 , x2 )
+              = − 5(ωπ )2 sin(ωπx1 ) sin(2ωπx2 ) − 9(ωπ )2 (x21 + x22 ) sin(3ωπx1 x2 )   (23)
+                                                              
+                + k 2 sin(ωπx1 ) sin(2ωπx2 ) + sin(3ωπx1 x2 ) ,
+
+and non-homogeneous Dirichlet boundary conditions are imposed as g = u|∂Ω .
+We choose this manufactured solution so that it contains both high-frequency and
+non-separable spatial components, yielding a non-trivial solution on the non-convex
+L-shaped domain with spatially varying boundary conditions. By increasing the fre-
+quency parameter ω , we increase the oscillatory complexity of the solution and
+corresponding source term, thereby controlling the difficulty of the problem.
+
+Physics-informed objective
+All models minimise the same residual-based loss,
+
+                                       L = Lphys + λbc Lbc ,                             (24)
+
+with
+                                       N
+                                     I                  2
+                                1 X
+                      Lphys =            ∆û + k 2 û − f (xi ),          xi ∈ Ω,        (25)
+                                NI i=1
+                                            (bc)
+                                           NB
+                                   1       X                        2
+                        Lbc =      (bc)
+                                                   û(xi ) − g (xi ) ,   xi ∈ ∂ Ω,       (26)
+                                NB         i=1
+
+                    (bc)
+where NI and NB denote the number of interior and boundary collocation points,
+respectively. We choose λbc = 25ω 4 , which normalises all loss terms to the same
+physical unit and we find provides a reasonable balance between them as the solution
+frequency increases.
+
+
+4.4.1 Baseline
+We establish a baseline configuration. We fix ω = 8, with the resulting solution shown
+in Figure 12. The PINN uses h = 2 hidden layers with K = 64 basis functions per
+layer. Both the FBPINN and ELM-FBPINN use h = 1 with K = 16, and a one-level
+rectangular decomposition with J1 = 16 × 16 − 8 × 8 = 192 subdomains where 8 × 8
+subdomains outside of the L-shaped domain are discarded, and width ratio δ = 2.9.
+All models use a weight scaling of R = 1. Interior collocation points are obtained from
+
+
+
+                                                     30
+                                       100
+
+    Normalised L1 test error (eL1 )                                                     PINN ω = 8, J = 1, δ = 2.9, K = 64
+                                      10 1                                              FBPINN ω = 8, J = 16, δ = 2.9, K = 16
+                                                                                        ELM-FBPINN ω = 8, J = 16, δ = 2.9, K = 16
+
+                                      10 2
+
+
+                                             0   2500 5000 7500 10000 12500 15000
+                                                        Iteration step
+Fig. 11: Test error, measured in the eL1 norm, versus iteration count for the baseline
+2D inhomogenous Helmholtz equation problem, where J lists the number of subdo-
+mains along each input dimension for each level (here, in all cases L = 1). The median
+test error is denoted by a solid line, while the shaded region indicates the range between
+the best and worst seeds.
+
+
+a regular 80 × 80 Cartesian grid over [0, 1]2 , discarding 40 × 40 points outside the L-
+shaped domain, while boundary collocation points are sampled uniformly along each
+boundary segment (80 points on long segments and 40 on short segments). Test points
+are constructed analogously using a regular 96 × 96 Cartesian grid over [0, 1]2 , again
+discarding points outside the L-shaped domain.
+Figure 11 shows convergence curves. As in the previous settings, the PINN exhibits
+slow and unstable convergence, failing to reach a competitive error within the allot-
+ted iteration budget. Both FBPINN and ELM-FBPINN converge reliably, with the
+FBPINN achieving a lower final error. The gap in convergence speed is particularly
+pronounced in the early iterations. Although the final error favours FBPINN, the time
+to solution is orders of magnitude lower for the ELM version (see Table 10).
+
+
+                     Model                        (ω, J) (h, K)     δ    κ(M )      Optimiser          eL1              Time (s)
+    PINN     (8, 1) (2, 64) 2.9 N/A                                                  Adam        1.8±4.8e-01 1.1±0.0e+03
+   FBPINN   (8, 16) (1, 16) 2.9 N/A                                                  Adam        2.7±0.6e-03 1.5±0.0e+03
+ ELM-FBPINN (8, 16) (1, 16) 2.9 3.7e+08                                              LSQR        1.3±0.8e-02 3.7±0.0e+01
+Table 10: Baseline results for the 2D inhomogenous Helmholtz equation problem,
+where J lists the number of subdomains along each input dimension for each level
+(here, in all cases L = 1). The values for the test error, measured in the eL1 norm,
+state the median value together with the range between the best and worst observed
+values. For runtime measurements, we report the mean together with one standard
+deviation.
+
+
+
+
+                                                                            31
+   We also show model predictions in Figure 12 for the same ELM-FBPINN, but
+with L = 3 and J = [1, 8, 16] subdomains, where J lists the number of subdomains
+along each input dimension for each level (i.e., J1 = 1 × 1, J2 = 8 × 8 − 4 × 4, and
+J3 = 16 × 16 − 8 × 8). The multilevel solution is visually indistinguishable from the
+exact solution.
+
+                                                        ELM-FBPINN
+               Exact solution                      δ : 2.9 K : 16 J : [1, 8, 16]                   Difference
+     1.0                                    1.0                                         1.0
+     0.8                                    0.8                                         0.8                                1
+     0.6                                    0.6                                         0.6
+                                                                                                                           0
+x2
+
+
+
+
+                                       x2
+
+
+
+
+                                                                                   x2
+     0.4                                    0.4                                         0.4
+     0.2                                    0.2                                         0.2                                    1
+
+     0.0                                    0.0                                         0.0
+        0.0 0.2 0.4 0.6 0.8 1.0                0.0 0.2 0.4 0.6 0.8 1.0                     0.0 0.2 0.4 0.6 0.8 1.0
+                      x1                                       x1                                       x1
+           Domain decomposition                   Domain decomposition                         Domain decomposition
+                  level 1                                level 2                                      level 3
+     1.0                                    1.0                                          1.0
+     0.8                                    0.8                                          0.8
+     0.6                                    0.6                                          0.6
+x2
+
+
+
+
+                                       x2
+
+
+
+
+                                                                                    x2
+     0.4                                    0.4                                          0.4
+     0.2                                    0.2                                          0.2
+     0.0                                    0.0                                          0.0
+
+             0.0 0.2 0.4 0.6 0.8 1.0                0.0 0.2 0.4 0.6 0.8 1.0                      0.0 0.2 0.4 0.6 0.8 1.0
+                      x1                                       x1                                         x1
+Fig. 12: Model predictions versus the exact solution for the 2D inhomogenous
+Helmholtz equation problem with a multilevel ELM-FBPINN, where J lists the num-
+ber of subdomains along each input dimension for each level; multilevel domain
+decomposition.
+
+
+
+
+4.4.2 Varying number of basis functions
+We vary the number of basis functions K of the baseline L = 1 model while keeping
+all other parameters fixed. As before, since h = 2 for the baseline PINN, varying K
+alters the number of basis functions per hidden layer.
+
+
+Key observations
+Figure 13 shows the convergence behaviour and Table 11 summarises the final errors
+and runtimes. Across all models, increasing K improves approximation accuracy,
+
+
+                                                              32
+                                                                                                                                                            PINN ω = 8, δ = 2.9, K = 2, J = 1       FBPINN ω = 8, δ = 2.9, K = 12, J = 16
+                                                                                                                                                            PINN ω = 8, δ = 2.9, K = 4, J = 1       FBPINN ω = 8, δ = 2.9, K = 14, J = 16
+                                                                                                                                                            PINN ω = 8, δ = 2.9, K = 6, J = 1       FBPINN ω = 8, δ = 2.9, K = 16, J = 16
+                                   100                                                                             100                                      PINN ω = 8, δ = 2.9, K = 8, J = 1       FBPINN ω = 8, δ = 2.9, K = 18, J = 16
+Normalised L1 test error (eL1 )
+
+
+
+
+                                                                                Normalised L1 test error (eL1 )
+                                                                                                                                                            PINN ω = 8, δ = 2.9, K = 10, J = 1      FBPINN ω = 8, δ = 2.9, K = 20, J = 16
+                                                                                                                                                            PINN ω = 8, δ = 2.9, K = 12, J = 1      ELM-FBPINN ω = 8, δ = 2.9, K = 2, J = 16
+                                                                                                                                                            PINN ω = 8, δ = 2.9, K = 14, J = 1      ELM-FBPINN ω = 8, δ = 2.9, K = 4, J = 16
+                                  10 1                                                                            10 1                                      PINN ω = 8, δ = 2.9, K = 16, J = 1      ELM-FBPINN ω = 8, δ = 2.9, K = 6, J = 16
+                                                                                                                                                            PINN ω = 8, δ = 2.9, K = 18, J = 1      ELM-FBPINN ω = 8, δ = 2.9, K = 8, J = 16
+                                                                                                                                                            PINN ω = 8, δ = 2.9, K = 20, J = 1      ELM-FBPINN ω = 8, δ = 2.9, K = 10, J = 16
+                                                                                                                                                            FBPINN ω = 8, δ = 2.9, K = 2, J = 16    ELM-FBPINN ω = 8, δ = 2.9, K = 12, J = 16
+                                  10 2                                                                            10 2                                      FBPINN ω = 8, δ = 2.9, K = 4, J = 16    ELM-FBPINN ω = 8, δ = 2.9, K = 14, J = 16
+                                                                                                                                                            FBPINN ω = 8, δ = 2.9, K = 6, J = 16    ELM-FBPINN ω = 8, δ = 2.9, K = 16, J = 16
+                                                                                                                                                            FBPINN ω = 8, δ = 2.9, K = 8, J = 16    ELM-FBPINN ω = 8, δ = 2.9, K = 18, J = 16
+                                                                                                                                                            FBPINN ω = 8, δ = 2.9, K = 10, J = 16   ELM-FBPINN ω = 8, δ = 2.9, K = 20, J = 16
+                                         0   2500 5000 7500 10000 12500 15000                                            101            102           103
+                                                    Iteration step                                                             Total time elapsed (s)
+
+Fig. 13: Test error, measured in the eL1 norm, vs number of basis functions, K ,
+for the 2D inhomogenous Helmholtz equation problem, where J lists the number of
+subdomains along each input dimension for each level (here, in all cases L = 1). In
+the left-hand plot, the median test error is denoted by a solid line, while the shaded
+region indicates the range between the best and worst seeds. In the right-hand plot,
+the median final test error is denoted by a circle, and the range between the best and
+worst seeds by a vertical bar.
+
+
+although the effect is markedly different between methods. The PINN shows lim-
+ited sensitivity to K , with only marginal improvements in the final error, suggesting
+that optimisation remains the dominant bottleneck. In contrast, both ELM-FBPINN
+and FBPINN benefit from increased basis size, with the latter exhibiting the most
+consistent and rapid error reduction.
+
+
+4.4.3 Varying number of subdomains
+We vary the number of subdomains J1 of the baseline L = 1 model while fixing
+all other parameters for FBPINN and ELM-FBPINN. Here we use J to denote the
+number of subdomains along each input dimension, i.e. J1 = J × J − (J/2 × J/2).
+
+Key observations
+Figure 14 shows the convergence behaviour and final errors and runtimes are sum-
+marised in Table 12. Increasing the number of subdomains leads to a clear improvement
+in accuracy for both FBPINN and ELM-FBPINN. For small values of J , both methods
+struggle to resolve the oscillatory structure of the solution, while beyond a moderate
+threshold, the FBPINN consistently achieves lower errors than the ELM-FBPINN,
+but the latter being order of magnitude faster.
+
+
+Interpretation
+These results confirm the importance of localisation for oscillatory problems. By reduc-
+ing the size of each subdomain, the local approximation task becomes simpler, allowing
+both models to better capture high-frequency behaviour. However, the gains diminish
+at larger J , indicating that beyond a certain point, further subdivision yields limited
+additional benefit.
+
+
+
+                                                                                                                                                  33
+     Model        (ω, J) (h, K)   δ   κ(M )    Optimiser       eL1        Time (s)
+    PINN     (8, 1) (2, 2) 2.9 N/A              Adam        8.1±0.0e-01 1.1±0.0e+01
+    PINN     (8, 1) (2, 4) 2.9 N/A              Adam        8.1±0.0e-01 2.7±0.0e+01
+    PINN     (8, 1) (2, 6) 2.9 N/A              Adam        8.1±0.1e-01 3.9±0.0e+01
+    PINN     (8, 1) (2, 8) 2.9 N/A              Adam        8.1±0.2e-01 4.8±0.2e+01
+    PINN     (8, 1) (2, 10) 2.9 N/A             Adam       8.2±0.5e-01 8.9±0.1e+01
+    PINN     (8, 1) (2, 12) 2.9 N/A             Adam       8.2±0.3e-01 1.0±0.0e+02
+    PINN     (8, 1) (2, 14) 2.9 N/A             Adam       8.2±0.5e-01 1.3±0.0e+02
+    PINN     (8, 1) (2, 16) 2.9 N/A             Adam       8.2±0.7e-01 2.2±0.2e+02
+    PINN     (8, 1) (2, 18) 2.9 N/A             Adam       8.1±0.6e-01 2.7±0.2e+02
+    PINN     (8, 1) (2, 20) 2.9 N/A             Adam       7.9±0.8e-01 2.5±0.0e+02
+   FBPINN   (8, 16) (1, 2) 2.9 N/A              Adam        2.2±1.3e-01 1.6±0.0e+02
+   FBPINN   (8, 16) (1, 4) 2.9 N/A              Adam       4.6±10.4e-02 4.1±0.1e+02
+   FBPINN   (8, 16) (1, 6) 2.9 N/A              Adam        2.6±1.0e-02 4.5±0.0e+02
+   FBPINN   (8, 16) (1, 8) 2.9 N/A              Adam        2.0±0.8e-02 4.3±0.0e+02
+   FBPINN   (8, 16) (1, 10) 2.9 N/A             Adam       4.3±3.5e-03 8.2±0.0e+02
+   FBPINN   (8, 16) (1, 12) 2.9 N/A             Adam       4.3±3.7e-03 8.6±0.0e+02
+   FBPINN   (8, 16) (1, 14) 2.9 N/A             Adam       4.6±4.4e-03 1.1±0.0e+03
+   FBPINN   (8, 16) (1, 16) 2.9 N/A             Adam       2.7±0.6e-03 1.7±0.0e+03
+   FBPINN   (8, 16) (1, 18) 2.9 N/A             Adam       2.8±0.5e-03 1.8±0.0e+03
+   FBPINN   (8, 16) (1, 20) 2.9 N/A             Adam       2.8±0.4e-03 1.9±0.0e+03
+ ELM-FBPINN (8, 16) (1, 2) 2.9 1.0e+03          LSQR       4.7±4.3e-01     7.4±0.0
+ ELM-FBPINN (8, 16) (1, 4) 2.9 5.1e+04          LSQR       1.1±0.8e-01 1.1±0.0e+01
+ ELM-FBPINN (8, 16) (1, 6) 2.9 4.7e+05          LSQR       5.9±1.6e-02 1.4±0.0e+01
+ ELM-FBPINN (8, 16) (1, 8) 2.9 1.8e+07          LSQR       5.4±1.9e-02 1.2±0.0e+01
+ ELM-FBPINN (8, 16) (1, 10) 2.9 1.7e+07         LSQR        2.8±1.3e-02 1.8±0.0e+01
+ ELM-FBPINN (8, 16) (1, 12) 2.9 1.6e+08         LSQR        2.6±0.9e-02 3.8±0.1e+01
+ ELM-FBPINN (8, 16) (1, 14) 2.9 2.6e+09         LSQR        2.3±0.9e-02 2.5±0.0e+01
+ ELM-FBPINN (8, 16) (1, 16) 2.9 3.7e+08         LSQR        1.3±0.8e-02 3.4±0.0e+01
+ ELM-FBPINN (8, 16) (1, 18) 2.9 2.1e+09         LSQR        1.3±0.7e-02 3.6±0.0e+01
+ ELM-FBPINN (8, 16) (1, 20) 2.9 2.2e+10         LSQR        1.3±0.7e-02 4.0±0.0e+01
+Table 11: Test error and runtime when varying number of basis functions, K , for the
+2D inhomogenous Helmholtz equation problem, where J lists the number of subdo-
+mains along each input dimension for each level (here, in all cases L = 1). The values
+for the test error, measured in the eL1 norm, state the median value together with
+the range between the best and worst observed values. For runtime measurements, we
+report the mean together with one standard deviation.
+
+
+
+4.4.4 Scaling solution frequency with subdomains
+We test scalability to harder (higher-frequency) solutions by increasing ω while simul-
+taneously increasing J1 (and the number of collocation points proportionally) to
+maintain approximately constant resolution per subdomain, for the baseline L = 1
+model. In this section, we also assess whether including multiple levels can improve
+scaling performance.
+
+
+                                          34
+                                   101                                                                                                         101
+
+                                                                                                                                                                                                 FBPINN ω = 8, δ = 2.9, K = 16, J = 2         ELM-FBPINN ω = 8, δ = 2.9, K = 16, J = 2
+Normalised L1 test error (eL1 )
+
+
+
+
+                                                                                                            Normalised L1 test error (eL1 )
+                                   100                                                                                                         100                                               FBPINN ω = 8, δ = 2.9, K = 16, J = 4         ELM-FBPINN ω = 8, δ = 2.9, K = 16, J = 4
+                                                                                                                                                                                                 FBPINN ω = 8, δ = 2.9, K = 16, J = 6         ELM-FBPINN ω = 8, δ = 2.9, K = 16, J = 6
+                                                                                                                                                                                                 FBPINN ω = 8, δ = 2.9, K = 16, J = 8         ELM-FBPINN ω = 8, δ = 2.9, K = 16, J = 8
+                                                                                                                                                                                                 FBPINN ω = 8, δ = 2.9, K = 16, J = 10        ELM-FBPINN ω = 8, δ = 2.9, K = 16, J = 10
+                                  10 1                                                                                                        10 1                                               FBPINN ω = 8, δ = 2.9, K = 16, J = 12        ELM-FBPINN ω = 8, δ = 2.9, K = 16, J = 12
+                                                                                                                                                                                                 FBPINN ω = 8, δ = 2.9, K = 16, J = 14        ELM-FBPINN ω = 8, δ = 2.9, K = 16, J = 14
+                                                                                                                                                                                                 FBPINN ω = 8, δ = 2.9, K = 16, J = 16        ELM-FBPINN ω = 8, δ = 2.9, K = 16, J = 16
+                                                                                                                                                                                                 FBPINN ω = 8, δ = 2.9, K = 16, J = 18        ELM-FBPINN ω = 8, δ = 2.9, K = 16, J = 18
+                                  10 2                                                                                                        10 2                                               FBPINN ω = 8, δ = 2.9, K = 16, J = 20        ELM-FBPINN ω = 8, δ = 2.9, K = 16, J = 20
+
+
+                                         0   2500 5000 7500 10000 12500 15000                                                                         101            102           103
+                                                    Iteration step                                                                                          Total time elapsed (s)
+
+Fig. 14: Test error, measured in the eL1 norm, vs number of subdomains, J , for
+FBPINN and ELM-FBPINN, for the 2D inhomogenous Helmholtz equation problem,
+where J lists the number of subdomains along each input dimension for each level
+(here, in all cases L = 1). In the left-hand plot, the median test error is denoted by
+a solid line, while the shaded region indicates the range between the best and worst
+seeds. In the right-hand plot, the median final test error is denoted by a circle, and
+the range between the best and worst seeds by a vertical bar.
+
+
+                                   100                                                                                     100
+
+                                                                                                                                                                                         FBPINN ω = 4, δ = 2.9, K = 16, J = 8            ELM-FBPINN ω = 12, δ = 2.9, K = 16, J = 24
+                                                                                                                                                                                         FBPINN ω = 6, δ = 2.9, K = 16, J = 12           ELM-FBPINN ω = 14, δ = 2.9, K = 16, J = 28
+Normalised L1 test error (eL1 )
+
+
+
+
+                                                                                Normalised L1 test error (eL1 )
+
+
+
+
+                                                                                                                                                                                         FBPINN ω = 8, δ = 2.9, K = 16, J = 16           ELM-FBPINN ω = 16, δ = 2.9, K = 16, J = 32
+                                  10 1                                                                            10 1                                                                   FBPINN ω = 10, δ = 2.9, K = 16, J = 20          ELM-FBPINN ω = 4, δ = 2.9, K = 16, J = [1, 4, 8]
+                                                                                                                                                                                         FBPINN ω = 12, δ = 2.9, K = 16, J = 24          ELM-FBPINN ω = 6, δ = 2.9, K = 16, J = [1, 6, 12]
+                                                                                                                                                                                         FBPINN ω = 14, δ = 2.9, K = 16, J = 28          ELM-FBPINN ω = 8, δ = 2.9, K = 16, J = [1, 8, 16]
+                                                                                                                                                                                         FBPINN ω = 16, δ = 2.9, K = 16, J = 32          ELM-FBPINN ω = 10, δ = 2.9, K = 16, J = [1, 10, 20]
+                                                                                                                                                                                         ELM-FBPINN ω = 4, δ = 2.9, K = 16, J = 8        ELM-FBPINN ω = 12, δ = 2.9, K = 16, J = [1, 12, 24]
+                                  10 2                                                                            10 2                                                                   ELM-FBPINN ω = 6, δ = 2.9, K = 16, J = 12       ELM-FBPINN ω = 14, δ = 2.9, K = 16, J = [1, 14, 28]
+                                                                                                                                                                                         ELM-FBPINN ω = 8, δ = 2.9, K = 16, J = 16       ELM-FBPINN ω = 16, δ = 2.9, K = 16, J = [1, 16, 32]
+                                                                                                                                                                                         ELM-FBPINN ω = 10, δ = 2.9, K = 16, J = 20
+
+
+                                         0   2500 5000 7500 10000 12500 15000                                                                   101      102           103
+                                                    Iteration step                                                                                    Total time elapsed (s)
+
+Fig. 15: Test error, measured in the eL1 norm, as the solution frequency ω increases
+(with J scaled accordingly) for the 2D inhomogenous Helmholtz equation problem,
+where J lists the number of subdomains along each input dimension for each level. In
+the left-hand plot, the median test error is denoted by a solid line, while the shaded
+region indicates the range between the best and worst seeds. In the right-hand plot,
+the median final test error is denoted by a circle, and the range between the best and
+worst seeds by a vertical bar.
+
+
+Key observations
+Figure 15 shows the convergence behaviour and Table 13 reports final errors. As the
+solution frequency increases, all models exhibit slower convergence, in terms of itera-
+tion numbers and CPU time, and higher final errors. The degradation in performance is
+gradual, indicating that the method scales reasonably well when the resolution per sub-
+domain is preserved. Multilevel configurations further improve robustness, particularly
+at higher frequencies.
+
+
+
+
+                                                                                                                                                                                35
+     Model        (ω, J) (h, K)    δ   κ(M )    Optimiser       eL1        Time (s)
+   FBPINN    (8, 2) (1, 16) 2.9 N/A               Adam      8.2±0.5e-01 1.5±0.0e+01
+   FBPINN    (8, 4) (1, 16) 2.9 N/A               Adam      8.0±0.4e-01 9.5±0.0e+01
+   FBPINN    (8, 6) (1, 16) 2.9 N/A               Adam      5.0±1.6e-02 2.2±0.1e+02
+   FBPINN    (8, 8) (1, 16) 2.9 N/A               Adam      8.4±2.6e-03 3.6±0.1e+02
+   FBPINN   (8, 10) (1, 16) 2.9 N/A               Adam      3.5±0.3e-03 5.6±0.2e+02
+   FBPINN   (8, 12) (1, 16) 2.9 N/A               Adam      3.4±1.1e-03 1.1±0.0e+03
+   FBPINN   (8, 14) (1, 16) 2.9 N/A               Adam      3.6±1.0e-03 2.9±0.1e+03
+   FBPINN   (8, 16) (1, 16) 2.9 N/A               Adam      2.7±0.6e-03 1.6±0.0e+03
+   FBPINN   (8, 18) (1, 16) 2.9 N/A               Adam      2.2±0.5e-03 2.0±0.1e+03
+   FBPINN   (8, 20) (1, 16) 2.9 N/A               Adam      2.0±0.4e-03 2.6±0.1e+03
+ ELM-FBPINN (8, 2) (1, 16) 2.9 7.5e+09            LSQR      7.5±0.0e-01    3.8±0.0
+ ELM-FBPINN (8, 4) (1, 16) 2.9 3.5e+08            LSQR      7.8±0.0e-01    5.6±0.0
+ ELM-FBPINN (8, 6) (1, 16) 2.9 3.7e+08            LSQR      5.8±0.7e-01    7.5±0.1
+ ELM-FBPINN (8, 8) (1, 16) 2.9 2.3e+08            LSQR      2.4±0.7e-01 1.1±0.0e+01
+ ELM-FBPINN (8, 10) (1, 16) 2.9 3.9e+08           LSQR      6.5±0.5e-02 1.5±0.0e+01
+ ELM-FBPINN (8, 12) (1, 16) 2.9 3.7e+08           LSQR      2.6±0.6e-02 3.2±0.0e+01
+ ELM-FBPINN (8, 14) (1, 16) 2.9 3.0e+08           LSQR      2.2±1.1e-02 2.7±0.0e+01
+ ELM-FBPINN (8, 16) (1, 16) 2.9 3.7e+08           LSQR      1.3±0.8e-02 4.9±0.2e+01
+ ELM-FBPINN (8, 18) (1, 16) 2.9 9.8e+08           LSQR      1.0±0.3e-02 4.6±0.1e+01
+ ELM-FBPINN (8, 20) (1, 16) 2.9 9.4e+08           LSQR      9.9±2.5e-03 7.7±0.1e+01
+Table 12: Test error and runtime when varying number of subdomains, J , for the 2D
+inhomogenous Helmholtz equation problem, where J lists the number of subdomains
+along each input dimension for each level (here, in all cases L = 1). The values for the
+test error, measured in the eL1 norm, state the median value together with the range
+between the best and worst observed values. For runtime measurements, we report
+the mean together with one standard deviation.
+
+
+
+Interpretation
+The observed behaviour highlights the balance between problem complexity and model
+capacity. While increasing J compensates for higher frequencies by maintaining local
+resolution, the global system becomes larger and more challenging to solve. The
+ELM-FBPINN remains more robust in this regime, suggesting that its formulation
+is better suited to handling the increased spectral content. The benefits of multilevel
+decomposition indicate that combining scales can further stabilise the approximation,
+particularly for highly oscillatory solutions.
+
+
+4.4.5 Accuracy–efficiency trade-off
+All 2D results highlight a clear trade-off between accuracy and computational efficiency
+for the ELM-FBPINN compared to the FBPINN. While the ELM-FBPINN initially
+converges significantly faster in terms of number of iteration steps and achieves nearly
+two orders of magnitude lower total runtime, the FBPINN attains lower final eL1 values
+
+
+                                          36
+     Model           (ω, J)      (h, K)   δ    κ(M )   Optimiser      eL1       Time (s)
+   FBPINN         (4, 8)      (1, 16) 2.9 N/A           Adam       2.2±0.3e-03 3.7±0.2e+02
+   FBPINN        (6, 12)      (1, 16) 2.9 N/A           Adam       4.1±0.8e-03 9.3±0.0e+02
+   FBPINN        (8, 16)      (1, 16) 2.9 N/A           Adam       2.7±0.6e-03 1.5±0.0e+03
+   FBPINN       (10, 20)      (1, 16) 2.9 N/A           Adam       2.9±0.8e-03 2.9±0.1e+03
+   FBPINN       (12, 24)      (1, 16) 2.9 N/A           Adam       3.4±1.6e-03 3.7±0.1e+03
+   FBPINN       (14, 28)      (1, 16) 2.9 N/A           Adam       2.9±0.6e-03 5.1±0.1e+03
+   FBPINN       (16, 32)      (1, 16) 2.9 N/A           Adam       3.5±2.2e-03 6.4±0.0e+03
+ ELM-FBPINN       (4, 8)      (1, 16) 2.9 1.8e+08       LSQR       1.5±0.6e-02    9.5±0.0
+ ELM-FBPINN      (6, 12)      (1, 16) 2.9 3.8e+08       LSQR       1.7±0.5e-02 2.9±0.0e+01
+ ELM-FBPINN      (8, 16)      (1, 16) 2.9 3.7e+08       LSQR       1.3±0.8e-02 4.4±0.3e+01
+ ELM-FBPINN     (10, 20)      (1, 16) 2.9 9.0e+08       LSQR       1.3±0.2e-02 5.4±0.0e+01
+ ELM-FBPINN     (12, 24)      (1, 16) 2.9 1.3e+09       LSQR       1.5±0.5e-02 7.5±0.0e+01
+ ELM-FBPINN     (14, 28)      (1, 16) 2.9 6.2e+08       LSQR       3.0±2.2e-02 1.0±0.0e+02
+ ELM-FBPINN     (16, 32)      (1, 16) 2.9 2.5e+09       LSQR       1.3±0.4e-02 1.2±0.0e+02
+ ELM-FBPINN (4, [1, 4, 8]) (1, 16) 2.9 3.5e+16          LSQR       1.4±0.6e-02 1.8±0.0e+01
+ ELM-FBPINN (6, [1, 6, 12]) (1, 16) 2.9 3.9e+16         LSQR       1.0±0.3e-02 3.5±0.0e+01
+ ELM-FBPINN (8, [1, 8, 16]) (1, 16) 2.9 5.3e+16         LSQR       1.1±0.4e-02 6.1±0.0e+01
+ ELM-FBPINN (10, [1, 10, 20]) (1, 16) 2.9 5.9e+16       LSQR       7.7±2.1e-03 1.5±0.0e+02
+ ELM-FBPINN (12, [1, 12, 24]) (1, 16) 2.9 6.6e+16       LSQR       1.3±0.4e-02 1.6±0.0e+02
+ ELM-FBPINN (14, [1, 14, 28]) (1, 16) 2.9 7.2e+16       LSQR       1.5±0.8e-02 2.0±0.0e+02
+ ELM-FBPINN (16, [1, 16, 32]) (1, 16) 2.9 8.0e+16       LSQR       7.8±1.6e-03 3.3±0.1e+02
+Table 13: Test error and runtime when varying ω for the 2D inhomogenous Helmholtz
+equation problem, where J lists the number of subdomains along each input dimension
+for each level. The values for the test error, measured in the eL1 norm, state the
+median value together with the range between the best and worst observed values. For
+runtime measurements, we report the mean together with one standard deviation.
+
+
+
+in two-dimensional multi-scale settings. This behaviour reflects the underlying differ-
+ence in model flexibility. In particular the FBPINN optimises all network parameters
+within each subdomain, providing greater expressivity and allowing finer adaptation
+to multi-scale structure, at the cost of slower and more computationally expensive
+optimisation. From a practical perspective, this suggests that ELM-FBPINN is par-
+ticularly advantageous in regimes where fast convergence, robustness, and scalability
+are critical, such as large-scale or high-dimensional problems where gradient-based
+optimisation becomes challenging. Conversely, FBPINN may be preferred when the
+highest possible accuracy is required, especially in settings where fine-scale interactions
+dominate and additional computational cost is acceptable.
+
+4.4.6 Varying parameter initialisation
+Finally, we vary the weight scaling parameter R in the LeCun initialisation of hidden
+basis function weights and biases of the baseline L = 1 model for all problems tested
+to ascertain the sensitivity of the ELM-FBPINN models to parameter initialisation.
+
+
+
+
+                                              37
+                                                    Harmonic oscillator in 1D              Multi-scale Laplacian in 2D     Inhomogeneous Helmholtz equation in 2D
+                                                     ELM-FBPINN                                ELM-FBPINN                               ELM-FBPINN
+                                      10 2
+                                                                                 10 1
+
+
+
+
+    Normalised L1 test error (eL1 )
+                                                                                                                          10 1
+                                      10 3
+
+                                                                                 10 2
+                                      10 4
+                                                                                                                          10 2
+
+                                             10 1            100           101          10 1           100          101          10 1           100          101
+                                                                  R                                         R                                        R
+Fig. 16: Final test error, measured in the eL1 norm, when varying weight scaling
+values, R, for all problems tested. The median final test error is denoted by a circle,
+and the range of final test errors by a vertical bar.
+
+
+Key observations
+Figure 16 shows that whilst the performance of ELM-FBPINN does depend on the
+choice of the weight scaling parameter, R, good performance is achieved for R ∈ [1, 5]
+for both the 1D and 2D problems. Indeed, even for R outside this range, the test error
+obtained is typically within one order of magnitude of the optimal value, indicating
+robustness with respect to the choice of parameter initialisation.
+
+5 Discussion and conclusions
+We compared PINN, FBPINN, ELM-FBPINN, and multilevel ELM-FBPINN across
+controlled ablation studies on a 1D damped harmonic oscillator, 2D multi-scale Lapla-
+cian, and 2D inhomogeneous Helmholtz equation problem. The experiments isolated
+the effects of localisation (J ), width (K ) and spectral complexity, while measuring
+convergence behaviour, error, conditioning, and runtime.
+
+
+                                                                            PINN               FBPINN             ELM-FBPINN                         Multilevel ELM-FBPINN
+
+ Multi-scale convergence                                                    Poor            Stable              Stable (fast initial)                    Stable (fast initial)
+ Final error (1D)                                                          Highest           Low                      Lowest                                      -
+ Final error (2D)                                                          Highest          Lowest                     Low                                        -
+ Scalability (frequency)                                                    Poor            Stable                    Stable                                   Stable
+ Runtime efficiency                                                         Slow           Moderate                   Fastest                                   Fast
+                                                                  Table 14: Qualitative comparison across experiments.
+
+
+
+
+Convergence behaviour
+Across all configurations, ELM-FBPINN exhibits a characteristic two-phase conver-
+gence: a rapid initial reduction of error followed by slower refinement. This reflects
+
+
+                                                                                                      38
+the structure of the global least-squares solve, where dominant residual components
+are eliminated early. Standard PINNs fail to converge on the multi-scale configura-
+tions considered, confirming that global gradient-based training alone is insufficient
+for oscillatory problems.
+
+Accuracy trade-offs
+In 1D, ELM-FBPINN achieves the lowest errors in most ablations, except when acti-
+vation saturation limits representational quality. In 2D, FBPINN generally attains
+lower final eL1 values, indicating that adaptive hidden weights are advantageous
+when resolving interacting spatial frequencies. Nevertheless, ELM-FBPINN consis-
+tently achieves errors within the same order of magnitude while requiring substantially
+less computational effort.
+
+Scalability
+When frequency and model capacity are increased simultaneously, both FBPINN and
+ELM-FBPINN methods maintain stable error levels without catastrophic degradation.
+Furthermore, multilevel ELM-FBPINN perform best whilst only incurring slightly
+more computational cost than ELM-FBPINNs, suggesting that adding multiple
+coarser levels facilitates global subdomain communication and aids convergence.
+
+Conditioning and redundancy
+The ELM-FBPINN least-squares matrix M typically exhibits large SVD-based con-
+dition numbers, often exceeding 1018 for large K . This growth is driven primarily
+by redundancy among randomly initialised basis functions. Increasing K introduces
+near-linear dependencies, while excessive localisation (J large) can also induce effec-
+tive rank saturation when local solutions become simple. Despite this ill-conditioning,
+the least-squares solves remain sufficiently stable to produce accurate approximations,
+although redundancy limits further gains beyond moderate capacity.
+
+Overall assessment
+Domain decomposition is essential for multi-scale problems. Within this framework,
+replacing gradient-based subdomain training by a linear least-squares solve yields sub-
+stantial gains in convergence speed and competitive accuracy. While fully trainable
+hidden representations remain advantageous in higher-dimensional settings, ELM-
+FBPINN offers a favourable efficiency–accuracy trade-off and demonstrates robust
+scalability across the tested regimes, especially when multiple levels are employed.
+These results position random-feature-based domain decomposition as a viable and
+computationally efficient alternative to gradient-trained FBPINNs for structured
+scientific machine learning problems.
+
+6 Code and data availability
+All    code     required    to    reproduce     this work is   available at
+https://github.com/benmoseley/FBPINNs/tree/elm-paper/elm-paper. All data is
+synthetically generated using the provided code.
+
+
+                                          39
+Funding declaration
+The first author was supported by a University of Strathclyde Research Excellence
+Award (REA), funded jointly by the Department of Mathematics and Statistics, the
+Faculty of Science, the National Manufacturing Institute Scotland (NMIS), and the
+Advanced Forming Research Centre (AFRC).
+
+References
+ [1] Lagaris, I.E., Likas, A., Fotiadis, D.I.: Artificial neural networks for solving ordi-
+     nary and partial differential equations. IEEE Transactions on Neural Networks
+     9(5), 987–1000 (1998) https://doi.org/10.1109/72.712178 9705023
+
+ [2] Raissi, M., Perdikaris, P., Karniadakis, G.E.: Physics-informed neural networks:
+     A deep learning framework for solving forward and inverse problems involving
+     nonlinear partial differential equations. Journal of Computational Physics 378,
+     686–707 (2019) https://doi.org/10.1016/j.jcp.2018.10.045
+
+ [3] Rahaman, N., Baratin, A., Arpit, D., Draxler, F., Lin, M., Hamprecht,
+     F., Bengio, Y., Courville, A.: On the spectral bias of neural networks.
+     In: 36th International Conference on Machine Learning, ICML 2019, vol.
+     97, pp. 9230–9239 (2019). International Machine Learning Society (IMLS).
+     https://proceedings.mlr.press/v97/rahaman19a.html
+
+ [4] Moseley, B., Markham, A., Nissen-Meyer, T.: Finite basis physics-informed neu-
+     ral networks (FBPINNs): a scalable domain decomposition approach for solving
+     differential equations. Advances in Computational Mathematics 2023 49:4 49(4),
+     1–39 (2023) https://doi.org/10.1007/S10444-023-10065-9
+
+ [5] Jagtap, A.D., Kharazmi, E., Karniadakis, G.E.: Conservative physics-informed
+     neural networks on discrete domains for conservation laws: Applications to
+     forward and inverse problems. Computer Methods in Applied Mechanics and
+     Engineering 365, 113028 (2020) https://doi.org/10.1016/j.cma.2020.113028
+
+ [6] Jagtap, A.D., Karniadakis, G.E.: Extended physics-informed neural networks
+     (XPINNs): A generalized space-time domain decomposition based deep learn-
+     ing framework for nonlinear partial differential equations. Communications in
+     Computational Physics 28(5), 2002–2041 (2020) https://doi.org/10.4208/cicp.
+     OA-2020-0164
+
+ [7] Dolean, V., Heinlein, A., Mishra, S., Moseley, B.: Finite basis physics-informed
+     neural networks as a Schwarz domain decomposition method. In: International
+     Conference on Domain Decomposition Methods, pp. 165–172 (2022). https://doi.
+     org/10.1007/978-3-031-50769-4 19 . Springer
+
+ [8] Dolean, V., Heinlein, A., Mishra, S., Moseley, B.: Multilevel domain
+
+
+
+                                            40
+    decomposition-based architectures for physics-informed neural networks. Com-
+    puter Methods in Applied Mechanics and Engineering 429, 117116 (2024) https:
+    //doi.org/10.1016/j.cma.2024.117116
+
+ [9] Huang, G.B., Zhu, Q.Y., Siew, C.K.: Extreme learning machine: Theory and
+     applications. Neurocomputing 70(1-3), 489–501 (2006) https://doi.org/10.1016/
+     j.neucom.2005.12.126
+
+[10] Chen, J., Chi, X., E, W., Yang, Z.: Bridging traditional and machine learning-
+     based algorithms for solving PDEs: The random feature method. Journal of
+     Machine Learning 1(3), 268–98 (2022) https://doi.org/10.4208/jml.220726
+
+[11] Pao, Y.-H., Takefuji, Y.: Functional-link net computing: theory, system architec-
+     ture, and functionalities. Computer 25(5), 76–79 (1992) https://doi.org/10.1109/
+     2.144401
+
+[12] Lukoševičius, M., Jaeger, H.: Reservoir computing approaches to recurrent neural
+     network training. Computer Science Review 3(3), 127–149 (2009) https://doi.
+     org/10.1016/j.cosrev.2009.03.005
+
+[13] Dong, S., Li, Z.: Local extreme learning machines and domain decomposition for
+     solving linear and nonlinear partial differential equations. Computer Methods in
+     Applied Mechanics and Engineering 387, 114129 (2021) https://doi.org/10.1016/
+     j.cma.2021.114129
+
+[14] Dwivedi, V., Parashar, N., Srinivasan, B.: Distributed learning machines for
+     solving forward and inverse problems in partial differential equations. Neurocom-
+     puting 420, 299–316 (2021) https://doi.org/10.1016/j.neucom.2020.09.006
+
+[15] Schiassi, E., Furfaro, R., Leake, C., De Florio, M., Johnston, H., Mortari, D.:
+     Extreme theory of functional connections: A fast physics-informed neural network
+     method for solving ordinary and partial differential equations. Neurocomputing
+     457, 334–356 (2021) https://doi.org/10.1016/j.neucom.2021.06.015
+
+[16] Anderson, S., Dolean, V., Moseley, B., Pestana, J.: ELM-FBPINN: efficient finite-
+     basis physics-informed neural networks (2024). http://arxiv.org/abs/2409.01949
+
+[17] Datar, C., Kapoor, T., Chandra, A., Sun, Q., Bolager, E.L., Burak, I.,
+     Veselovska, A., Fornasier, M., Dietrich, F.: Frozen-pinn: Fast training of accu-
+     rate physics-informed neural networks with temporal causality. In: International
+     Conference on Learning Representations (ICLR) (2026). ICLR 2026 Oral.
+     https://openreview.net/forum?id=3VdSuh3sie
+
+[18] Yıldız, E., Datar, C., Rahma, A., Dolean, V., Dietrich, F.: Fast
+     multiscale PDE solvers via multilevel domain decomposition and ran-
+     dom features. In: ICLR 2026 Workshop on AI for PDEs (2026).
+     https://openreview.net/forum?id=wA6SsMmftX
+
+
+                                          41
+[19] Shang, Y., Heinlein, A., Mishra, S., Wang, F.: Overlapping Schwarz precondi-
+     tioners for randomized neural networks with domain decomposition. Computer
+     Methods in Applied Mechanics and Engineering 442(1) (2025) https://doi.org/
+     10.1016/j.cma.2025.118011
+
+[20] Beek, J.W., Dolean, V., Moseley, B.: Local feature filtering for scalable and well-
+     conditioned domain-decomposed random feature methods. Computer Methods in
+     Applied Mechanics and Engineering 449, 118583 (2026) https://doi.org/10.1016/
+     j.cma.2025.118583
+
+[21] LeCun, Y.A., Bottou, L., Orr, G.B., Müller, K.-R.: Efficient BackProp. In:
+     Montavon, G., Orr, G.B., Müller, K.-R. (eds.) Neural Networks: Tricks of the
+     Trade, pp. 9–48. Springer, Berlin, Heidelberg (2012). https://doi.org/10.1007/
+     978-3-642-35289-8 3
+
+[22] Virtanen, P., Gommers, R., Oliphant, T.E., Haberland, M., Reddy, T., Courna-
+     peau, D., Burovski, E., Peterson, P., Weckesser, W., Bright, J., Walt, S.J., Brett,
+     M., Wilson, J., Millman, K.J., Mayorov, N., Nelson, A.R.J., Jones, E., Kern, R.,
+     Larson, E., Carey, C.J., Polat, I., Feng, Y., Moore, E.W., VanderPlas, J., Lax-
+     alde, D., Perktold, J., Cimrman, R., Henriksen, I., Quintero, E.A., Harris, C.R.,
+     Archibald, A.M., Ribeiro, A.H., Pedregosa, F., Mulbregt, P.: SciPy 1.0: fundamen-
+     tal algorithms for scientific computing in Python. Nature Methods 17(3), 261–272
+     (2020) https://doi.org/10.1038/s41592-019-0686-2 . Accessed 2026-01-19
+
+[23] Bradbury, J., Frostig, R., Hawkins, P., Johnson, M.J., Leary, C., Maclaurin, D.,
+     Necula, G., Paszke, A., VanderPlas, J., Wanderman-Milne, S., Zhang, Q.: JAX:
+     composable transformations of Python+NumPy programs (2018). http://github.
+     com/google/jax
+
+[24] Virtanen, P., Gommers, R., Oliphant, T.E., Haberland, M., Reddy, T., Courna-
+     peau, D., Burovski, E., Peterson, P., Weckesser, W., Bright, J., van der Walt,
+     S.J., Brett, M., Wilson, J., Millman, K.J., Mayorov, N., Nelson, A.R.J., Jones, E.,
+     Kern, R., Larson, E., Carey, C.J., Polat, İ., Feng, Y., Moore, E.W., VanderPlas,
+     J., Laxalde, D., Perktold, J., Cimrman, R., Henriksen, I., Quintero, E.A., Harris,
+     C.R., Archibald, A.M., Ribeiro, A.H., Pedregosa, F., van Mulbregt, P., Contrib-
+     utors: SciPy 1.0: Fundamental Algorithms for Scientific Computing in Python.
+     Nature Methods 17, 261–272 (2020) https://doi.org/10.1038/s41592-019-0686-2
+
+
+
+
+                                          42
+

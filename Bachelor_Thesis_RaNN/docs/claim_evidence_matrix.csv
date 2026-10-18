@@ -1,0 +1,6 @@
+﻿claim,source,scope
+平滑模型D未胜A/B,exp03_sampling_20261013/tables/paired_differences.csv,平滑直线模型和预设参数
+固定更多界面点可解释消融较好,exp04_sensitivity_20261013/raw/sensitivity.csv + exp03_sampling_20261013/raw/sampling.csv,后验探索性对照，非因果证明
+峰值方法比较,exp06_peaks_20261013/raw/peaks.csv,两峰宽/两β/两scale/两标量行预算；逐组判断
+固定TSVD右端放大界,docs/mathematical_derivations.md §7 + exp07_stability_20261013/raw/stability.csv,固定矩阵和保留子空间；现成线性代数结论
+固定峰值场景完整成本,exp08_efficiency_20261013/raw/efficiency.csv,25次串行CPU测量；未证明跨模型优越性

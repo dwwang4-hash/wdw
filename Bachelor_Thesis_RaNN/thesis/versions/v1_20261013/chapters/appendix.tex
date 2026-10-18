@@ -1,0 +1,39 @@
+\chapter{制造解、程序与复现说明}
+\section{局部峰导数}
+令$q(s)=s(1-s)$、$\xi=x-c_x,\eta=y-c_y,a=w^{-2}$，则
+\begin{align}
+h_x&=16A e^{-a(\xi^2+\eta^2)}[q'(x)-2a\xi q(x)]q(y),\\
+h_{xx}&=16A e^{-a(\xi^2+\eta^2)}[-2-4a\xi q'(x)+(4a^2\xi^2-2a)q(x)]q(y).
+\end{align}
+$h_{yy}$交换$x,y$即可；$f_i^{\rm peak}=f_i-\beta_i\Delta h$。两侧共同$h$在值跳跃中相消，通量却因$\beta$不同而改变。
+
+花形曲线$X=c+r(\theta)(\cos\theta,\sin\theta)$的切向为$(r'\cos\theta-r\sin\theta,r'\sin\theta+r\cos\theta)$。其外法向为切向顺时针旋转后的单位向量，分母$\sqrt{r^2+(r')^2}$。内部强迫为$-(x^2+y^2)e^{xy}$，外部强迫为$2\sin x\sin y$；外边界非零，应由外部真解计算。
+
+\section{实验与数据对应}
+项目根目录名为\path{Bachelor_Thesis_RaNN}。实验01原始数据保存在\path{results/raw}，其余保存在\path{results/runs}。本文主要子目录为：
+\begin{itemize}
+\item \path{exp02_interface_20261013}：界面与尺度，150次；
+\item \path{exp03_sampling_20261013}：主采样和指标消融，180次；
+\item \path{exp04_sensitivity_20261013}：固定比例与单因素，285次；
+\item \path{exp06_peaks_20261013}：峰值与unused池，400次；
+\item \path{exp07_stability_20261013}：15组谱、90组扰动；
+\item \path{exp08_efficiency_20261013}：25次串行成本复测；
+\item \path{exp09_reproduction_20261013}：110次初始复现/诊断假设；
+\item \path{exp09_literal_20261013}：60次较贴原文字面的初始化追加。
+\end{itemize}
+每个run保存配置、逐次CSV、均值/样本标准差、输出系数和日志。图可由CSV独立重绘；重复run\_id拒绝覆盖。程序状态ok仅表示正常完成，不代表高精度或理论证明。论文表图由\path{experiments/build_thesis_assets.py}生成，并在\path{thesis/asset_sources.csv}记录来源。
+
+\section{运行及编译}
+Python依赖在requirements与lock文件。Windows与Linux解释器路径分别为：
+\begin{verbatim}
+.venv/Scripts/python.exe
+.venv/bin/python
+\end{verbatim}
+在项目根目录运行测试与实验入口，例如：
+\begin{verbatim}
+python -m unittest discover -s tests -v
+python -m experiments.exp09_reproduction
+\end{verbatim}
+新run\_id另行指定，不覆盖已经保存的实验结果。
+
+论文推荐XeLaTeX。学校模板尚未提供；有ctexbook时使用该类，否则以book、fontspec和Noto中文字体构成可编译草稿。当前排版及数字顺序参考文献组织只用于审阅，需要按学校规范调整封面、声明、页眉、目录和引用细节。所有实际编译和质量检查结果在项目文档记录，不能把编译成功理解为论文已获学校审核。

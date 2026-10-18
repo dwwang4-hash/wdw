@@ -1,0 +1,129 @@
+{
+  "urls": {
+    "2607.13382.html": "https://arxiv.org/abs/2607.13382",
+    "2604.23999.html": "https://arxiv.org/abs/2604.23999",
+    "2604.08869.html": "https://arxiv.org/abs/2604.08869",
+    "2408.01536.html": "https://arxiv.org/abs/2408.01536",
+    "2207.10289.html": "https://arxiv.org/abs/2207.10289",
+    "2607.13382.pdf": "https://arxiv.org/pdf/2607.13382",
+    "2604.08869.pdf": "https://arxiv.org/pdf/2604.08869",
+    "2207.10289.pdf": "https://arxiv.org/pdf/2207.10289",
+    "search_pg_exact.html": "https://arxiv.org/search/?query=Randomized+neural+network+with+Petrov+Galerkin+methods+for+solving+linear+and+nonlinear+partial+differential+equations&searchtype=title&abstracts=show&order=-announced_date_first&size=50"
+  },
+  "outcomes": [
+    [
+      "2607.13382.html",
+      {
+        "citation_title": [
+          "Residual-Christoffel Sampling for Random Feature Collocation of Linear PDEs"
+        ],
+        "citation_author": [
+          "Linghu, Jiale",
+          "Wang, Yangshuai"
+        ],
+        "citation_date": [
+          "2026/07/15"
+        ],
+        "citation_abstract": [
+          "Random feature collocation fixes a randomly generated trial space and determines its coefficients from a linear least-squares system. Stability then depends on whether the sampled residual equations represent the geometry induced by the differential operator. We construct an operator-aware discretization in which the operator-applied features determine both the collocation measure and a coefficient whitening map. The randomized scheme combines a residual-Christoffel density with inverse-density weights, while a deterministic scalar-row alternative maximizes successive regularized log-determinant increments. Conditional on the realized trial space, the sampled whitened interior Gram is a spectral approximation to the reference Gram on the retained residual space, with sample complexity linear in the retained dimension up to a logarithmic factor. For uniformly analytic residual kernels, the associated operator has stretched-exponentially decaying eigenvalues and ridge effective dimension that is polylogarithmic in the inverse ridge scale. Experiments on scalar and vector equations, varied geometries, and one to three spatial dimensions show that residual-space sampling and whitening produce numerically full-rank transformed systems with substantially smaller condition numbers and iteration counts. The deterministic construction attains the lowest errors at the smallest scalar sample sizes. Residual-space geometry therefore yields a principled design for stable strong-form random feature collocation."
+        ]
+      }
+    ],
+    [
+      "2604.23999.html",
+      {
+        "citation_title": [
+          "Adaptive-Distribution Randomized Neural Networks for PDEs: A Low-Dimensional Distribution-Learning Framework"
+        ],
+        "citation_author": [
+          "Yang, You",
+          "Wang, Fei"
+        ],
+        "citation_date": [
+          "2026/04/27"
+        ],
+        "citation_abstract": [
+          "Randomized neural networks (RaNNs) are attractive for partial differential equations (PDEs) because they replace expensive end-to-end training with a linear least-squares solve over randomized hidden features. Their practical performance, however, depends strongly on the sampling distribution of the hidden-layer parameters, which is usually chosen heuristically and problem by problem. This distribution sensitivity is a central bottleneck in randomized neural PDE solvers. In this work, we propose Adaptive-Distribution Randomized Neural Networks (AD-RaNN), a framework that promotes randomized feature generation from a fixed heuristic choice to a low-dimensional adaptive optimization problem. Instead of training all hidden weights and biases, AD-RaNN parameterizes the hidden-feature sampling distribution by a low-dimensional vector p and optimizes only p, thereby preserving the least-squares structure of RaNNs while reducing manual distribution tuning. The method uses a two-stage strategy: ridge-regularized reduced training for stable distribution-parameter optimization, followed by an unregularized least-squares refit for final solution recovery. We develop two adaptive mechanisms, PDE-Driven Adaptive Distribution (PDAD) and Data-Driven Adaptive Distribution (DDAD), and deploy them in space-time solvers, discrete-time solvers, and operator-learning models. We also incorporate an adaptive layer-growth enhancement for localized structures. For the reduced optimization problem, we establish well-posedness of the reduced objectives, consistency of ridge-regularized minimizers, an efficient gradient formula, and a practical lower-bound estimate for the ridge parameter. Numerical experiments on benchmark problems show that AD-RaNN provides an effective distribution-level adaptation mechanism, reduces reliance on hand-crafted hidden-feature distributions, and achieves strong empirical accuracy."
+        ]
+      }
+    ],
+    [
+      "2604.08869.html",
+      {
+        "citation_title": [
+          "Adaptive Randomized Neural Networks with Locally Activation Function: Theory and Algorithm for Solving PDEs"
+        ],
+        "citation_author": [
+          "Bi, Ran",
+          "Deng, Weibing"
+        ],
+        "citation_date": [
+          "2026/04/10"
+        ],
+        "citation_abstract": [
+          "This paper establishes an approximation theory and develop an adaptive computational framework for randomized neural networks (RaNNs). For RaNNs of the form $\\sum_{i=1}^{N} W_i \\sigma(A_i\\cdot x+B_i)$ with hidden parameters uniformly sampled from a bounded set of scale $M$, we show that the choice $M \\asymp N^{p/[2((p-1)(d+1)+p\\eta)]}$ yields an expected $W^{k,p}$-approximation error of order $\\mathcal{O}\\left(N^{-p\\eta/[2((p-1)(d+1)+p\\eta)]}\\right)$, where $\\eta$ is associated with the regularity of the target function in a generalized Barron spectral space. This theoretical result demonstrates that lower regularity requires a larger sampling range for the hidden parameters. Motivated by the relationship between $M$ and $\\eta$, we introduce an adaptive physics-informed RaNN (PIRaNN) method that which couples parameter sampling with an adaptive partition of unity via local affine scaling. Residual-based a posteriori error indicators and D\\&#34;{o}rfler marking are used to drive local refinement. Numerical experiments, including the 1D viscous Burgers&#39; equation and 2D/3D problems with localized peaks and L-shaped corner singularities, demonstrate that our method preferentially refines regions exhibiting large gradients and singularities. Compared to standard non-adaptive RaNNs, the adaptive PIRaNN effectively captures complex local features with significantly enhanced accuracy and efficiency."
+        ]
+      }
+    ],
+    [
+      "2408.01536.html",
+      {
+        "citation_title": [
+          "Active Learning for Neural PDE Solvers"
+        ],
+        "citation_author": [
+          "Musekamp, Daniel",
+          "Kalimuthu, Marimuthu",
+          "Holzmüller, David",
+          "Takamoto, Makoto",
+          "Niepert, Mathias"
+        ],
+        "citation_date": [
+          "2024/08/02"
+        ],
+        "citation_abstract": [
+          "Solving partial differential equations (PDEs) is a fundamental problem in science and engineering. While neural PDE solvers can be more efficient than established numerical solvers, they often require large amounts of training data that is costly to obtain. Active learning (AL) could help surrogate models reach the same accuracy with smaller training sets by querying classical solvers with more informative initial conditions and PDE parameters. While AL is more common in other domains, it has yet to be studied extensively for neural PDE solvers. To bridge this gap, we introduce AL4PDE, a modular and extensible active learning benchmark. It provides multiple parametric PDEs and state-of-the-art surrogate models for the solver-in-the-loop setting, enabling the evaluation of existing and the development of new AL methods for neural PDE solving. We use the benchmark to evaluate batch active learning algorithms such as uncertainty- and feature-based methods. We show that AL reduces the average error by up to 71% compared to random sampling and significantly reduces worst-case errors. Moreover, AL generates similar datasets across repeated runs, with consistent distributions over the PDE parameters and initial conditions. The acquired datasets are reusable, providing benefits for surrogate models not involved in the data generation."
+        ]
+      }
+    ],
+    [
+      "2207.10289.html",
+      {
+        "citation_title": [
+          "A comprehensive study of non-adaptive and residual-based adaptive sampling for physics-informed neural networks"
+        ],
+        "citation_author": [
+          "Wu, Chenxi",
+          "Zhu, Min",
+          "Tan, Qinyang",
+          "Kartha, Yadhu",
+          "Lu, Lu"
+        ],
+        "citation_date": [
+          "2022/07/21"
+        ],
+        "citation_abstract": [
+          "Physics-informed neural networks (PINNs) have shown to be an effective tool for solving forward and inverse problems of partial differential equations (PDEs). PINNs embed the PDEs into the loss of the neural network, and this PDE loss is evaluated at a set of scattered residual points. The distribution of these points are highly important to the performance of PINNs. However, in the existing studies on PINNs, only a few simple residual point sampling methods have mainly been used. Here, we present a comprehensive study of two categories of sampling: non-adaptive uniform sampling and adaptive nonuniform sampling. We consider six uniform sampling, including (1) equispaced uniform grid, (2) uniformly random sampling, (3) Latin hypercube sampling, (4) Halton sequence, (5) Hammersley sequence, and (6) Sobol sequence. We also consider a resampling strategy for uniform sampling. To improve the sampling efficiency and the accuracy of PINNs, we propose two new residual-based adaptive sampling methods: residual-based adaptive distribution (RAD) and residual-based adaptive refinement with distribution (RAR-D), which dynamically improve the distribution of residual points based on the PDE residuals during training. Hence, we have considered a total of 10 different sampling methods, including six non-adaptive uniform sampling, uniform sampling with resampling, two proposed adaptive sampling, and an existing adaptive sampling. We extensively tested the performance of these sampling methods for four forward problems and two inverse problems in many setups. Our numerical results presented in this study are summarized from more than 6000 simulations of PINNs. We show that the proposed adaptive sampling methods of RAD and RAR-D significantly improve the accuracy of PINNs with fewer residual points. The results obtained in this study can also be used as a practical guideline in choosing sampling methods."
+        ]
+      }
+    ],
+    [
+      "2607.13382.pdf",
+      1355102
+    ],
+    [
+      "2604.08869.pdf",
+      1531024
+    ],
+    [
+      "2207.10289.pdf",
+      14924593
+    ],
+    [
+      "search_pg_exact.html",
+      {
+        "ids": []
+      }
+    ]
+  ]
+}

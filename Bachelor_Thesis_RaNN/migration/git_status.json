@@ -1,0 +1,18 @@
+{
+  "checked_date_china": "2026-10-18",
+  "project": "Bachelor_Thesis_RaNN",
+  "git_probe": "git -C /workspace/Bachelor_Thesis_RaNN rev-parse --show-toplevel",
+  "probe_result": "fatal: not a git repository (or any of the parent directories): .git",
+  "workspace_dot_git": "read-only placeholder directory, no regular Git metadata files observed",
+  "valid_worktree": false,
+  "repository_url": null,
+  "branch": null,
+  "commits": null,
+  "remotes": null,
+  "tracked_untracked_status": "not applicable without a valid Git worktree; export candidate list is not git status",
+  "github_contacted": false,
+  "git_init_executed": false,
+  "commits_created": false,
+  "pushes_executed": false,
+  "visibility_changed": false
+}

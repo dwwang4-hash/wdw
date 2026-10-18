@@ -1,0 +1,40 @@
+[
+  {
+    "run": "exp02_interface_20261013",
+    "rows": 150,
+    "failures": 0,
+    "csv_unchanged_after_redraw": true,
+    "raw_sha256": {
+      "interface.csv": "baea3176ca640596b42cd3eb2f4f5befd0ac5993c15fef4c7506b24ae07b4a3f",
+      "representative_grid.csv": "acc5064105153e4b60bf80915b0726485d2a2cb199efb4983ccca83130fe548c"
+    },
+    "case0_reconstruction_relative_l2": 1.6941838962829367e-07,
+    "saved_coefficient_reconstruction": true,
+    "existing_run_protected": true
+  },
+  {
+    "run": "exp03_sampling_20261013",
+    "rows": 180,
+    "failures": 0,
+    "csv_unchanged_after_redraw": true,
+    "raw_sha256": {
+      "sampling.csv": "ac24eb7bdee3523ae146a6acdd3123f9d42c1c83a523c7b83604fe514eda5cad",
+      "allocation_trace.csv": "24634629dedf279067f111e461b3bf44395564a4e08c632ebd038be12a93c47f"
+    },
+    "case0_reconstruction_relative_l2": 0.0001319415489241657,
+    "saved_coefficient_reconstruction": true,
+    "existing_run_protected": true
+  },
+  {
+    "run": "exp04_sensitivity_20261013",
+    "rows": 285,
+    "failures": 0,
+    "csv_unchanged_after_redraw": true,
+    "raw_sha256": {
+      "sensitivity.csv": "03b6938cc63e686e2765090029bdae0cb92f7d49e4fc055a1f427883b0f1ec50"
+    },
+    "case0_reconstruction_relative_l2": 0.00010050189556400867,
+    "saved_coefficient_reconstruction": true,
+    "existing_run_protected": true
+  }
+]

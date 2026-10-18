@@ -1,0 +1,26 @@
+name: Restore checksum-verified migration reference
+on:
+  push:
+    paths:
+      - 'migration-transfer/**'
+      - '.github/workflows/restore-migration-reference.yml'
+permissions:
+  contents: write
+jobs:
+  restore:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore original reference bytes and verify project manifest
+        run: |
+          python migration-transfer/restore_reference.py
+          python Bachelor_Thesis_RaNN/scripts/verify_migration.py
+      - name: Commit restored reference if needed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- Bachelor_Thesis_RaNN/references/source/2207.10289.pdf
+          if ! git diff --cached --quiet; then
+            git commit -m "Restore original reference PDF after verified segmented transfer"
+            git push
+          fi

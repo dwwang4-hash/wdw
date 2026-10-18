@@ -1,0 +1,10 @@
+test_fdm_discrete_eigenvalue_and_order (test_basics.BasicTests.test_fdm_discrete_eigenvalue_and_order) ... ok
+test_interface_manufacturing (test_basics.BasicTests.test_interface_manufacturing) ... ok
+test_manufactured_poisson (test_basics.BasicTests.test_manufactured_poisson) ... ok
+test_svd_known_solution_and_deficiency (test_basics.BasicTests.test_svd_known_solution_and_deficiency) ... ok
+test_tanh_derivatives (test_basics.BasicTests.test_tanh_derivatives) ... ok
+
+----------------------------------------------------------------------
+Ran 5 tests in 0.026s
+
+OK

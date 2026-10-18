@@ -1,0 +1,13 @@
+{
+  "run": "exp03_sampling_20261013",
+  "rows": 180,
+  "failures": 0,
+  "csv_unchanged_after_redraw": true,
+  "raw_sha256": {
+    "sampling.csv": "ac24eb7bdee3523ae146a6acdd3123f9d42c1c83a523c7b83604fe514eda5cad",
+    "allocation_trace.csv": "24634629dedf279067f111e461b3bf44395564a4e08c632ebd038be12a93c47f"
+  },
+  "case0_reconstruction_relative_l2": 0.0001319415489241657,
+  "saved_coefficient_reconstruction": true,
+  "existing_run_protected": true
+}

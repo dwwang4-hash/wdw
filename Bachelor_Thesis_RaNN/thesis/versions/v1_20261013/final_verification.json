@@ -1,0 +1,14 @@
+{
+  "pages": 30,
+  "pdf_sha256": "e39ea725ba844315c86f742b019de05d928260e187a19e769d993006088a791f",
+  "tex_chinese_characters": 8042,
+  "chapters": 6,
+  "appendices": 1,
+  "csv_generated_tables": 7,
+  "source_verified_figures": 7,
+  "bibliography_entries": 9,
+  "citation_order_checked": true,
+  "final_compile_no_undefined_missing_glyph_or_overfull": true,
+  "reproduction_csv_unchanged": true,
+  "execution": "XeLaTeX actually executed; Linux; school template pending"
+}

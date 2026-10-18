@@ -1,0 +1,18 @@
+.venv/
+__pycache__/
+*.pyc
+.cache/
+
+# 本机与凭据（不忽略科研CSV、JSON、NPZ、PNG、PDF）
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+cookies.txt
+cookies.json
+*.zip
+.vscode/*.local.json

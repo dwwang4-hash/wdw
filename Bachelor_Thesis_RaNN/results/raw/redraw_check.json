@@ -1,0 +1,8 @@
+{
+  "csv_unchanged": true,
+  "sha256": {
+    "results/raw/poisson_fdm_grid.csv": "90c54f7cdb9e2c0e891de6753eeb1b26fe620485bf8f2c57e2859c961aac1d74",
+    "results/raw/poisson_fdm.csv": "7cc78f333fb6864c006d30cf16f3e3309ef91b4c421deb048d61342f0fc77707",
+    "results/raw/poisson_rann.csv": "3930606c576abc5c80fff73969d30130c6efdfa841c1e312c9847584e4a9751b"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "pages": 52,
+  "pdf_sha256": "ca482e70eec500c95ed85a9b4ae88831ca4631276830a45cfdb126c56d0e49dd",
+  "tex_chinese_characters": 22925,
+  "chapters": 6,
+  "appendices": 1,
+  "csv_generated_tables": 13,
+  "source_verified_figures": 8,
+  "bibliography_entries": 11,
+  "citation_order_checked": true,
+  "final_compile_no_undefined_missing_glyph_or_overfull": true,
+  "reproduction_csv_unchanged": true,
+  "historical_raw_files_hash_checked": 18,
+  "body_chinese_project_count": 20388,
+  "school_current_template_obtained": false,
+  "school_math_current_rules_confirmed": false,
+  "execution": "XeLaTeX actually executed; Linux; school template pending"
+}

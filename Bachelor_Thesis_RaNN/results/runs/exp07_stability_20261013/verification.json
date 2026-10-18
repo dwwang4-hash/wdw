@@ -1,0 +1,11 @@
+{
+  "run": "exp07_stability_20261013",
+  "observations": 90,
+  "csv_unchanged_after_redraw": true,
+  "existing_run_protected": true,
+  "raw_sha256": {
+    "spectra.csv": "0a934e870cef48c81d0f8f97fab42dcb0672c9c803e281e3cc3bcf710d034765",
+    "stability.csv": "d7bf930633320aca70d7ca8ac598b559c4ba7a9e7f69c969e7c5adc7f7d7eb85"
+  },
+  "worst_direction_bound_agreement": true
+}

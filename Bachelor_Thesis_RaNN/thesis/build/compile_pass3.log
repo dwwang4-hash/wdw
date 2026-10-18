@@ -1,0 +1,297 @@
+This is XeTeX, Version 3.141592653-2.6-0.999996 (TeX Live 2025/dev/Debian) (preloaded format=xelatex)
+ restricted \write18 enabled.
+entering extended mode
+(./main.tex
+LaTeX2e <2024-11-01> patch level 2
+L3 programming layer <2025-01-18>
+(/usr/share/texlive/texmf-dist/tex/latex/base/book.cls
+Document Class: book 2024/06/29 v1.4n Standard LaTeX document class
+(/usr/share/texlive/texmf-dist/tex/latex/base/bk12.clo))
+(/usr/share/texlive/texmf-dist/tex/latex/fontspec/fontspec.sty
+(/usr/share/texlive/texmf-dist/tex/latex/l3packages/xparse/xparse.sty
+(/usr/share/texlive/texmf-dist/tex/latex/l3kernel/expl3.sty
+(/usr/share/texlive/texmf-dist/tex/latex/l3backend/l3backend-xetex.def)))
+(/usr/share/texlive/texmf-dist/tex/latex/fontspec/fontspec-xetex.sty
+(/usr/share/texlive/texmf-dist/tex/latex/base/fontenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/fontspec/fontspec.cfg)))
+(/usr/share/texlive/texmf-dist/tex/latex/geometry/geometry.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/keyval.sty)
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/ifvtex.sty
+(/usr/share/texlive/texmf-dist/tex/generic/iftex/iftex.sty)))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsmath.sty
+For additional information on amsmath, use the `?' option.
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amstext.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsgen.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsbsy.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/amsmath/amsopn.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amssymb.sty
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/amsfonts.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphicx.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/graphics.sty
+(/usr/share/texlive/texmf-dist/tex/latex/graphics/trig.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-cfg/graphics.cfg)
+(/usr/share/texlive/texmf-dist/tex/latex/graphics-def/xetex.def)))
+(/usr/share/texlive/texmf-dist/tex/latex/booktabs/booktabs.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/tools/longtable.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/hyperref/hyperref.sty
+(/usr/share/texlive/texmf-dist/tex/latex/kvsetkeys/kvsetkeys.sty)
+(/usr/share/texlive/texmf-dist/tex/generic/kvdefinekeys/kvdefinekeys.sty)
+(/usr/share/texlive/texmf-dist/tex/generic/pdfescape/pdfescape.sty
+(/usr/share/texlive/texmf-dist/tex/generic/ltxcmds/ltxcmds.sty)
+(/usr/share/texlive/texmf-dist/tex/generic/pdftexcmds/pdftexcmds.sty
+(/usr/share/texlive/texmf-dist/tex/generic/infwarerr/infwarerr.sty)))
+(/usr/share/texlive/texmf-dist/tex/latex/hycolor/hycolor.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/hyperref/nameref.sty
+(/usr/share/texlive/texmf-dist/tex/latex/refcount/refcount.sty)
+(/usr/share/texlive/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty
+(/usr/share/texlive/texmf-dist/tex/latex/kvoptions/kvoptions.sty)))
+(/usr/share/texlive/texmf-dist/tex/latex/etoolbox/etoolbox.sty)
+(/usr/share/texlive/texmf-dist/tex/generic/stringenc/stringenc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/hyperref/pd1enc.def)
+(/usr/share/texlive/texmf-dist/tex/generic/intcalc/intcalc.sty)
+(/usr/share/texlive/texmf-dist/tex/latex/hyperref/puenc.def)
+(/usr/share/texlive/texmf-dist/tex/latex/url/url.sty)
+(/usr/share/texlive/texmf-dist/tex/generic/bitset/bitset.sty
+(/usr/share/texlive/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/base/atbegshi-ltx.sty))
+(/usr/share/texlive/texmf-dist/tex/latex/hyperref/hxetex.def
+(/usr/share/texlive/texmf-dist/tex/latex/rerunfilecheck/rerunfilecheck.sty
+(/usr/share/texlive/texmf-dist/tex/latex/base/atveryend-ltx.sty)
+(/usr/share/texlive/texmf-dist/tex/generic/uniquecounter/uniquecounter.sty)))
+(build/main.aux (build/chapters/01_introduction.aux)
+(build/chapters/02_preliminaries.aux) (build/chapters/03_method.aux)
+(build/chapters/04_sampling.aux) (build/chapters/05_results.aux)
+(build/chapters/06_conclusion.aux) (build/chapters/appendix.aux))
+*geometry* driver: auto-detecting
+*geometry* detected driver: xetex
+(build/main.out) (build/main.out)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsa.fd)
+(/usr/share/texlive/texmf-dist/tex/latex/amsfonts/umsb.fd)
+[1]
+[1]
+[2] (build/main.toc
+[3])
+
+LaTeX Font Warning: Font shape `TU/NotoSerifCJKSC(0)/m/sl' undefined
+(Font)              using `TU/NotoSerifCJKSC(0)/m/it' instead on input line 48.
+
+
+
+LaTeX Font Warning: Font shape `TU/NotoSerifCJKSC(0)/m/it' undefined
+(Font)              using `TU/NotoSerifCJKSC(0)/m/n' instead on input line 48.
+
+[4] (./chapters/01_introduction.tex
+Chapter 1.
+
+[1])
+
+LaTeX Font Warning: Font shape `TU/NotoSerifCJKSC(0)/m/sl' undefined
+(Font)              using `TU/NotoSerifCJKSC(0)/m/it' instead on input line 49.
+
+
+[2] (./chapters/02_preliminaries.tex
+Chapter 2.
+
+Overfull \hbox (28.12639pt too wide) in paragraph at lines 21--22
+[]\TU/NotoSerifCJKSC(0)/b/n/12 命题 2.1 \TU/NotoSerifCJKSC(0)/m/it/12 (正弦算例的离散误差)
+\TU/NotoSerifCJKSC(0)/b/n/12 . \TU/NotoSerifCJKSC(0)/m/it/12 对 上 述 节 点 和 制 造 解，
+ 五 点 差 分 解 恰 为$\OML/cmm/m/it/12 U \OT1/cmr/m/n/12 = (2\OML/cmm/m/it/12 ^^Y[]\OT
+1/cmr/m/n/12 /\OML/cmm/m/it/12 ^^U[]\OT1/cmr/m/n/12 )\OML/cmm/m/it/12 u\OMS/cms
+y/m/n/12 j[]$\TU/NotoSerifCJKSC(0)/m/it/12 ，
+
+Overfull \hbox (4.67021pt too wide) in paragraph at lines 24--25
+\TU/NotoSerifCJKSC(0)/m/it/12 特 征 值 之 和。 右 端 为$\OT1/cmr/m/n/12 2\OML/cmm/m/it/1
+2 ^^Y[]u\OMS/cmsy/m/n/12 j[]$\TU/NotoSerifCJKSC(0)/m/it/12 ， 故 解 的 倍 数 关 系 成 立。
+ 由$[][] \OML/cmm/m/it/12 z \OT1/cmr/m/n/12 = \OML/cmm/m/it/12 z[] \OMS/cmsy/m/n
+/12 ^^@ \OML/cmm/m/it/12 z[]\OT1/cmr/m/n/12 /3 + \OML/cmm/m/it/12 O\OT1/cmr/m/n
+/12 (\OML/cmm/m/it/12 z[]\OT1/cmr/m/n/12 )$\TU/NotoSerifCJKSC(0)/m/it/12 得$\OML
+/cmm/m/it/12 ^^U[] \OT1/cmr/m/n/12 =
+
+[3])
+
+LaTeX Font Warning: Font shape `TU/NotoSerifCJKSC(0)/m/sl' undefined
+(Font)              using `TU/NotoSerifCJKSC(0)/m/it' instead on input line 50.
+
+
+[4] (./chapters/03_method.tex
+Chapter 3.
+
+Overfull \hbox (1.5588pt too wide) in paragraph at lines 9--10
+[]\TU/NotoSerifCJKSC(0)/m/it/12 隐 藏 参 数 取 指 定 均 匀 范 围， 不 假 设 不 同 宽 度 的 特 征 严 格 
+嵌 套。 相 同 种 子 改 变$\OML/cmm/m/it/12 N[]$\TU/NotoSerifCJKSC(0)/m/it/12 时，
+
+[5])
+
+LaTeX Font Warning: Font shape `TU/NotoSerifCJKSC(0)/m/sl' undefined
+(Font)              using `TU/NotoSerifCJKSC(0)/m/it' instead on input line 51.
+
+
+[6] (./chapters/04_sampling.tex
+Chapter 4.
+
+[7])
+
+LaTeX Font Warning: Font shape `TU/NotoSerifCJKSC(0)/m/sl' undefined
+(Font)              using `TU/NotoSerifCJKSC(0)/m/it' instead on input line 52.
+
+
+[8]
+
+LaTeX Font Warning: Font shape `TU/NotoSerifCJKSC(0)/m/sl' undefined
+(Font)              using `TU/NotoSerifCJKSC(0)/m/it' instead on input line 52.
+
+
+[9] (./chapters/05_results.tex
+Chapter 5.
+
+Overfull \hbox (30.8039pt too wide) in paragraph at lines 7--8
+[]\TU/NotoSerifCJKSC(0)/m/it/12 所 有 表 格 由 原 始 CSV 生 成， 图 由 CSV 重 绘。 主 要 来 源 依 次
+ 为 exp01、 exp02_interface、
+
+Overfull \hbox (46.1879pt too wide) in paragraph at lines 7--8
+\TU/NotoSerifCJKSC(0)/m/it/12 exp03_sampling、 exp04_sensitivity、 exp06_peaks、 e
+xp07_stability、 exp08_efficiency
+(./tables/fdm.tex) (./tables/interface.tex)
+[10]
+
+LaTeX Font Warning: Font shape `TU/NotoSerifCJKSC(0)/m/sl' undefined
+(Font)              using `TU/NotoSerifCJKSC(0)/m/it' instead on input line 20.
+
+
+[11] (./tables/sampling.tex)
+
+LaTeX Font Warning: Font shape `TU/NotoSerifCJKSC(0)/m/sl' undefined
+(Font)              using `TU/NotoSerifCJKSC(0)/m/it' instead on input line 28.
+
+
+[12]
+
+LaTeX Font Warning: Font shape `TU/NotoSerifCJKSC(0)/m/sl' undefined
+(Font)              using `TU/NotoSerifCJKSC(0)/m/it' instead on input line 28.
+
+
+[13] (./tables/width.tex)
+
+LaTeX Font Warning: Font shape `TU/NotoSerifCJKSC(0)/m/sl' undefined
+(Font)              using `TU/NotoSerifCJKSC(0)/m/it' instead on input line 39.
+
+
+[14] (./tables/peaks.tex)
+
+LaTeX Font Warning: Font shape `TU/NotoSerifCJKSC(0)/m/sl' undefined
+(Font)              using `TU/NotoSerifCJKSC(0)/m/it' instead on input line 47.
+
+
+[15]
+Overfull \hbox (5.27495pt too wide) in paragraph at lines 49--50
+\TU/NotoSerifCJKSC(0)/m/it/12 选 Li–Wang 预 印 本 Example4.1[[]]，$\OT1/cmr/m/n/12 
+ = (\OMS/cmsy/m/n/12 ^^@\OT1/cmr/m/n/12 1\OML/cmm/m/it/12 ; \OT1/cmr/m/n/12 1)[
+]$\TU/NotoSerifCJKSC(0)/m/it/12 ， 中 心$\OML/cmm/m/it/12 :\OT1/cmr/m/n/12 02[]$\T
+U/NotoSerifCJKSC(0)/m/it/12 ， 极 径$\OML/cmm/m/it/12 r \OT1/cmr/m/n/12 = \OML/cmm
+/m/it/12 :\OT1/cmr/m/n/12 4 + \OML/cmm/m/it/12 :\OT1/cmr/m/n/12 2 [] 20\OML/cmm
+/m/it/12 ^^R$\TU/NotoSerifCJKSC(0)/m/it/12 。
+(./tables/reproduction.tex)
+
+LaTeX Font Warning: Font shape `TU/NotoSerifCJKSC(0)/m/sl' undefined
+(Font)              using `TU/NotoSerifCJKSC(0)/m/it' instead on input line 55.
+
+
+[16] (./tables/fd_steps.tex))
+
+LaTeX Font Warning: Font shape `TU/NotoSerifCJKSC(0)/m/sl' undefined
+(Font)              using `TU/NotoSerifCJKSC(0)/m/it' instead on input line 53.
+
+
+[17]
+
+LaTeX Font Warning: Font shape `TU/NotoSerifCJKSC(0)/m/sl' undefined
+(Font)              using `TU/NotoSerifCJKSC(0)/m/it' instead on input line 53.
+
+
+[18] (./chapters/06_conclusion.tex
+Chapter 6.
+
+[19])
+
+LaTeX Font Warning: Font shape `TU/NotoSerifCJKSC(0)/m/sl' undefined
+(Font)              using `TU/NotoSerifCJKSC(0)/m/it' instead on input line 54.
+
+
+[20] (./chapters/appendix.tex
+Appendix A.
+
+Overfull \hbox (11.73561pt too wide) in paragraph at lines 13--14
+\TU/NotoSerifCJKSC(0)/m/it/12 项 目 根 目 录 为$[][][][][][][][] [] [][][][][][] [] [
+][][][]$。 exp01 原 始 数 据 在$[][][][][][][] [] [][][]$； 其 余 在$[][][][][][][] []
+
+[21]
+Overfull \hbox (163.36736pt too wide) in paragraph at lines 27--28
+\TU/NotoSerifCJKSC(0)/m/it/12 用$[][][][][] [] [][][][][][][] [] [][][][][][] []
+ [][][]$； Linux 使 用$[][][][][] [] [][][] [] [][][][][][]$。 测 试 命 令 为$[][][][][]
+[][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][]$；
+)
+Overfull \hbox (0.9359pt too wide) in paragraph at lines 29--56
+[]\TU/NotoSerifCJKSC(0)/m/it/12 论 文 推 荐 XeLaTeX。 学 校 模 板 尚 未 提 供； 有 ctexbook 时 
+使 用 该 类， 否 则 以 book、
+
+
+LaTeX Font Warning: Font shape `TU/NotoSerifCJKSC(0)/m/sl' undefined
+(Font)              using `TU/NotoSerifCJKSC(0)/m/it' instead on input line 56.
+
+
+[22] (./bibliography.tex
+Underfull \hbox (badness 2818) in paragraph at lines 3--4
+[]\TU/NotoSerifCJKSC(0)/m/it/12 SUN J, DONG S, WANG F. Local randomized neural 
+networks with
+
+Underfull \hbox (badness 1184) in paragraph at lines 3--4
+\TU/NotoSerifCJKSC(0)/m/it/12 discontinuous Galerkin methods for partial differ
+ential equations[EB/
+
+Underfull \hbox (badness 2368) in paragraph at lines 3--4
+\TU/NotoSerifCJKSC(0)/m/it/12 OL]. arXiv:2206.05577v1, 2022[2026-10-13]. []$[][
+][][][] [] [] [] [][][][][] [] [][][] [] [][][] [] [][][][] []
+
+Underfull \hbox (badness 1755) in paragraph at lines 5--6
+[]\TU/NotoSerifCJKSC(0)/m/it/12 LI Y, WANG F. Local Randomized Neural Networks 
+Methods for In-
+
+Underfull \hbox (badness 5161) in paragraph at lines 7--8
+[]\TU/NotoSerifCJKSC(0)/m/it/12 DANG H, WANG F, JIANG S. Adaptive-Growth Random
+ized Neural
+
+Underfull \hbox (badness 10000) in paragraph at lines 7--8
+\TU/NotoSerifCJKSC(0)/m/it/12 Networks for PDEs: Algorithms and Numerical Analy
+sis[EB/ OL].
+
+Underfull \hbox (badness 5008) in paragraph at lines 7--8
+\TU/NotoSerifCJKSC(0)/m/it/12 arXiv:2408.17225， 首 次 2024， 本 文 读 取 v3 （2025-11-2
+3） [2026-10-13].
+
+Underfull \hbox (badness 10000) in paragraph at lines 7--8
+[]$[][][][][] [] [] [] [][][][][] [] [][][] [] [][][] [] [][][][] [] [][][][][]
+[][]$[]\TU/NotoSerifCJKSC(0)/m/it/12 . DOI: []$[][][][][] [] [] [] [][][] [] []
+[][] [] [][] [] [][][][][] []
+
+[23]
+Underfull \hbox (badness 1325) in paragraph at lines 15--16
+\TU/NotoSerifCJKSC(0)/m/it/12 ulation, 2023, 127:107518. DOI: []$[][][][][] [] 
+[] [] [][][] [] [][][] [] [][] [] [][][][] [] [] [] [][][][][] [] [][][][] []
+)
+
+LaTeX Font Warning: Font shape `TU/NotoSerifCJKSC(0)/m/sl' undefined
+(Font)              using `TU/NotoSerifCJKSC(0)/m/it' instead on input line 59.
+
+
+[24] (build/main.aux (build/chapters/01_introduction.aux)
+(build/chapters/02_preliminaries.aux) (build/chapters/03_method.aux)
+(build/chapters/04_sampling.aux) (build/chapters/05_results.aux)
+(build/chapters/06_conclusion.aux) (build/chapters/appendix.aux))
+
+LaTeX Font Warning: Some font shapes were not available, defaults substituted.
+
+ )
+(see the transcript file for additional information)
+Output written on build/main.pdf (29 pages).
+Transcript written on build/main.log.

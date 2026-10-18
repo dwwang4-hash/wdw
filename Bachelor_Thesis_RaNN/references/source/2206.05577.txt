@@ -1,0 +1,1978 @@
+                                               Local Randomized Neural Networks with Discontinuous Galerkin
+                                                         Methods for Partial Differential Equations
+                                                                               Jingbo Sun1 ,     Suchuan Dong2         and    Fei Wang3
+
+
+
+                                                 Abstract. Randomized neural networks (RNN) are a variation of neural networks in which the hidden-
+                                                 layer parameters are fixed to randomly assigned values and the output-layer parameters are obtained by
+                                                 solving a linear system by least squares. This improves the efficiency without degrading the accuracy of
+                                                 the neural network. In this paper, we combine the idea of the local RNN (LRNN) and the discontinuous
+                                                 Galerkin (DG) approach for solving partial differential equations. RNNs are used to approximate the
+                                                 solution on the subdomains, and the DG formulation is used to glue them together. Taking the Poisson
+arXiv:2206.05577v1 [math.NA] 11 Jun 2022
+
+
+
+
+                                                 problem as a model, we propose three numerical schemes and provide the convergence analyses. Then
+                                                 we extend the ideas to time-dependent problems. Taking the heat equation as a model, three space-
+                                                 time LRNN with DG formulations are proposed. Finally, we present numerical tests to demonstrate
+                                                 the performance of the methods developed herein. We compare the proposed methods with the finite
+                                                 element method and the usual DG method. The LRNN-DG methods can achieve better accuracy under
+                                                 the same degrees of freedom, signifying that this new approach has a great potential for solving partial
+                                                 differential equations.
+
+                                              Keywords. Randomized neural networks, discontinuous Galerkin method, partial differential equations, least-
+                                           squares method, space-time approach
+
+
+
+                                           1     Introduction
+                                                Artificial neural networks (ANNs) have been successfully applied to solve the problems of segmentation, clas-
+                                           sification, pattern recognition, automatic control, etc ([5, 11, 22, 23, 24, 30, 45, 46, 50]). In recent years, many
+                                           research works based on neural networks have been proposed for solving partial differential equations (PDEs) in
+                                           light of the excellent approximation capability of neural networks (NNs). Some of these contributions are based on
+                                           the strong form of partial differential equations. Physical informed neural networks (PINNs) ([41]) and the deep
+                                           Galerkin method (DGM) ([48]) are two representative methods among them. Specifically, PINNs train the neural
+                                           network by minimizing the mean squared error loss consisting of information about the PDE, boundary conditions,
+                                           and/or initial conditions on certain collocation points. The loss function of DGM measures the residual of PDE
+                                           in the sense of integral. Based on PINNs, a number of new models ([3, 9, 25, 28, 31, 35, 36, 42, 51, 54]) have
+                                           been proposed aiming to improve the performance, and some other studies ([1, 16, 19, 21, 34, 43]) focus on the
+                                           application of this technique for different kinds of problems.
+                                              The solutions to some problems are known to have a low regularity, and these problems cannot be described by
+                                           PDEs. Therefore, in some investigations on NNs the loss functions are constructed based on a weak formulation,
+                                           such as the deep Ritz method ([8]), deep Nitsche method ([29]), weak adversarial networks ([53]), and other
+                                           methods ([49, 55]). One issue with these neural network-based methods in strong or weak forms is that they
+                                           generally suffer from a limited accuracy and they are time-consuming. Although the NNs have a strong capability
+                                              1 School of Mathematics and Statistics, Xi’an Jiaotong University, Xi’an, Shaanxi 710049, P.R. China. The work of this author was
+
+                                           partially supported by the National Natural Science Foundation of China (Grant No. 12171383). E-mail: jingbosun.xjtu@xjtu.edu.cn.
+                                              2 Center for Computational and Applied Mathematics, Department of Mathematics, Purdue University, West Lafayette, Indi-
+
+                                           ana, USA. The work of this author was partially supported by the US National Science Foundation (DMS-2012415). Email:
+                                           sdong@purdue.edu.
+                                              3 School of Mathematics and Statistics, Xi’an Jiaotong University, Xi’an, Shaanxi 710049, China. The work of this author was
+
+                                           partially supported by the National Natural Science Foundation of China (Grant No. 12171383). Email: feiwang.xjtu@xjtu.edu.cn.
+
+
+
+                                                                                                            1
+for function approximation, they are hard to train to arrive at the global optimal state due to the lack of an efficient
+optimization method for the training process. In addition, the computational cost of network training is very high,
+which hampers practical applications. In terms of the accuracy and efficiency, these neural network-based methods
+generally cannot compete with traditional methods such as the finite element method (FEM), finite difference
+method, and finite volume method.
+    As an alternative approach to the fully parameterized NN models, randomized neural networks have been
+proposed ([17, 18, 39, 38]). The parameters of the links between the hidden layers are chosen randomly and then
+fixed during training, while the parameters for the links between the last hidden layer and output layer are solved
+by a least-squares method. Extreme learning machine (ELM) ([14]) is an example of a randomized neural network,
+and it has been applied to solve various problems ([10, 13, 15, 26, 33, 37, 40, 56]) including successfully solving
+differential equations ([4, 7, 44, 52]). The feasibility analysis of ELM was proved in [27], which proves that the
+generalization capability of the ELM is the same as NNs if suitable activation function and initialization strategy
+of those fixed parameters are given properly. For solving PDEs, in [6] Dong and Li combine the ideas of local
+extreme learning machine and domain decomposition (locELM-DD) to solve PDEs, and this approach improves
+the accuracy and efficiency greatly. However, locELM-DD is based on the strong form of PDE problems, and so it
+may be unfavorable for problems that can only be described by a weak formulation. In [47], based on ELM and the
+Petrov-Galerkin formulation, the deep Petrov-Galerkin method is proposed to solve partial differential equations,
+and the numerical examples show that this approach is accurate and efficient with respect to degrees of freedom
+(DoF).
+    In the current work, we focus on the weak formulations of PDEs and their approximations by local neural
+networks. We combine the local randomized neural networks and the discontinuous Galerkin (DG) approach, and
+seek to exploit the DG framework to glue the local NNs together. Specifically, we take the Poisson equation and
+the heat equation as model problems to develop three schemes, and show how to implement these methods. The
+first scheme is termed the LRNN-DG (local randomized neural networks with discontinuous Galerkin) method,
+which uses the output fields of the last hidden layer as the local basis functions for the DG formulation on each
+subdomain and solves the final system of linear equations by a linear solver or a least-squares method. The other
+two schemes are termed LRNN-C 0 DG (local randomized neural networks with C 0 discontinuous Galerkin) and
+LRNN-C 1 DG (local randomized neural networks with C 1 discontinuous Galerkin) methods, respectively, in which
+continuity conditions for the function and its gradients are enforced across the sub-domain boundaries. We provide
+a convergence analysis of these methods under certain appropriate assumptions. For the time-dependent problem,
+we use the heat equation as a model and propose three space-time LRNN/DG type formulations. The space-time
+approach is very natural for neural networks and we do not need to compute the numerical solution with time
+iteration. Finally, we present numerical examples to show that the proposed methods are able to compete with
+traditional methods in some aspects. First, when the number of degrees of freedom is fixed and small, the accuracies
+of the LRNN/DG type methods developed herein are better than the FEM and the usual DG methods. Second,
+when the time-space approach is adopted, a notable advantage is that the error accumulation can be avoided, and
+one can get the numerical solution at any time instant without interpolation.
+   The rest of this paper is organized as follows. In Section 2, we introduce the idea of randomized neural
+networks and propose three LRNN-DG formulations for solving a Poisson equation. In Section 3, we make certain
+assumptions and present a convergence analysis of the methods. In Section 4, three space-time LRNN/DG methods
+are given for solving the heat equation. In Section 5, we present numerical examples to show the performance of
+the proposed methods. Finally, we make a summary in the last section.
+
+
+2    Local randomized neural networks with DG methods
+   In this section, we first describe one type of neural network, the so-called randomized neural network. Then,
+taking the Poisson equation as an example, we introduce local randomized neural networks with the discontinuous
+Galerkin formulations for solving the problem.
+
+
+                                                           2
+2.1     Randomized neural networks
+    The general deep neural networks can be represented as compositions of many hidden layers and an output
+layer. A hidden layer is defined as a composition of a linear transformation and an activation function as follows:
+                                                      N (x) = σ(W x + b),
+                                    d¯          ¯                                        ¯
+where x ∈ Ω ⊂ Rd , N (x) ∈ R , W ∈ R            d×d
+                                                 is the matrix of weights, b ∈ Rd is the bias, and σ is a nonlinear
+activation function. The first layer is usually called the input layer, and the number of layers is the depth of the
+neural network. The output layer is a linear transformation
+                                                      N o (x) = W x + b,
+                ¯                               ¯
+where x ∈ Rd , N o (x) ∈ Rno , W ∈ Rno ×d is the weight, and b ∈ Rno is the bias. Here, no is the dimension of
+output data.
+   Then a fully connected neural network can be represented by
+                                   U(x) = W (L+1) (N (L) ◦ · · · N (2) ◦ N (1) (x)) + b(L+1) ,
+where L is the depth of the neural network, W (l) ∈ Rnl ×nl−1 , and b ∈ Rnl are the parameters, and nl is the width
+of the l-th layer of the neural network. Given the depth of the network, and the width of each layer, we denote the
+set of NN functions by
+      M(θ, L) = {U(x) = W (L+1) (N (L) ◦ · · · ◦ N (1) (x)) + b(L+1) : W (l) ∈ Rnl ×nl−1 , b(l) ∈ Rnl , l = 1, ..., L + 1},
+where θ = {(W (l) , b(l) )}L+1
+                           l=1 .
+    Next, let us consider randomized neural networks. The structure of randomized neural networks is the same
+as that of fully connected neural networks. The difference lies in that all the parameters of the fully connected
+NNs are to be trained, while for randomized neural networks the output-layer parameters are adjustable and the
+hidden-layer parameters are randomly assigned and fixed. We consider single-hidden-layer NNs with the dimension
+of the output layer being one, i.e. W (2) ∈ R1×n1 . Moreover, let b(2) be zero. So in the randomized neural networks
+framework, we define the following function space
+                                                                                      
+                                                          XM                          
+                             MRN N (D) = U(α, θ, x) =           αjD φD (θj , x) : x ∈ D ,                       (2.1)
+                                                                                      
+                                                                   j=1
+
+where D ⊂ Ω is the domain, M = n1 is the width of the last hidden layer, θ is the parameter of hidden layers, α
+is the parameter of the output layer, and φ is a nonlinear function that represents the output of the last hidden
+layer. For the sake of simplicity, we rewrite φD (θj , x) as φD
+                                                              j (x) in the rest of the paper.
+
+
+
+2.2     LRNN-DG method
+    In [6], we see that the locELM which combines the idea of randomized neural networks and the domain decom-
+position is very successful in solving partial differential equations, and can compete with traditional methods such
+as FEM. This method has shown its strong potential for numerically solving PDEs. However, locELM is based on
+the strong form of PDEs, which may be unfavorable for problems that can only be described by weak formulations.
+The departure point of this paper lies in that here we combine local randomized NNs and the DG methods for
+solving PDEs in weak forms. That is, we use the output fields of the local neural networks’ last hidden layers to
+form local basis functions, and use DG formulation to glue them together.
+   Let us introduce the local randomized neural networks with the discontinuous Galerkin formulation. Here, we
+take the Poisson equation as a model problem,
+                                                       −∆u = f      in Ω,                                                (2.2a)
+                                                          u=g       on ∂Ω,                                               (2.2b)
+
+
+                                                               3
+where f is a given source term, ∂Ω is the boundary of Ω, and g is a function defined on ∂Ω. The weak formulation
+of the above problem is: Find u ∈ Hg1 (Ω) such that
+                                                   Z
+                                         a(u, v) =   f v dx ∀v ∈ H01 (Ω).                                  (2.3)
+                                                      Ω
+
+Here, Hg1 (Ω) = {v ∈ H 1 (Ω) : v = g on ∂Ω} and
+                                                            Z
+                                                a(u, v) =       ∇u · ∇v dx.
+                                                            Ω
+
+
+     Like the setting in locELM and DG method, we partition the domain into some subdomains, and approximate
+the solution on each subdomain by using a local neural network. First, we give some notation. Let {Th } be the
+decomposition of Ω̄, where h = maxK∈Th {diam(K)}. For each Th , Ne denotes the number of elements in Th , that
+is, |Th | = Ne . Let Eh be the union of the boundaries of all the elements K ∈ Th , Ehi is the set of all interior edges,
+and Eh∂ = Eh \Ehi . Let K + and K − be two neighboring elements sharing a common edge e. Denote by n± = n|∂K ±
+the unit outward normal vectors on ∂K ± . For a scalar function v and a vector-valued function q, let v ± = v|∂K ±
+and q ± = q|∂K ± . We define the averages {·} and the jumps J·K, [·] on e ∈ Ehi by
+                                           1 +
+                                     {v} =   (v + v − ), JvK = v + n+ + v − n− ,
+                                           2
+                                          1
+                                     {q} = (q + + q − ), [q] = q + · n+ + q − · n− .
+                                          2
+If e ∈ Eh∂ , we set
+
+                                                 JvK = vn,          {q} = q,
+
+where n is the unit outward normal vector on ∂Ω. In the analysis, we need the following identities:
+                                 Z                 Z                  Z
+                                     ∇v · q dx = −     v (∇ · q) dx +     v q · nK ds,                              (2.6)
+                                   K                K                  ∂K
+                           X Z                   Z                  Z
+                                    vq · nK ds =     JvK · {q} ds +    {v}[q] ds.                                   (2.7)
+                                     ∂K                Eh                       i
+                                                                               Eh
+                              K∈Th
+
+
+       We introduce the following DG space based on local randomized neural networks associated with the partition
+Th :
+
+                                 Vh = {vh ∈ L2 (Ω) : vh |K ∈ MRN N (K) ∀ K ∈ Th },
+
+where MRN N (K) denotes the function space of the randomized neural networks given in (2.1). So for each vh ∈ Vh ,
+       PM
+vh |K = j=1 vjK φK
+                 j (x).
+
+       We make the following assumption.
+
+Assumption 2.1 For any K ∈ Th , assume that the functions {φK
+                                                            j (x) : j = 1, 2, · · · , M } of last hidden layers in
+subdomain K are linearly independent.
+
+   For example, let φKj (x) = sin(W j x+bj ), then {sin(W j x+bj ), j = 1, 2, · · · , M } is a set of linearly independent
+functions if proper values of weights W j and bias bj are chosen. Of course, this assumption can be satisfied for
+other activation functions, like φK
+                                  j (x) = tanh(W j x + bj ).
+
+   The local randomized neural networks with DG (LRNN-DG) method for solving the Poisson problem is: Find
+uh ∈ Vh such that
+                                       ah (uh , vh ) = l(vh ) ∀ vh ∈ Vh ,                            (2.8)
+
+
+                                                                4
+where
+                             Z                         Z                         Z                          Z
+               ah (u, v) =       ∇h u · ∇h vdx −      {∇h u} · JvKds −     JuK · {∇h v}ds +                          ηJuK · JvKds,    (2.9)
+                             Ω                     Eh                   Eh                                      Eh
+                             Z             Z                   Z
+                  l(vh ) =       f vh ds −    gn · ∇h vh ds +      ηgvh ds.                                                          (2.10)
+                             Ω                   ∂
+                                                Eh                        ∂
+                                                                         Eh
+
+Here, ∇h vh = ∇vh |K , Eh ηJuK · JvK ds is the penalty term, the function η equals a constant ηe (he )−1 on each
+                        R
+
+e ∈ Eh , with ηe being a positive number. In this paper, we focus on the interior penalty DG (IPDG) scheme and
+note that other DG schemes studied in [2] can be considered as well, that is, the bilinear form (2.9) and the linear
+form (2.10) can be changed to other DG formulations.
+    The outputs of the last hidden layer {φK  j (x) : K ∈ Th , j = 1, 2, · · · , M } can be regarded as the local basis
+functions of the LRNN-DG, then we can get global stiffness matrices A and the right-hand side L. This is a system
+of linear algebraic equations, all the values of terms in A and L are computable. We also need to note that the
+penalty number in IPDG scheme (2.8) needs to be adjusted with the real problem. From (2.8), we obtain the
+system of equations,
+                                                                      AU = L,                                                        (2.11)
+where A is a Ne M × Ne M matrix, L is a Ne M × 1 vector, and there are Ne M unknown variables U = {uK
+                                                                                                    j :K ∈
+Th , j = 1, 2, · · · , M }.
+
+
+2.3     Some properties of the LRNN-DG method
+    The following lemma shows the consistency of the DG scheme, a similar argument can be found in [2] and other
+references on DG methods. For completeness, we give a brief proof as well.
+
+Lemma 2.2 (Consistency) The LRNN-DG scheme is consistent, i.e., for the solution u ∈ H 2 (Ω) of problem
+(2.3), we have
+                                 ah (u, vh ) = l(vh ) ∀vh ∈ Vh .                                  (2.12)
+
+Proof. We know that u ∈ H 2 (Ω) implies JuK = 0, [∇u] = 0 on Ehi and u = g on Eh∂ . Then, by the identities (2.6),
+(2.7) and (2.2), we have
+                               Z                 Z                    Z                 Z
+                 ah (u, vh ) =   ∇u · ∇h vh dx −   {∇h u} · Jvh Kds −   gn · ∇h vh ds +   ηgvh ds
+                                  Ω                         Eh                          E∂                            ∂
+                                                                                                                     Eh
+                                     Z                     X Z                          Zh
+                             =−            ∆uvh dx +                  ∇u · nK vh ds −         {∇h u} · Jvh Kds
+                                       Ω               K∈Th       K                      Eh
+                                     Z                        Z
+                                 −          gn · ∇h vh ds +           ηgvh ds
+                                        ∂
+                                       Eh                         ∂
+                                                                 Eh
+
+                             =l(vh ).
+
+
+   From the LRNN-DG scheme (2.8) and Lemma 2.2, we have
+                                                     ah (u − uh , vh ) = 0 ∀ vh ∈ Vh .                                               (2.13)
+
+   Next, let V (h) = Vh + H 2 (Ω), then we define some seminorms and norms by the following relations:
+                                          X                      X
+                                |v|21,h =    |v|21,K , |v|21,∗ =   h−1     2
+                                                                    e kJvKk0,e ,
+                                                 K∈Th                           e∈Eh
+                                                                                         X                                           (2.14)
+                                     kvk2w = |v|21,h + |v|21,∗ ,      kvk2∗ = kvk2w +           h2K |v|22,K .
+                                                                                        K∈Th
+
+
+                                                                         5
+The norms kvk2w and kvk2∗ are well-defined because
+
+                                         kvk0 ≤ Ckvkw ≤ Ckvk∗             ∀v ∈ V (h).                                (2.15)
+
+Here, and in the rest of the paper, C denotes a constant that is independent of h and M .
+    Then we have the boundedness and stability of the bilinear form ah by standard argument (see [2] and the
+references therein).
+
+Lemma 2.3 (Boundedness) ah (u, v) satisfies
+
+                                         ah (u, , v) ≤ Cb kuk∗ kvk∗      ∀ v ∈ V (h).                                (2.16)
+
+Lemma 2.4 (Stability) Set η0 = inf e ηe > 0, if η0 is large enough, then ah satisfies
+
+                                              ah (v, v) ≥ Cs kvk2∗      ∀ v ∈ Vh .                                   (2.17)
+
+   By Assumption 2.1, Lemma 2.3 and Lemma 2.4, we know that problem (2.8) is well-posed and A is symmetric
+positive definite (SPD). Therefore, many solvers for SPD system can be used to solve (2.11). The randomized
+neural network has a certain possibility that the functions {φK
+                                                              j (x) : j = 1, 2, · · · , M } are not linearly independent,
+which means that A is singular, and we need to solve the linear system (2.11) by the least-squares approach. Then,
+the parameters U in the neural networks’ output layers can be obtained by a least-squares method.
+
+
+2.4    LRNN-C 0 DG method
+   The LRNN-DG method introduced in the previous subsection is based on the IPDG scheme. It is well-known
+that the performance of the IPDG method depends on the choice of the penalty parameter η. It might be cumber-
+some to determine an appropriate value of the penalty parameter. Of course, we can use other DG formulation,
+such as local DG, to avoid the difficulty of choosing proper penalty parameter. However, taking advantage of least
+square method, we can enforce the C 0 -continuous condition on each e ∈ Ehi and the Dirichlet boundary condition
+on Eh∂ to avoid this issue.
+   We add additional equations to enforce the solution to satisfy the boundary condition (2.2b), that is, we choose
+some collocation points on the boundary edge, Ph∂ = {xej ∈ e : e ∈ Eh∂ , j = 1, 2, · · · , N∂e } and |Ph∂ | = N∂ , such that
+
+                                              uh (xej ) = g(xej ) ∀xej ∈ Ph∂ .                                       (2.18)
+
+In addition, we also need to make sure that the numerical solution uh satisfies certain C 0 -continuity conditions
+across the interior edges e ∈ Ehi . We choose some collocation points on the interior edges, Phi = {xej ∈ e : e ∈
+Ehi , j = 1, 2, · · · , Nin
+                         e
+                            } and |Phi | = Nin , on these points, we set
+
+                                                Juh (xej )K = 0 ∀xej ∈ Phi .                                         (2.19)
+
+Then we obtain a system of equations with respect to (2.18) and (2.19),
+
+                                                          A2 U = L2 ,                                                (2.20)
+
+where A2 is a (N∂ + Nin ) × Ne M matrix, U is the Ne M × 1 unknown vector, and L2 is a (N∂ + Nin ) × 1 vector.
+   Condition (2.19) makes Juh K ≈ 0, so the LRNN-C 0 DG scheme is to find uh ∈ Vh such that
+
+                                           a0h (uh , vh ) = l0 (vh )     ∀vh ∈ Vh ,
+                                             Juh (xej )K = 0             ∀xej ∈ Phi ,                                (2.21)
+                                               uh (xej ) = g(xej )       ∀xej ∈ Ph∂ ,
+
+                                                                6
+where
+                                      Z                              Z                            Z
+                   a0h (uh , vh ) =       ∇h uh · ∇h vh dx −     {∇h uh } · Jvh Kds −                   {∇h vh } · Juh Kds.   (2.22)
+                                      Ω                       Eh                                   Eh
+                                      Z             Z
+                        l0 (vh ) =        f vh ds −     gn · ∇h vh ds.                                                        (2.23)
+                                      Ω                  ∂
+                                                        Eh
+
+
+Here, we keep the term Eh {∇h vh } · Juh Kds for the symmetry of the bilinear form a0h . Note that this scheme is free
+                       R
+
+of penalty parameters. Finally, from (2.21), we get a linear system,
+                                                           
+                                                    A1        L
+                                                        U= 1 ,                                                 (2.24)
+                                                    A2        L2
+
+where A1 is a Ne M × Ne M matrix, L1 is a Ne M × 1 vector. We look for the least-squares solution for this linear
+system.
+
+Remark 2.1 From numerical examples, we see that the scheme (2.21) has a good performance. But note that the
+following scheme which destroys the symmetry still works well.
+                                                     Z
+                                       f0 (u , v ) =
+                                       a               f vh ds ∀ vh ∈ Vh ,                           (2.25)
+                                        h   h   h
+                                                                      Ω
+
+where
+                                                    Z                             Z
+                                 f0 (u , v ) =
+                                 a                        ∇h uh · ∇h vh dx −             {∇h uh } · Jvh Kds.                  (2.26)
+                                  h h h
+                                                      Ω                             Eh
+
+
+
+2.5     LRNN-C 1 DG method
+    In the previous subsection, the DG scheme has been simplified by enforcing the continuity of uh , that is, by
+setting Juh K = 0 on e ∈ Ehi . Can we move further in this direction? Let us introduce the LRNN-C 1 DG method in
+this subsection.
+   In each subdomain K, −∆u = f , so we have
+                         Z                Z                                        Z
+                            ∇u · ∇vdx −                           ∇u · nK vds =           f vdx    ∀K ∈ Th ,                  (2.27)
+                                 K                           ∂K                       K
+
+where, nK is the unit outer normal vector on ∂K. We know that (2.27) with Dirichlet boundary condition (2.2b)
+is not equivalent to the Poisson problem because the local problems lack the connections with each others. From
+domain decomposition method ([32]), we know that the continuities of u and flux are needed, i.e., we require
+Juh K = 0 and [∇uh ] = 0 on each e ∈ Ehi .
+    We need to make sure that local representations of the solution have the C 1 -continuity conditions across the
+subdomain boundaries because of the consistency. We choose some points on the interior edges Phi stated in Section
+2.4, on these points, with the same set-up of the LRNN-C 0 DG method, we have LRNN-C 1 DG method: find uh ∈ Vh
+such that
+                                                          Z
+                                      aK
+                                       h (uh , vh ) =            f vh dx       ∀ vh ∈ Vh     ∀ K ∈ Th ,
+                                                             K
+                                          Juh (xej )K = 0                                    ∀ xej ∈ Phi ,                    (2.28)
+                                      [∇uh (xej )] = 0                                       ∀ xej ∈ Phi ,
+                                            uh (xej ) = g(xej )                              ∀ xej ∈ Ph∂ ,
+
+
+                                                                           7
+where
+                                                Z                        Z
+                              aK
+                               h (uh , vh ) =       ∇h uh · ∇h vh dx −          ∇h uh · nK vh ds.                    (2.29)
+                                                K                          ∂K
+
+    Finally, we obtain the following linear system,
+                                                             
+                                                       A1      L
+                                                            U= 1 ,
+                                                       A2      L2
+
+where A1 is a Ne M ×Ne M matrix, L1 is a Ne M ×1 vector. A2 is a (2Nin +N∂ )×Ne M matrix, U is a Ne M ×1 vector
+of unknown variables, L2 is a (2Nin + N∂ ) × 1 vector. We look for the least-squares solution to this system. After
+the weights of the output layer in each local neural network are obtained by the linear least-squares computation,
+we can get all the values of the problem (2.2) in the domain Ω.
+
+
+3     Convergence of the LRNN with DG methods
+
+3.1     Convergence of the LRNN-DG method
+    We now consider the error analysis for the LRNN-DG method. From [27], we know that if the exact solution
+u is a smooth function, ELM does not degrade the generalization capability of neural networks with the proper
+activation functions and random initialization strategies. And in [12, 20], we know that the neural networks can
+approximate the solution well with the proper depth and width. We make the following assumption. Let uσ ∈ Vh
+be a suitable approximation of the exact solution u.
+
+Assumption 3.1 Given a decomposition Th with |Th | = Ne and Vh is the associated DG space of LRNN. For
+any small positive number , there exists a positive integer M such that if M > M , we have a function uσ ∈ Vh
+satisfying
+              ku − uσ k0,K ≤ ChK Ne−1/2 , |u − uσ |1,K ≤ CNe−1/2 , |u − uσ |2,K ≤ Ch−1K Ne
+                                                                                             −1/2
+                                                                                                  .
+Here, M is the number of the basis of MRN N (K) and C denotes a constant number that is independent of h and
+M.
+
+Remark 3.2 For any function u ∈ H p+1 (K), we know that there exists a polynomial function uI ∈ Pp (K) such
+that
+        ku − uI k0,K ≤ Chp+1
+                         K |u|p+1,K ,  |u − uI |1,K ≤ ChpK |u|p+1,K , |u − uI |2,K ≤ Chp−1
+                                                                                       K |u|p+1,K .
+
+Similarly, we make Assumption 3.1 in light of good approximation properties of neural networks.
+
+    From the above assumption and the trace inequality, we have
+                              X                 X                       X
+                ku − uσ k2∗ =   |u − uσ |21,K +     h2K |u − uσ |22,K +   h−1           2
+                                                                           e kJu − uσ Kk0,e
+                              K∈Th                    K∈Th                        e∈Eh
+                                                                                                                 !
+                                   X                       X                             X
+                           ≤C            |u − uσ |21,K +          h2K |u − uσ |22,K +          h−2         2
+                                                                                                K ku − uσ k0,K
+                                  K∈Th                     K∈Th                         K∈Th
+
+                           ≤C.                                                                                       (3.1)
+
+    For the LRNN-DG method, we have the following Ceá-type inequality.
+
+Theorem 3.3 Let u and uh be solutions of the problem (2.3) and the LRNN-DG scheme (2.8), we obtain
+
+                                      ku − uh k∗ ≤ (1 + Cb /Cs ) inf ku − vh k∗ .                                     (3.2)
+                                                                      vh ∈Vh
+
+
+                                                               8
+Proof. For any vh ∈ Vh , by the boundedness (2.16) and stability (2.17) of the bilinear form ah , as well as (2.13),
+we have
+                           Cs kvh − uh k2∗ ≤ ah (vh − uh , vh − uh )
+                                               = ah (vh − u, vh − uh ) + ah (u − uh , vh − uh )
+                                               ≤ Cb kvh − uk∗ kvh − uh k∗ ,
+then we get
+                                              kvh − uh k∗ ≤ Cb /Cs ku − vh k∗ .                                 (3.3)
+
+     Finally, by triangle inequality, we obtain
+
+                            ku − uh k∗ ≤ ku − vh k∗ + kvh − uh k∗ ≤ (1 + Cb /Cs )ku − vh k∗ ,                   (3.4)
+
+which completes the proof of the theorem.
+   From the Ceá-type inequality and (3.1), let vh = uρ in (3.2), we can obtain the convergence of the LRNN-DG
+scheme (2.8).
+
+Corollary 3.4 Let u and uh be solutions of the problems (2.3) and (2.8), respectively. If Assumption 3.1 holds,
+then for any small positive number , there exists a positive integer M such that if M > M , then
+
+                                                         ku − uh k∗ ≤ C.                                       (3.5)
+
+
+3.2     Convergence of the LRNN-C 0 DG method
+                            fh denote the solution of the LRNN-C 0 DG scheme (2.21). By enforcing the conditions
+    In this subsection, let u
+(2.18) and (2.19), we have u  fh − g ≈ 0 on boundary edges and Jf  uh K ≈ 0 on interior edges. Especially, when the
+number of the points xej on each edge e are increased, u
+                                                       fh − g and Jf
+                                                                   uh K will become as smaller as we need. Therefore,
+let us make an assumption as follows.
+
+Assumption 3.5 Given a decomposition Th with |Th | = Ne and Vh is the associated DG space of LRNN. For any
+small positive number , on every edge e ∈ Eh , there exist Ne such that if N e > Ne , then
+
+                                     uh Kk0,e ≤ Ch1/2
+                                   kJf            e           and     uh − gk0,e ≤ Ch1/2
+                                                                      kf              e .
+
+Here, N e is the number of points xej on the edge e and C denotes a constant number which is independent of h and
+M.
+
+     Next, we prove the convergence of the LRNN-C 0 DG scheme (2.21).
+
+Theorem 3.6 Let u and u   fh be solutions of the problem (2.3) and the LRNN-C 0 DG scheme (2.21), respectively.
+If Assumption 3.1 and Assumption 3.5 hold, for any small positive number , there exist positive integers M , Ne
+such that if M > M , N e > Ne , then
+                                                 ku − u
+                                                      fh k∗ ≤ C.                                           (3.6)
+
+Proof. From the LRNN-C 0 DG scheme (2.21) and the LRNN-DG scheme (2.8), we know that
+
+                                              a0h (f
+                                                   uh , vh ) = l0 (vh ) ∀ vh ∈ Vh ,
+                                                                                                                (3.7)
+                                               ah (uh , vh ) = l(vh ) ∀ vh ∈ Vh ,
+so                                                 Z                                  Z
+                                     uh , vh ) −
+                                 ah (f                    uh K · Jvh Kds = l(vh ) −
+                                                        ηJf                                ηgvh ds.             (3.8)
+                                                   Eh                                  ∂
+                                                                                      Eh
+
+
+                                                                  9
+And by the consistency (2.12), we have
+                                                     Z                          Z
+                                    uh − u, vh ) =
+                                ah (f                       uh K · Jvh Kds −
+                                                          ηJf                        ηgvh ds.                   (3.9)
+                                                     Eh                          ∂
+                                                                                Eh
+
+
+   From the stability and boundedness of ah and (2.13), we get
+
+                     uh − uh k2∗ ≤ ah (f
+                 Cs kf                 uh − uh , u
+                                                 fh − uh )
+                                      uh − u, u
+                                = ah (f        fh − uh ) + ah (u − uh , u
+                                                                        fh − uh )
+                                  Z                            Z
+                                =       uh K · Jf
+                                      ηJf       uh − uh Kds −      ηg(fuh − uh )ds
+                                    Eh                               ∂
+                                                                    Eh
+                                                                                                12
+                                             X                      X
+                                ≤ ηmax          h−1  uh Kk20,e +
+                                                  e kJf                    h−1 uh − gk20,e  |f
+                                                                            e kf              uh − uh |1,∗ .
+                                             i
+                                          e∈Eh                         ∂
+                                                                    e∈Eh
+
+Therefore, by Assumption 3.5, we have
+                                                                                 21
+                                   ηmax  X −1                X
+                     kf
+                      uh − uh k∗ ≤                uh Kk20,e +
+                                             he kJf              h−1 uh − gk20,e  ≤ C.
+                                                                  e kf
+                                    Cs     i                   ∂
+                                             e∈Eh                        e∈Eh
+
+
+   Finally, by triangle inequality and Corollary 3.4, we obtain
+
+                                    ku − u
+                                         fh k∗ ≤ ku − uh k∗ + kuh − u
+                                                                    fh k∗ ≤ C.
+
+
+
+
+3.3    Convergence of the LRNN-C 1 DG method
+    In this subsection, let uh denote the solution of the LRNN-C 1 DG scheme (2.28). Similar to the case of the
+LRNN-C 0 DG method, by enforcing [∇uh (xej )] = 0 for each point xej on e, we have [∇uh (xej )] ≈ 0 as well. So we
+give the following assumption.
+
+Assumption 3.7 Given a decomposition Th with |Th | = Ne and Vh is the associated DG space of LRNN. For any
+small positive number , on every edge e ∈ Eh , there exists Ne such that if N e > Ne , then
+
+                 kJuh Kk0,e ≤ Ch1/2
+                                e ,     kuh − gk0,e ≤ Ch1/2
+                                                         e              and    k[∇uh (xej )]k0,e ≤ Ch−1/2
+                                                                                                      e    .
+
+Here, N e is the number of the points xej on edge e and C denotes a constant number which is independent of h and
+M.
+
+Remark 3.1 To show that Assumption 3.5 and Assumption 3.7 are reasonable, in Section 5, we give some nu-
+merical evidences which shows that kJuh Kk0,e , k[∇uh ]k0,e on interior edges and kuh − gk0,e on boundary edges are
+decreasing with the increase of the number of collection points.
+
+   Finally, we show the convergence of the LRNN-C 1 DG scheme.
+
+Theorem 3.8 Let u and uh be solutions of the problem (2.3) and the LRNN-C 1 DG scheme (2.28), respectively.
+If Assumption 3.1 and Assumption 3.7 hold, for any small positive number , there exist positive integers M , Ne
+such that if M > M , N e > Ne , then
+                                               ku − uh k∗ ≤ C.                                            (3.10)
+
+
+                                                              10
+Proof. We know that in each subdomain,
+                      Z                     Z                                                          Z
+                         ∇h uh · ∇h vh dx −                                 ∇h uh · nK vh ds =               f vh dx         ∀K ∈ Th .                    (3.11)
+                                  K                                    ∂K                                K
+
+Then we add over all the elements to obtain
+                                                                              Z
+                                                           a1h (uh , vh ) =         f vh dx ∀vh ∈ Vh ,                                                    (3.12)
+                                                                                Ω
+
+where                                         Z                                X Z
+                       a1h (uh , vh ) =               ∇h uh · ∇h vh dx −                          ∇h uh · nK vh ds
+                                               Ω                               K∈Th          ∂K
+                                              Z                                Z                                   Z                                      (3.13)
+                                          =           ∇h uh · ∇h vh dx −               {∇h uh } · Jvh Kds −                {vh } · [∇h uh ]ds.
+                                               Ω                                  Eh                                i
+                                                                                                                   Eh
+
+So                                                Z                                Z                                   Z
+                           ah (uh , vh ) −              {vh } · [∇h uh ]ds +                Juh K · {∇h vh }ds −             ηJuh K · Jvh Kds
+                                                    i
+                                                   Eh                                  Eh                               Eh
+                                      Z                                Z                                                                                  (3.14)
+                       =l(vh ) +              gn · ∇h vh ds −                ηgvh ds.
+                                       ∂
+                                      Eh                                 ∂
+                                                                        Eh
+
+And we know ah (u, vh ) = l(vh ), so we have
+
+        ah (uh − u, vh )
+         Z                       Z                      Z                                                    Z                           Z
+                                                                                                                                                          (3.15)
+       =    {vh } · [∇h uh ]ds −   Juh K · {∇h vh }ds +                            ηJuh K · Jvh Kds +              gn · ∇h vh ds −             ηgvh ds.
+            i
+           Eh                             Eh                                  Eh                               ∂
+                                                                                                              Eh                           ∂
+                                                                                                                                          Eh
+
+
+     By the stability and boundedness of ah and (2.13), we get
+
+                  Cs kuh − uh k2∗ ≤ ah (uh − uh , uh − uh ) = ah (uh − u, uh − uh ) + ah (u − uh , uh − uh )
+                  Z                             Z                               Z
+                =     {uh − uh } · [∇h uh ]ds −     Juh K · {∇h (uh − uh )}ds +     ηJuh K · Juh − uh Kds
+                     i
+                    Eh                                             Eh                                            Eh
+                       Z                                           Z
+                   +          gn · ∇h (uh − uh )ds −                       ηg(uh − uh )ds
+                          ∂
+                         Eh                                          ∂
+                                                                    Eh
+                                                                                                                              12
+                           X                                X                                     X
+                ≤C               h−1       2
+                                   e kJuh Kk0,e +                  he k[∇h uh ]k20,e +                h−1        2 
+                                                                                                       e kuh − gk0,e kuh − uh k∗ ,
+                              i
+                           e∈Eh                                i
+                                                            e∈Eh                                  ∂
+                                                                                               e∈Eh
+
+so                                                                                                                                               12
+                                      C              X                            X                               X
+                kuh − uh k∗ ≤                             h−1       2
+                                                           e kJuh Kk0,e +                   he k[∇h uh ]k20,e +              h−1        2 
+                                                                                                                              e kuh − gk0,e
+                                      Cs             i                                i                               ∂
+                                                                                                                                                          (3.16)
+                                                  e∈Eh                             e∈Eh                            e∈Eh
+
+                                   ≤ C.
+
+     Finally,
+                                                      ku − uh k∗ ≤ ku − uh k∗ + kuh − uh k∗ ≤ C.                                                         (3.17)
+
+
+
+
+                                                                                    11
+4     Space-time LRNN with DG methods for heat equation
+   In this section, we study local randomized neural networks with DG methods for solving a typical time-dependent
+PDE, heat equation. Unlike the traditional method, which solves the problem by an iteration over time steps, we
+use the space-time approach, in which temporal and spatial variables are treated equally and jointly. Therefore,
+the accumulation of errors can be avoided.
+    Consider
+
+                                           ut (t, x) − ∆u(t, x) = f (t, x)   in Σ,                                     (4.1a)
+                                                       u(0, x) = u0 (x)      in Ω,                                     (4.1b)
+                                                        u(t, x) = g(t, x)    on I × ∂Ω,                                (4.1c)
+
+where Ω ⊂ Rd is a bounded space domain, I = (0, T ) is the time interval, Σ = I × Ω is the space-time domain,
+u is the unknown solution to be solved, f is the given source term, u0 is the initial condition and g is a function
+defined on I × ∂Ω.
+   We partition the domain into some subdomains, and approximate the solution on each subdomain by using a
+local neural network. First, we give the decomposition of the time interval Dτ = {Ii = (ti−1 , ti ), 0 = t0 < t1 < · · · <
+tNt = T }, where τ = max {length(Ii )} and Nt denotes the number of subintervals along the temporal direction.
+                        Ii ∈Dτ
+Let Pτ = {ti , i = 0, · · · , Nt } be the union of the boundary points of all the intervals Ii = (ti−1 , ti ) ∈ Dτ , and Pτi =
+Pτ \{t0 , tNt } is the set of all interior points. Let {Th } be the decomposition of Ω̄, where h = maxK∈Th {diam(K)}.
+Eh , Ehi and Eh∂ have the same definitions stated in Section 2.2. Let {Dτ × Th } denote the decomposition of the
+space-time domain Σ̄. For Th , Ns denotes the number of elements in Th , that is, Ne = |Dτ × Th | = Nt Ns . Let σ +
+and σ − be two neighboring elements sharing a common face f . Denote by n± = n|∂σ± the unit outward normal
+vectors on ∂σ ± . For a scalar-valued function v and a vector-valued function q, let v ± = v|∂σ± and q ± = q|∂σ± .
+We define the averages {·} and the jumps J·K, [·] on f ∈ (Pτi × Th ) ∪ (Dτ × Ehi ) by
+
+                                           1 +
+                                      {v} =  (v + v − ), JvK = v + n+ + v − n− ,
+                                           2
+                                          1
+                                     {q} = (q + + q − ), [q] = q + · n+ + q − · n− .
+                                          2
+If f ∈ (Pτ∂ × Th ) ∪ (Dτ × Eh∂ ), we set
+
+                                                      JvK = vn,      {q} = q,
+
+where n is the unit outward normal vector on ∂Σ.
+
+
+4.1    Space-time LRNN-DG method
+   We introduce the following DG space based on the local randomized neural network associated with the partition
+Dτ × Th :
+
+                     Vhτ = {vhτ ∈ L2 (Σ) : vhτ |Ii ×K ∈ MRN N (Ii × K) ∀ Ii ∈ Dτ ∀ K ∈ Th },
+                     Qτh = {q τh ∈ [L2 (Σ)]d : q τh |Ii ×K ∈ [MRN N (Ii × K)]d       ∀ Ii ∈ Dτ ∀ K ∈ Th }.
+
+    We rewrite the heat equation as the first-order system,
+
+                                                             p = ∇u in Σ,
+                                                     ∂u
+                                                        −∇·p=f           in Σ.
+                                                     ∂t
+
+
+                                                                12
+In the above equations, multiply the test functions q and v respectively on subdomain σ = Ii × K, then we get by
+integration by parts,
+                                Z                 Z                    Z
+                                    p · qdxdt = − u∇ · qdxdt +                 uq · ndsdt,
+                                  σ                 σ                   Ii ×∂K
+                  Z              Z                Z                    Z             Z
+                      ∂v
+                − u dxdt + p · ∇vdxdt +               (uv)|ttii−1 dx =     f vdxdt +         p · nvdsdt.
+                    σ ∂t          σ                K                     σ            Ii ×∂K
+
+We append subscript h on ∇, append subcript τ on ∂ and append subscript h and τ on u, v, p and q. Besides,
+we use numerical traces ucτ and pcτ to approximate u and p in spatial cross-section f ∈ Dτ × Eh and use numerical
+                          h       h
+       fτ to approximate u in temporal cross-section f ∈ Pτ × Th ,
+traces uh
+                              Z                      Z                      Z
+                                  pτh · q τh dxdt = − uτh ∇h · q τh dxdt +            ucτ q τh · ndsdt,
+                                                                                        h
+                               σ                      σ                      Ii ×∂K
+                 ∂τ vhτ
+            Z                 Z                       Z                     Z                    Z
+          − uτh         dxdt + pτh · ∇h vhτ dxdt +        fτ vhτ )|tti dx =
+                                                         (u                     f vh
+                                                                                    τ
+                                                                                      dxdt    +          cτ · nvhτ dsdt.
+                                                                                                         p
+                                                           h                                               h
+             σ    ∂ τ t         σ                      K
+                                                                     i−1
+                                                                              σ                   Ii ×∂K
+
+
+   Then we add over all the elements, use integration by parts and (2.7),
+       Z                   Z                      Z                             Z
+         pτh · q τh dxdt =   ∇h uτh · q τh dxdt +    cτ − uτh K · {q τh }dsdt +
+                                                    Ju h                                                      [q τh ] · {u
+                                                                                                                         cτ − uτh }dsdt,
+                                                                                                                          h
+          Σ                     Σ                            Dτ ×Eh                                       i
+                                                                                                     Dτ ×Eh
+                                                            Nt Z
+           ∂τ uτh τ
+        Z                       Z                          X                                                          Z
+                                      τ          τ                                    τ                τ
+                  vh dxdt +         ph · ∇h vh dxdt +                   τ
+                                                                      Juh (ti , x) − uh (ti , x)K · {vh (ti , x)}dx −
+                                                                       f                                                   f vhτ dxdt
+         Σ ∂τ t                   Σ                        i=0    T h                                                   Σ
+          N
+          X t −1 Z                                                         Z                                 Z
+        +            Jvhτ (ti , x)K · {ufτ (ti , x) − uτh (ti , x)}dx =
+                                         h                                          Jv τ
+                                                                                       h K · { p
+                                                                                               c τ }dsdt +
+                                                                                                 h
+                                                                                                                     cτ ] · {vhτ }dsdt.
+                                                                                                                    [ph
+                    Th                                                       Dτ ×Eh                                 i
+                                                                                                               Dτ ×Eh
+              i=1
+
+Here, we take
+
+                                                            cτ = {uτh }
+                                                            u                on f ∈ Dτ × Ehi ,
+                                                             h
+                                                                 cτ = g
+                                                                 uh          on f ∈ Dτ × Eh∂ ,
+                                                   fτ = {uτh } − ηJuτh K
+                                                   u                         on f ∈ Pτi × Th ,
+                                                    h
+                                                                fτ = u0
+                                                                u            on f ∈ {t0 } × Th ,
+                                                                 h
+                                                               fτ = uτh
+                                                               u             on f ∈ {tNt } × Th ,
+                                                                h
+                                              cτ = {∇h uτh } − ηJuτh K
+                                              p                              on f ∈ Dτ × Ehi ,
+                                                h
+                                                 cτ = ∇h uτh − ηg · n
+                                                 p                           on f ∈ Dτ × Eh∂ ,
+                                                   h
+
+                     −1
+where η = ηf (hf ) , and ηf can be different by the choice of the face f . And we choose q τh = ∇h vhτ , then the
+sapce-time LRNN-DG scheme for solving the heat problem is: Find uτh ∈ Vhτ such that
+
+                                                     Bhτ (uτh , vhτ ) = l(vhτ ) ∀vhτ ∈ Vhτ ,                                               (4.6)
+
+where
+                                       ∂τ uτh τ
+                                    Z                       Z
+               Bhτ (uτh , vhτ ) =             vh dxdt +         ∇h uτh · ∇h vhτ dxdt
+                                     Σ  ∂ τ t                Σ
+                                      Nt −1 Z
+                                       X                                             N
+                                                                                     Xt −1 Z
+
+                                    −            Juτh (ti , x)K · {vhτ (ti , x)}dx −              ηJuτh (ti , x)K · Jvhτ (ti , x)Kdx       (4.7)
+                                        i=0   Th                                      i=1    Th
+                                        Z
+                                    −            (Juτh K · {∇h vhτ } + Jvhτ K · {∇h uτh } − ηJuτh K · Jvhτ K) dsdt,
+                                        Dτ ×Eh
+
+
+                                                                        13
+                          Z                  Z                                  Z                           Z
+              l(vhτ ) =       f vhτ dxdt −               gn · ∇h vhτ dtds +                ηgvhτ dtds +            u0 (x)vhτ (t0 , x)dx.    (4.8)
+                          Σ                       ∂
+                                             Dτ ×Eh                                    ∂
+                                                                                  Dτ ×Eh                      Th
+
+   From the above scheme, we can get a linear system of equations
+
+                                                                        AU = L,                                                             (4.9)
+
+where A is a Ne M × Ne M matrix, L is a Ne M × 1 vector, and there are Ne M unknown variables U = {ujIi ×K :
+Ii ∈ Dτ , K ∈ Th , j = 1, 2, · · · , M }. Here, the width of the last hidden layer is M . We look for the least-squares
+solution for this system. Therefore, the parameters U in the neural networks’ output layers are obtained by the
+linear least-squares computation.
+
+Remark 4.1 Because the variables x and t are inputs of randomized neural networks, so the LRNN-DG scheme
+(4.6) is based on a space-time approach, and we can solve this time-dependent problem by one least-squares compu-
+tation, which is more efficient than traditional approaches.
+
+   We give the following lemma to show the consistency of the space-time LRNN-DG method.
+
+Lemma 4.1 The space-time LRNN-DG scheme is consistent, i.e., for the solution u ∈ C 0 (I; H 2 (Ω)) of the heat
+equation (4.1), we have
+                                 Bhτ (u, vhτ ) = l(vhτ ) ∀vhτ ∈ Vhτ .                                   (4.10)
+
+Proof. We know that u ∈ C 0 (I; H 2 (Ω)) implies JuK = 0, [∇u] = 0 on Ehi , u = g on Eh∂ , Ju(ti , x)K = 0 for
+i = 1, 2, · · · , Nt − 1 and u(t0 , x) = u0 (x). Then, by the identities (2.6) and (2.7), we have
+                                   Z               Z                      Z
+                                      ∂u τ
+                   Bhτ (u, vhτ ) =       vh dxdt +     ∇u · ∇h vhτ dxdt −         Jvhτ K · {∇u}dsdt
+                                    Σ ∂t            Σ                      Dτ ×Eh
+                                     Z                          Z                     Z
+                                   −         gn · ∇h vhτ dtds +         ηgvhτ dtds +        u0 (x)vhτ (t0 , x)dx
+                                           ∂
+                                      Dτ ×Eh                                    ∂
+                                                                           Dτ ×Eh                     Th
+                                  Z                                 Z                                  Z
+                                    ∂u
+                               = (     − ∆u)vhτ dxdt +          ∇u · nK vhτ dtds −                                  Jvhτ K · {∇u}dsdt
+                                 Σ ∂t                    Dτ ×Eh                                            Dτ ×Eh
+                                  Z                         Z                    Z
+                                −        gn · ∇h vhτ dtds +        ηgvhτ dtds +                            u0 (x)vhτ (t0 , x)dx
+                                           ∂
+                                      Dτ ×Eh                                    ∂
+                                                                           Dτ ×Eh                     Th
+
+                               =l(vh ).
+
+
+
+
+4.2    Space-time LRNN-C 0 DG method
+    In the space-time LRNN-DG method, a proper value of the penalty parameter is hard to choose. To avoid this
+difficulty, in this subsection, we introduce the space-time LRNN-C 0 DG method.
+   The setting of local randomized neural networks and the              partition are the same as ones stated above. Now
+we enforce the C 0 -continuous condition on f ∈ Dτ × Ehi ∪ Pτi × Th , the initial condition on f ∈ {t0 } × Th
+and Dirichlet boundary condition on f ∈ Dτ × Eh∂ to solve this problem. We add the additional equations to
+enforce the solution to satisfy the boundary condition (4.1c), that is, we choose some points on boundary faces,
+PhS∂ = {(tfj , xfj ) ∈ f : f ∈ Dτ × Eh∂ , j = 1, 2, · · · , N∂f } and |PhS∂ | = N∂S , such that
+
+                                                 uτh (tfj , xfj ) = g(tfj , xfj ) ∀(tfj , xfj ) ∈ PhS∂ .                                   (4.11)
+
+
+
+                                                                          14
+   We add the additional equations to enforce the solution to satisfy the initial condition (4.1b), that is, we choose
+some points at the initial time, Pht0 = {(t0 , xfj ) ∈ f : f ∈ {t0 } × Th , j = 1, 2, · · · , Ntf0 } and |Pht0 | = NtT0 , such that
+
+                                                 uτh (t0 , xfj ) = u0 (xfj ) ∀(t0 , xfj ) ∈ Pht0 .                                      (4.12)
+
+    Moreover, we impose that  thei numerical
+                                                solution uh satisfies certain C 0 -concontinuity conditions across the
+                           i
+interior faces f ∈ Dτ × Eh ∪ Pτ × Th along the spatial and temporal directions. We choose some points on the
+boundary faces, Phi = {(tfj , xfj ) ∈ f : f ∈ Dτ × Ehi ∪ Pτi × Th , j = 1, 2, · · · , Nin
+                                                                                       f
+                                                                 
+                                                                                          } and |Phi | = Nin , such that
+
+                                                    Juτh (tfj , xfj )K = 0 ∀(tfj , xfj ) ∈ Phi .                                        (4.13)
+
+The system of equations with respect to (4.11)-(4.13) confirms the boundary conditions, initial conditions and
+continuity conditions of interior edges, so we have
+
+                                                                      A2 U = L2 ,
+
+where A2 is a (N∂S + NtT0 + Nin ) × Ne M matrix, U is a Ne M × 1 unknown vector, L2 is a (N∂S + NtT0 + Nin ) × 1
+vector. This system of equations makes the jump of solution Juτh K ≈ 0, so the LRNN-C 0 DG scheme is to find
+uτh ∈ Vhτ such that
+                                     0
+                                   Bhτ (uτh , vhτ ) = l0 (vhτ )    ∀ vhτ ∈ Vhτ ,
+                                             Juτh (tfj , xfj )K = 0                   ∀(tfj , xfj ) ∈ Phi ,
+                                                                                                                                        (4.14)
+                                               uτh (tfj , xfj ) = g(tfj , xfj )     ∀(tfj , xfj ) ∈ PhS∂ ,
+                                               uτh (t0 , xfj ) = u0 (xfj )           ∀(t0 , xfj ) ∈ Pht0 ,
+where
+                                                        ∂τ uτh τ
+                                                     Z                     Z
+                               0
+                              Bhτ (uτh , vhτ ) =               vh dxdt +      ∇h uτh · ∇h vhτ dxdt
+                                                      Σ ∂τ t                Σ
+                                                       Z
+                                                    −           (Juτh K · {∇h vhτ } + Jvhτ K · {∇h uτh })dsdt,                          (4.15)
+                                                         Dτ ×Eh
+                                                    Z                 Z
+                                           0 τ
+                                          l (vh ) =     f vhτ dxdt −           gn · ∇h vhτ dtds.
+                                                       Σ                        ∂
+                                                                           Dτ ×Eh
+
+
+  Then we can get global stiffness matrix A1 and the right-hand side L1 of (4.6), where A1 is a Ne M × Ne M
+matrix, L1 is a Ne M × 1 vector. Combine A1 , A2 , L1 and L2 , we get a linear system
+                                                         
+                                                  A1       L
+                                                      U= 1 .                                          (4.16)
+                                                  A2       L2
+
+We look for the least-squares solution to this system. After the weights of the output layer in each local neural
+network are obtained by the linear least-squares computation, we can get all the values of the problem (4.1) in the
+domain Σ. Note that this scheme is free of the penalty parameter.
+
+Remark 4.2 From  R the mumerical examples, we see that the scheme (4.14) has a good performance. But if we get
+rid of the term − Dτ ×Eh Jvhτ K · {∇h uτh }dsdt in (4.15), the new scheme still work well in numerical experiments, that
+is                                                          Z
+                                                 τ    τ
+                                           g0
+                                           Bhτ (uh , vh ) =   f vhτ dxds ∀ vhτ ∈ Vhτ ,                           (4.17)
+                                                                       Σ
+where
+                                       ∂τ uτh τ
+                                      Z                          Z                              Z
+                         τ    τ
+                  B
+                  g 0
+                    hτ (uh , vh ) =          vh dxdt +                ∇h uτh · ∇h vhτ dxdt −                  Jvhτ K · {∇h uτh }dsdt.   (4.18)
+                                      Σ ∂τ t                      Σ                               Dτ ×Eh
+
+
+
+                                                                           15
+4.3     Space-time LRNN-C 1 DG method
+   We state the basic idea of LRNN-C 1 DG in Section 2.5. Similarly, we introduce the space-time LRNN-C 1 DG
+method for solving the heat equation.
+   We add the system of equations to enforce the solution uτh to satisfy the boundary condition, the initial condition,
+and C 0 -continuity conditions along with spatial and temporal directions just like (4.11)-(4.13). Moreover, we impose
+that the numerical solution uτh satisfies certain C 1 -continuity conditions across the interior faces f ∈ Dτ × Ehi along
+the spatial direction, choose points PhSi = {(tfj , xfj ) ∈ f : f ∈ Dτ × Ehi , j = 1, 2, · · · , Nin
+                                                                                                  f
+                                                                                                     } and |PhSi | = Nin
+                                                                                                                      S
+                                                                                                                         ,
+
+                                               [∇h uτh (xfj )] = 0   ∀xfj ∈ PhSi .                                 (4.19)
+
+    So we have the new problem that finding uh ∈ Vhτ such that
+                                             Z
+                             σ    τ    τ
+                            Bhτ (uh , vh ) =   f vhτ dtdx ∀ σ = (Ii × K) ∈ (Dτ × Th ) ,                            (4.20)
+                                                 σ
+
+where
+                                          ∂uτh τ
+                                         Z                Z                          Z
+                     σ
+                    Bhτ (uτh , vhτ ) =        vh dtdx +        ∇uτh · ∇vhτ dtdx −             ∇uτh · nvhτ dsdt.    (4.21)
+                                         σ ∂t              σ                         Ii ×∂K
+
+Then we can get the global stiffness matrix A1 and the right-hand side L1 , where A1 is a Ne M × Ne M matrix, L1
+is a Ne M × 1 vector, such that A1 U = L1 .
+   Let uτh satisfy the conditions (4.11)-(4.13), C 1 -continuity condition (4.19). Then we can obtain a system of
+equations
+                                                      A2 U = L2 ,                                           (4.22)
+where A2 is a (N∂T + N∂S + Nin + NinS
+                                      ) × Ne M matrix, U is a Ne M × 1 matrix of unknown variables, L2 is a
+  T     S           S
+(N∂ + N∂ + Nin + Nin ) × 1 vector. Combine A1 , A2 , L1 and L2 , we obtain
+                                                        
+                                               A1         L
+                                                     U= 1 .                                          (4.23)
+                                               A2         L2
+
+   We look for the least-squares solution to this system. After the weights of the output layer in each local neural
+network are obtained by the linear least-squares computation, we can get all the values of the problem (4.1) in the
+domain Σ.
+
+
+5     Numerical Examples
+    In this section, we present several test problems to demonstrate the performance of the methods developed
+herein. In these examples, the neural network is implemented using the Tensorflow and Keras libraries in Python,
+as stated in Section 2.1. Each local neural network (for each sub-domain) consists of a single hidden layer, whose
+parameters are pre-assigned and fixed to uniform random values generated from [−w0 , w0 ], where w0 is a constant.
+The overall neural network is composed of all the local neural networks, which are coupled with one another
+through the DG formulation or the C 0 /C 1 conditions. The integrals in the weak formulations are computed by
+the Gaussian quadrature. We employ 70 quadrature points for the integrals in 1-d, and 70 × 70 quadrature points
+for the integrals in 2-d. For solving the rectangular system of equations about the output-layer coefficients, we
+employ the linear least-squares routine from LAPACK, available through wrapper functions in the scipy package
+in Python. The DoFK or DoFσ in all tables below denote the degrees of freedom on each subdomain, and the DoF
+in the figures refers to the total degrees of freedom.
+
+
+
+                                                                16
+Example 5.1 (One-Dimensional Helmholtz Equation) The first test problem is a one-dimensional Helmholtz
+equation on the domain Ω = [0, 1],
+                                   uxx − λu = f (x),
+                                                 u(0) = sin(0.4π) cos(0.4π),
+                                                 u(1) = sin(4.4π) cos(4.4π),
+where the λ is a constant and f (x) is a prescribed source term, with the manufactured exact solution
+
+                                      u(x) = sin(4π(x + 0.1)) cos(4π(x + 0.1)).
+
+
+                        h                     2−2                      2−3                    2−4
+           parameter
+                            Norm
+                                         L2           H1          L2           H1       L2          H1
+                        DoFK
+                        10            1.63E-02     1.23E-00     4.31E-02   4.72E-00   3.33E-03   5.15E-01
+                        20            3.99E-05     6.81E-03     3.22E-05   9.27E-03   1.81E-06   1.23E-03
+                        40            1.65E-07     5.83E-05     3.28E-08   2.03E-05   1.55E-08   1.64E-05
+                        80            1.33E-08     4.48E-06     2.67E-09   1.80E-06   2.84E-10   4.29E-07
+           λ = 10
+                        160           2.55E-09     1.16E-06     5.34E-10   4.99E-07   7.33E-11   1.37E-07
+                        320           1.96E-09     9.54E-07     2.69E-10   2.69E-07   5.20E-11   1.01E-07
+                        640           1.37E-09     6.68E-07     1.94E-10   1.96E-07   4.07E-11   8.34E-08
+                        1280          9.61E-10     4.79E-07     1.94E-10   2.02E-07   3.30E-11   7.10E-08
+                        10            1.45E-02     1.24E-00     2.26E-02   1.98E-00   1.57E-03   3.08E-01
+                        20            4.00E-05     8.60E-03     3.93E-05   1.22E-02   1.26E-06   8.23E-04
+                        40            1.89E-07     6.41E-05     2.20E-07   1.11E-04   5.92E-09   6.52E-06
+                        80            1.03E-08     3.68E-06     1.14E-09   8.20E-07   2.22E-10   3.13E-07
+           λ=1
+                        160           1.98E-09     8.13E-07     4.55E-10   3.79E-07   1.16E-10   1.95E-07
+                        320           1.72E-09     7.89E-07     3.27E-10   2.89E-07   5.09E-11   8.83E-08
+                        640           1.10E-09     4.94E-07     2.66E-10   2.35E-07   6.58E-11   1.16E-07
+                        1280          1.26E-09     5.49E-07     2.32E-10   2.11E-07   4.92E-11   9.27E-08
+
+              Table 1: Errors of the LRNN-DG method for 1-d Helmholtz equation in Example 5.1.
+
+   We partition the interval Ω into non-overlapping uniform subintervals of size h and choose the source term f
+such that the solution form as given above satisfies this boundary value problem. The numerical errors in L2 norm
+and H 1 seminorm for different numbers of degrees of freedom are shown in Table 1, Table 2 and Table 3.
+    Table 1 lists the LRNN-DG errors with respect to the number of degrees of freedom on each element and the
+size of the subinterval. In this group of tests, the penalty parameter η is set to be 0.0625 and 70 for λ = 10,
+1, respectively. And the the parameter w0 of the uniform distribution is chosen as 5.5 and 4.8 for λ = 10, 1,
+respectively. One can observe that for fixed h the errors decrease rapidly with increasing numbers of degrees of
+freedom initially, and then the reduction slows down. For fixed degrees of freedom per subinterval, one can observe
+a general decrease in the errors as the subinterval size h decreases.
+    Table 2 lists the corresponding errors of LRNN-C 0 DG in terms of the number of DoF per interval and the size
+of the element. In this group of tests, the parameter w0 of the uniform distribution is chosen to equal 5.5 for λ =
+10, 1. The trend of errors with the size h and the DoFK is similar to that of LRNN-DG.
+    Table 3 shows the errors of LRNN-C 1 DG in terms of the DoF per element and the size of the element. In
+this group of tests, the parameter w0 of the uniform distribution is chosen to equal 5.5 and 4.5 for λ = 10, 1,
+respectively. The trend of errors with the size h and the DoFK is similar to that of LRNN-DG.
+    Figure 1 and Figure 2 are comparisons of the errors of the three methods for different sizes h and different norms
+for λ = 10, 1 respectively. In general, we can see the performance of the three schemes are similar, LRNN-C 1 DG
+
+
+                                                           17
+                                          h                                          2−2                                                2−3                                            2−4
+         parameter
+                                                    Norm
+                                                                        L2                    H1                             L2                      H1                   L2                 H1
+                                          DoFK
+                                          10                     1.91E-02               1.47E-00              2.24E-02                        2.45E-00               3.83E-03            5.42E-01
+                                          20                     6.60E-05               1.37E-02              2.15E-05                        5.39E-03               9.20E-06            6.43E-03
+                                          40                     1.30E-07               3.48E-05              4.56E-08                        2.82E-05               1.46E-08            1.65E-05
+                                          80                     5.22E-09               2.04E-06              7.38E-10                        5.49E-07               1.48E-10            2.16E-07
+         λ = 10
+                                          160                    5.13E-10               2.35E-07              1.21E-10                        1.15E-07               5.32E-11            9.81E-08
+                                          320                    4.25E-10               2.11E-07              8.85E-11                        8.93E-08               3.12E-11            6.35E-08
+                                          640                    2.65E-10               1.40E-07              7.32E-11                        7.86E-08               2.60E-11            5.44E-08
+                                          1280                   3.12E-10               1.63E-07              6.48E-11                        6.90E-08               2.24E-11            5.03E-08
+                                          10                     1.97E-02               1.47E-00              3.81E-02                        3.58E+00               4.21E-03            5.42E-01
+                                          20                     6.54E-05               1.36E-02              2.18E-05                        5.45E-03               9.24E-06            6.45E-03
+                                          40                     1.31E-07               3.51E-05              4.60E-08                        2.83E-05               1.46E-08            1.65E-05
+                                          80                     5.32E-09               2.07E-06              7.82E-10                        5.94E-07               1.46E-10            2.14E-07
+         λ=1
+                                          160                    4.94E-10               2.23E-07              9.95E-11                        9.28E-08               5.28E-11            9.77E-08
+                                          320                    4.16E-10               2.08E-07              8.70E-11                        8.82E-08               2.95E-11            6.05E-08
+                                          640                    2.67E-10               1.38E-07              6.47E-11                        7.01E-08               2.68E-11            5.63E-08
+                                          1280                   3.16E-10               1.65E-07              7.07E-11                        7.62E-08               1.90E-11            4.24E-08
+
+           Table 2: Errors of the LRNN-C 0 DG method for 1-d Helmholtz equation in Example 5.1.
+
+
+                                   0                                                   LRNN-DG                           2                                                LRNN-DG
+                                                                                       LRNN-C 0DG                                                                         LRNN-C 0DG
+                                                                                       LRNN-C 1DG                                                                         LRNN-C 1DG
+                                  −2                                                                                     0
+
+
+                                  −4                                                                                    −2
+                  log10(error)
+
+
+
+
+                                                                                                         log10(error)
+
+
+
+
+                                  −6
+                                                                                                                        −4
+
+                                  −8
+                                                                                                                        −6
+                                 −10
+                                    0.0       0.5   1.0   1.5     2.0    2.5   3.0    3.5    4.0                         0.0      0.5   1.0    1.5     2.0    2.5   3.0   3.5   4.0
+                                                                log10(DoF)                                                                           log10(DoF)
+
+
+                                              (a) L2 errors with h = 2−2                                                       (b) H 1 errors with h = 2−2
+
+                                                                                       LRNN-DG                           2                                                LRNN-DG
+                                   0                                                   LRNN-C 0DG                                                                         LRNN-C 0DG
+                                                                                       LRNN-C 1DG                                                                         LRNN-C 1DG
+                                  −2                                                                                     0
+                  log10(error)
+
+
+
+
+                                                                                                         log10(error)
+
+
+
+
+                                  −4                                                                                    −2
+
+                                  −6
+                                                                                                                        −4
+
+                                  −8
+                                                                                                                        −6
+                                 −10
+                                    0.0       0.5   1.0   1.5     2.0    2.5   3.0    3.5    4.0                         0.0      0.5   1.0    1.5     2.0    2.5   3.0   3.5   4.0
+                                                                log10(DoF)                                                                           log10(DoF)
+
+
+                                              (c) L2 errors with h = 2−3                                                       (d) H 1 errors with h = 2−3
+
+         Figure 1: Comparison of the errors obtained by the three methods in Example 5.1 for λ=10.
+
+
+is better than LRNN-C 0 DG and LRNN-C 0 DG is better than LRNN-DG. But we need to note that there are more
+equations in the last two methods, so they should offer better performance.
+
+
+                                                                                                    18
+                        h                      2−2                       2−3                      2−4
+           parameter
+                            Norm
+                                          L2          H1           L2           H1           L2          H1
+                        DoFK
+                        20            7.48E-05      1.23E-02    3.79E-06      1.39E-03    1.10E-06     7.26E-04
+                        40            1.34E-07      3.30E-05    2.94E-08      1.64E-05    2.37E-08     2.39E-05
+                        80            7.79E-09      2.91E-06    4.50E-10      3.39E-07    1.80E-10     2.42E-07
+           λ = 10       160           6.59E-10      3.07E-07    9.30E-11      8.81E-08    4.51E-11     8.16E-08
+                        320           2.45E-10      1.20E-07    8.31E-11      8.07E-08    2.04E-11     4.14E-08
+                        640           1.99E-10      1.01E-07    6.52E-11      6.88E-08    1.30E-11     2.84E-08
+                        1280          1.02E-10      5.33E-08    5.82E-11      6.07E-08    1.67E-11     3.49E-08
+                        20            1.10E-05      1.65E-03    1.71E-06      6.00E-04    1.84E-06     9.91E-04
+                        40            3.37E-08      8.38E-06    3.06E-08      1.58E-05    1.39E-09     1.55E-06
+                        80            6.75E-09      2.20E-06    3.84E-10      2.61E-07    1.44E-10     1.94E-07
+           λ=1          160           7.99E-10      2.98E-07    2.03E-10      1.60E-07    4.44E-11     6.99E-08
+                        320           6.20E-10      2.59E-07    1.10E-10      8.98E-08    2.63E-11     4.35E-08
+                        640           2.62E-10      1.11E-07    9.73E-11      8.11E-08    2.19E-11     3.83E-08
+                        1280          1.80E-10      7.86E-08    8.20E-11      7.23E-08    1.64E-11     2.90E-08
+
+            Table 3: Errors of the LRNN-C 1 DG method for 1-d Helmholtz equation in Example 5.1.
+
+
+Example 5.2 (Two-Dimensional Poisson Equation) Consider a two-dimensional Poisson equation with Dirich-
+let boundary condition,
+                                     −∆u = f     in Ω,
+                                                     u=g        on ∂Ω.
+The exact solution u = ex+y sin(3πx + 0.5π)cos(πy + 0.2π) with Ω = [0, 1]2 .
+
+    The numerical errors in the L2 norm and the H 1 seminorm for the different number of degrees of freedom
+are shown in Table 4, Table 5 and Table 6. For this problem, we also compare the proposed methods with the
+finite element method and the discontinuous Galerkin method. In this example, we partition the domain Ω into
+non-overlapping uniform square elements with the edge length h. The number of collection points on each edge
+used in LRNN-C 0 DG and LRNN-C 1 DG is 70.
+
+                 h                     2−1                       2−2                       2−3
+                     Norm
+                                 L2            H1          L2            H1          L2           H1
+                 DoFK
+                 10            6.24E-01    9.22E-00     1.16E-01    3.13E-00      5.77E-02    2.24E-00
+                 20            7.25E-02    1.70E-00     1.72E-02    8.16E-01      2.35E-03    2.46E-01
+                 40            2.42E-03    1.07E-01     1.77E-04    1.57E-02      4.41E-05    8.77E-03
+                 80            6.00E-05    3.72E-03     2.71E-06    4.23E-04      7.35E-07    2.65E-04
+                 160           1.41E-05    1.05E-03     5.54E-07    1.07E-04      1.49E-07    6.56E-05
+                 320           6.83E-06    4.31E-04     3.94E-07    9.14E-05      1.09E-07    5.69E-05
+                 640           5.26E-06    4.18E-04     5.18E-07    1.45E-04      1.31E-07    6.65E-05
+
+               Table 4: Errors of the LRNN-DG method for 2-d Poisson equation in Example 5.2.
+
+   Table 4 records the errors of LRNN-DG in terms of degrees of freedom on each element and the size of the
+element. In this group of tests, the weight/bias coefficients in the hidden layer of each local network are set to
+uniform random values generated in [-1, 1]. We can see that errors in both the L2 norm and the H 1 seminorm
+decrease along with the increase of Dof K fast firstly and then slowly for the fixed h. We also observe that if we
+reduce the size h, the errors decrease for the fixed Dof K .
+
+                                                           19
+                                    0                                             LRNN-DG                           1                                             LRNN-DG
+                                                                                  LRNN-C 0DG                                                                      LRNN-C 0DG
+                                                                                  LRNN-C 1DG                        0                                             LRNN-C 1DG
+                                   −2
+                                                                                                                   −1
+                                                                                                                   −2
+                                   −4
+
+                   log10(error)
+
+
+
+
+                                                                                                    log10(error)
+                                                                                                                   −3
+                                   −6                                                                              −4
+                                                                                                                   −5
+                                   −8
+                                                                                                                   −6
+                                                                                                                   −7
+                                  −10
+                                     0.0   0.5   1.0   1.5     2.0    2.5   3.0   3.5   4.0                         0.0    0.5   1.0   1.5     2.0    2.5   3.0   3.5   4.0
+                                                             log10(DoF)                                                                      log10(DoF)
+
+
+                                           (a) L2 errors with h = 2−2                                                     (b) H 1 errors with h = 2−2
+
+                                                                                  LRNN-DG                           2                                             LRNN-DG
+                                    0                                             LRNN-C 0DG                                                                      LRNN-C 0DG
+                                                                                  LRNN-C 1DG                                                                      LRNN-C 1DG
+                                   −2                                                                               0
+
+                                   −4
+                   log10(error)
+
+
+
+
+                                                                                                    log10(error)
+                                                                                                                   −2
+
+                                   −6
+                                                                                                                   −4
+
+                                   −8
+                                                                                                                   −6
+                                  −10
+                                     0.0   0.5   1.0   1.5     2.0    2.5   3.0   3.5   4.0                         0.0    0.5   1.0   1.5     2.0    2.5   3.0   3.5   4.0
+                                                             log10(DoF)                                                                      log10(DoF)
+
+
+                                           (c) L2 errors with h = 2−3                                                     (d) H 1 errors with h = 2−3
+
+           Figure 2: Comparison of the errors obtained by the three methods in Example 5.1 for λ=1.
+
+
+    Table 5 and Table 6 show the errors of LRNN-C 0 DG and LRNN-C 1 DG in terms of the number of degrees of
+freedom on each element and the size of the element, respectively. The parameters w0 of the uniform distribution
+are chosen to equal 0.63 and 1.29 for the two methods, respectively. The trends observed here for LRNN-C 0 DG
+and LRNN-C 0 DG are similar to that of the LRNN-DG method.
+  Figure 3 compares the errors of the three methods for different sizes h and different norms. We can see that
+LRNN-C 1 DG is better than LRNN-C 0 DG and LRNN-C 0 DG is better than LRNN-DG.
+    Figure 4 shows a comparison between the finite element method and the current LRNN-C 1 DG method, and
+between the usual discontinuous Galerkin method (based on polynomials) and the current LRNN-DG method. Here
+Pk denotes the kth-order piecewise continuous or discontinuous polynomial functions. We observe that the errors
+of the proposed methods are much smaller than those of the DG method and FEM with the same DoF. However,
+when the DoF increases to a certain value, the errors of the current methods appear to stagnate. This phenomenon
+may be due to the possibility that the basis functions {φKj (x) : j = 1, 2, · · · , M } can tend to be linearly dependent
+as M becomes larger, which leads to a rank deficient linear system. One way to reduce the error is to increase the
+number of the subdomains, i.e., using elements with a smaller size h. Another approach is to design better neural
+networks that can provide improved basis functions. This is one aspect we will further explore in future work.
+    Figure 5 shows distributions of the point-wise absolute error computed using the three methods with the element
+size h = 2−2 and the number of Dof K in each element 320. We can see the absolute error of LRNN-DG is larger
+but smoother. The absolute error of LRNN-C 0 DG and LRNN-C 1 DG are smaller but have a larger amplitude.
+    Table 7 provides some numerical evidence about the reasonableness of the Assumption 3.5 and Assumption 3.7.
+Here, we have performed a test to examine how the jump of the numerical solution uh and its gradient ∇uh vary
+as the number of collocation points increases with the LRNN-C 1 DG method. We consider a vertical interior edge
+and a horizontal interior edge and compute the L2 (e)-norm of Juh K and [∇uh ] on these edges. We also consider a
+
+
+
+                                                                                               20
+                  h                         2−1                      2−2                       2−3
+                      Norm
+                                    L2             H1          L2            H1           L2           H1
+                  DoFK
+                  10            7.83E-01         8.57E-00   4.66E-01       4.85E-00   8.31E-01     8.02E-00
+                  20            7.57E-01         7.02E-00   6.35E-02       1.28E-00   1.27E-02     4.48E-01
+                  40            3.81E-02         7.24E-01   6.41E-04       2.45E-02   1.90E-04     1.40E-02
+                  80            1.48E-04         4.49E-03   3.89E-06       2.47E-04   3.70E-07     4.60E-05
+                  160           5.35E-06         2.11E-04   9.38E-08       7.29E-06   1.12E-08     1.71E-06
+                  320           1.24E-06         5.25E-05   5.57E-08       4.52E-06   6.59E-09     1.07E-06
+                  640           1.27E-06         5.28E-05   4.29E-08       3.60E-06   7.52E-09     1.26E-06
+
+              Table 5: Errors of the LRNN-C 0 DG method for 2-d Poisson equation in Example 5.2.
+
+                 h                         2−2                       2−3                         2−3
+                     Norm
+                                    L2             H1          L2            H1           L2           H1
+                 DoFK
+                 10            1.02E-00       1.11E+01      6.09E-01       7.28E-00   1.16E-00     1.12E+01
+                 20            2.97E-01       3.80E-00      1.17E-01       2.83E-00   4.39E-02     1.49E-00
+                 40            3.61E-02       8.29E-01      5.63E-03       2.30E-01   1.57E-03     1.26E-01
+                 80            6.70E-04       2.39E-02      1.03E-04       7.09E-03   2.00E-05     2.72E-03
+                 160           2.17E-06       1.20E-04      6.86E-08       7.38E-06   1.19E-08     2.54E-06
+                 320           1.45E-07       9.24E-06      1.05E-08       1.35E-06   3.28E-09     8.36E-07
+                 640           8.30E-08       5.83E-06      6.95E-09       9.54E-07   3.02E-09     8.39E-07
+
+              Table 6: Errors of the LRNN-C 1 DG method for 2-d Poisson equation in Example 5.2.
+
+
+vertical boundary edge and a horizontal boundary edge and compute the L2 (e)-norm of uh − g on these boundary
+edges. In these tests, the width of each local neural network is fixed at 320 and the size of each element is h = 2−2 .
+Table 7 lists these errors corresponding to a set of collocation points. It is evident that kJuh Kk0,e , k[∇uh ]k0,e and
+kuh − gk0,e decrease rapidly with increasing number of collection points Ne , reaching a level close to the machine
+zero as Ne becomes large.
+
+                                    Vertical Edge                                 Horizontal Edge
+                 Ne
+                       kJuh Kk0,e   k[∇uh ]k0,e kuh − gk0,e          kJuh Kk0,e    k[∇uh ]k0,e kuh − gk0,e
+                 5     1.73E-05     4.52E-04      1.53E-05           6.18E-05      1.47E-03     3.93E-05
+                 10    3.31E-08     3.01E-06      2.08E-08           5.95E-08      2.34E-06     3.49E-08
+                 20    3.00E-11     1.89E-09      5.61E-11           1.62E-11      1.42E-09     1.25E-10
+                 40    2.34E-13     7.94E-13      2.72E-13           2.51E-13      8.84E-13     4.90E-13
+                 80    1.62E-13     5.59E-13      2.51E-13           1.76E-13      1.18E-13     1.89E-13
+
+           Table 7: L2 (e)-norm of Juh K, [∇uh ], and uh − g computed by LRNN-C 1 DG in Example 5.2.
+
+
+Example 5.3 (Heat Equation) The last example is a heat equation described as follows
+
+                                         ut (t, x) − λ∆u(t, x) = f (t, x)    in I × Ω,
+                                                        u(0, x) = u0 (x)      in Ω,
+                                                        u(t, x) = g(t, x)    on I × ∂Ω,
+
+where Ω = [0, 1], I = [0, 1], the constant λ = 1 or 0.001, f is a source term, and u0 and g are the initial and
+
+
+                                                               21
+                                                                                           LRNN-DG                                 1                                                           LRNN-DG
+                                   0                                                       LRNN-C 0DG                                                                                          LRNN-C 0DG
+                                                                                           LRNN-C 1DG                                                                                          LRNN-C 1DG
+                                  −1                                                                                               0
+
+                                  −2                                                                                              −1
+
+
+
+                   log10(error)
+
+
+
+
+                                                                                                                   log10(error)
+                                  −3                                                                                              −2
+                                  −4
+                                                                                                                                  −3
+                                  −5
+                                                                                                                                  −4
+                                  −6
+
+                                  −7                                                                                              −5
+
+                                   1.0          1.5         2.0                2.5     3.0              3.5                        1.50   1.75    2.00     2.25      2.50 2.75         3.00      3.25   3.50
+                                                                  log10(DoF)                                                                                      log10(DoF)
+
+
+                                         (a) L2 errors with h=2−1                                                                         (b) H 1 errors with h=2−1
+
+                                                                                           LRNN-DG                                 1                                                           LRNN-DG
+                                   0
+                                                                                           LRNN-C 0DG                                                                                          LRNN-C 0DG
+                                                                                           LRNN-C 1DG                              0                                                           LRNN-C 1DG
+
+                                  −2                                                                                              −1
+
+                                                                                                                                  −2
+                   log10(error)
+
+
+
+
+                                                                                                                   log10(error)
+                                  −4
+                                                                                                                                  −3
+
+                                                                                                                                  −4
+                                  −6
+                                                                                                                                  −5
+
+                                  −8                                                                                              −6
+                                   1.0    1.5         2.0          2.5       3.0     3.5        4.0                                2.00   2.25   2.50    2.75     3.00 3.25     3.50    3.75     4.00   4.25
+                                                                  log10(DoF)                                                                                       log10(DoF)
+
+
+                                         (c) L2 errors with h=2−2                                                                         (d) H 1 errors with h=2−2
+
+                                  Figure 3: Errors obtained from three different methods in Example 5.2.
+
+
+boundary conditions. We employ the manufactured exact solution
+                                                                                                                                            2
+                                                                                           u = −ecos(πx+3π)+t .
+
+    Let us consider the space-time LRNN with DG methods for solving the heat equation. The numerical errors
+measured in the L2 norm and the H 1 seminorm at t = 1 for the different numbers of degrees of freedom are shown
+in Tables 8, Tables 9 and Tables 10. Here, we partition the domain I × Ω into some non-overlapping subdomains
+σ = Ii × K where Ii is a time interval, K is a space interval, and the time interval and space interval have the same
+size h. The number of collection points on each edge used in LRNN-C 0 DG and LRNN-C 1 DG is 70.
+    Table 8 records the L2 errors and the H 1 errors of the space-time LRNN-DG at t = 1 in terms of the number
+of degrees of freedom in each element and the size of the element. In this group of tests, the penalty parameter is
+chosen as η = 10, 8 for λ = 0.001, 1, respectively. The weight/bias coefficients in the hidden layer of each local
+network are set to be uniform random values generated from [−1.5, 1.5] for both λ = 0.001 and λ = 1. Table 9
+records errors of the space-time LRNN-C 0 DG at t = 1. The parameter w0 is set to be 1 and 1.25 for λ = 0.001
+and λ = 1 respectively. Table 10 records errors of the space-time LRNN-C 1 DG for t = 1, and the parameter w0 is
+chosen as 1.1 for both λ = 0.001 and λ = 1.
+   For a comparison with the current methods, we have also solved this problem using the traditional finite element
+method. With FEM, we employ the P2 finite element for spatial discretization and the backward Euler scheme for
+time stepping. The numerical errors are shown in Table 11 for t = 1 and λ = 0.001. Here, h is the size of the mesh
+and ∆t is the size of the time step. By comparing the FEM data in this table and those of the current methods,
+we can see that space-time LRNN-DG methods can achieve more accurate numerical solutions.
+    Figure 6 shows distributions of the point-wise absolute errors in the spatial-temporal domain obtained using the
+current methods and the traditional FEM for the case λ = 0.001. In the space-time LRNN with DG methods, the
+size of each element h = 2−2 and the number of DoFσ in each element is 320. In the P2 FEM with the backward
+
+
+                                                                                                              22
+                                   0                                                                           1
+
+                                                                                                               0
+                                  −2
+                                                                                                              −1
+
+
+
+                   log10(error)
+
+
+
+
+                                                                                               log10(error)
+                                                                                                              −2
+                                  −4
+                                                                                                              −3
+
+                                  −6     LRNN-C 1DG, h=2−1                                                    −4     LRNN-C 1DG, h=2−1
+                                         LRNN-C 1DG, h=2−2                                                           LRNN-C 1DG, h=2−2
+                                         FEM ith P1                                                           −5     FEM with P1
+                                         FEM ith P2                                                                  FEM with P2
+                                  −8     FEM ith P3                                                           −6     FEM with P3
+
+                                   1.0    1.5         2.0     2.5       3.0   3.5   4.0                        1.0    1.5          2.0    2.5       3.0   3.5   4.0
+                                                             log10(DoF)                                                                  log10(DoF)
+
+
+                  (a) L2 errors by FEM and LRNN-C 1 DG (b) H 1 errors by FEM and LRNN-C 1 DG
+
+
+                                   0                                                                           1
+
+                                  −1                                                                           0
+                                  −2
+                                                                                                              −1
+                   log10(error)
+
+
+
+
+                                                                                               log10(error)
+                                  −3
+                                                                                                              −2
+                                  −4
+                                         LRNN-DG, h=2−1                                                              LRNN-DG, h=2−1
+                                  −5     LRNN-DG, h=2−2                                                       −3     LRNN-DG, h=2−2
+                                         DG with P1                                                                  DG with P1
+                                  −6     DG with P2                                                                  DG with P2
+                                         DG with P3                                                           −4     DG with P3
+                                   1.0    1.5         2.0     2.5       3.0   3.5   4.0                        1.0    1.5          2.0    2.5       3.0   3.5   4.0
+                                                             log10(DoF)                                                                  log10(DoF)
+
+
+                             (c) L2 errors by DG and LRNN-DG                                           (d) H 1 errors by DG and LRNN-DG
+
+    Figure 4: Comparison of the errors obtained by FEM, DG and LRNN with DG methods in Example 5.2.
+
+
+Euler scheme, the size of mesh h = 2−9 and the size of the time step ∆t = 2−18 . We can see the absolute error
+of the LRNN-DG is larger but smoother. The absolute error of LRNN-C 0 DG and LRNN-C 1 DG are smaller but
+have strong amplitudes. Due to the time marching, the error accumulation over time is evident from the FEM
+distribution. Unlike the traditional methods, there is little or essentially no error accumulation in the proposed
+space-time LRNN with DG methods.
+
+
+6    Summary
+     Local randomized neural networks with discontinuous Galerkin formulations provide a new framework for solving
+partial differential equations. With the decomposition of the domain, we use LRNNs to approximate the solution
+of partial differential equations on each subdomain, and apply the IPDG scheme to couple these LRNNs together.
+Then we obtain the weights of output layers by the least-squares method. Under certain proper assumptions,
+we prove the convergence of the proposed methods. Furthermore, we propose space-time LRNN-DG methods for
+solving the heat equation. The proposed methods have the following advantages: (i) the accuracy of the proposed
+methods is better than the FEM or the usual DG method with respect to the number of degrees of freedom; (ii)
+compared to DG methods, the LRNN-C 0 DG method and LRNN-C 1 DG method are free of penalty parameters;
+(iii) the proposed methods can solve time-dependent problems by the space-time approach naturally and efficiently.
+    We believe that the proposed methods have a great potential for solving partial differential equations. However,
+many aspects of these methods need to be further investigated. We have considered only linear partial differential
+equations in this paper. The extension of these methods to nonlinear problems is one issue we would like to address
+in a future study. Numerical examples indicate that the errors of these methods seem stagnant when the number
+of degrees of freedom reaches a certain threshold. Can one design neural networks to avoid such a situation? Can
+
+
+                                                                                          23
+                                                                                                                    1e−6
+                                                              6
+                  1.0                                                          1.0
+                                                                                                                           8
+                                                              4
+                  0.8                                                          0.8
+                                                                                                                           6
+                  0.6                                         2                0.6
+              y
+
+
+
+
+                                                                           y
+                  0.4                                         0                0.4                                         4
+
+
+                  0.2                                         −2               0.2
+                                                                                                                           2
+
+                  0.0                                                          0.0
+                     0.0   0.2   0.4       0.6   0.8   1.0    −4                  0.0   0.2   0.4       0.6   0.8   1.0
+                                       x                                                            x
+
+
+
+                           (a) The exact solution.                       (b) The absolute error for LRNN-DG method.
+
+                                                       1e−7                                                         1e−8
+                                                              2.5
+                                                                                                                           5
+                  1.0                                                          1.0
+
+                                                              2.0
+                  0.8                                                          0.8                                         4
+
+                  0.6                                         1.5              0.6                                         3
+              y
+
+
+
+
+                  0.4                                         1.0
+                                                                           y   0.4
+                                                                                                                           2
+
+                  0.2                                                          0.2
+                                                              0.5                                                          1
+                  0.0                                                          0.0
+                     0.0   0.2   0.4       0.6   0.8   1.0                        0.0   0.2   0.4       0.6   0.8   1.0
+                                       x                                                            x
+
+
+
+          (c) The absolute error for LRNN-C 0 DG method. (d) The absolute error for LRNN-C 1 DG method.
+
+     Figure 5: Exact solution and absolute errors computed by three methods with h = 2−2 in Example 5.2.
+
+
+we exploit parallel processing to improve their efficiencies? How can we use mesh adaptation to improve their
+performance for complex problems? How do we derive the error estimates for the proposed methods? These are
+some of the outstanding questions that remain to be explored.
+
+
+Acknowledgement. The authors are grateful to Professor Zongben Xu for the valuable discussions and sugges-
+tions.
+
+
+References
+ [1] M. M. Almajid and M. O. Abu-Al-Saud, Prediction of porous media fluid flow using physics informed neural
+     networks, J. Pet. Sci. Eng. 208 (2022), 109205.
+ [2] D. N. Arnold, F. Brezzi, B. Cockburn and L. D. Marini. Unified analysis of discontinuous Galerkin methods
+     for elliptic problems, SIAM J. Numer. Anal. 39 (2002), 1749–1779.
+ [3] F. A. Belbute-Peres, Y. Chen and F. Sha, HyperPINN: Learning parameterized differential equations with
+     physics-informed hypernetworks, arXiv preprint (2021), arXiv:2111.01008.
+ [4] S. Balasundaram and Kapil, Application of error minimized extreme learning machine for simultaneous learning
+     of a function and its derivatives, Neurocomputing 74 (2011), 2511–2519.
+
+
+                                                                    24
+                      h                    2−1                            2−2                     2−3
+                           Norm
+                                      L2         H1              L2             H1       L2             H1
+                      DoFσ
+                      20           1.64E-01    4.96E-00        3.32E-02     1.88E-00   1.77E-01     2.06E+01
+                      40           1.98E-02    1.10E-00        2.18E-03     2.00E-01   2.16E-02     3.94E-00
+                      80           1.36E-05    1.17E-03        1.14E-05     1.78E-03   4.56E-06     1.42E-03
+          λ = 0.001
+                      160          1.91E-06    1.99E-04        2.74E-07     5.80E-05   1.38E-07     6.15E-05
+                      320          5.46E-07    5.98E-05        1.40E-07     3.24E-05   1.06E-07     5.36E-05
+                      640          4.75E-07    5.51E-05        1.65E-07     4.83E-05   6.96E-08     3.86E-05
+                      20           1.11E-01    2.98E-00        1.18E-01     5.67E+00   5.92E-01     5.44E+01
+                      40           4.56E-03    1.77E-01        2.39E-03     2.43E-01   5.46E-03     9.47E-01
+                      80           1.50E-05    1.43E-03        2.78E-05     5.37E-03   1.62E-05     6.27E-03
+          λ=1
+                      160          6.51E-07    8.70E-05        1.05E-07     2.90E-05   4.54E-08     2.59E-05
+                      320          2.56E-07    3.78E-05        5.33E-08     1.49E-05   3.04E-08     2.38E-05
+                      640          1.82E-07    3.22E-05        5.53E-08     2.30E-05   3.34E-08     2.77E-05
+
+       Table 8: Errors of the space-time LRNN-DG method for heat equation when t = 1 in Example 5.3.
+
+
+ [5] V. Badrinarayanan, A. Kendall and R. Cipolla, SegNet: A deep convolutional encoder-decoder architecture
+     for image segmentation, IEEE Trans. Pattern Anal. Mach. Intell. 39 (2017), 2481–2495.
+
+ [6] S. Dong and Z. Li, Local extreme learning machines and domain decomposition for solving linear and nonlinear
+     partial differential equations, Comput. Methods. Appl. Mech. Engrg. 387 (2021), 114129.
+
+ [7] V. Dwivedi and B. Srinivasan, Physics informed extreme learning machine (PIELM) - a rapid method for the
+     numerical solution of partial differential equations, Neurocomputing 391 (2020), 96–118.
+
+ [8] W. E and B. Yu, The deep Ritz method: A deep learning-based numerical algorithm for solving variational
+     problems, Commun. Math. Stat. 6 (2018), 1–12.
+
+ [9] Z. Fang, A high-efficient hybrid physics-informed neural networks based on convolutional neural network, IEEE
+     Trans. Neural Netw. Learn. Syst. (2021), 1–13.
+
+[10] B. Frénay and M. Verleysen, Using SVMs with randomised feature spaces: an extreme learning approach,
+     ESANN. 2010.
+
+[11] I. Goodfellow, Y. Bengio and A. Courville, Deep Learning, MIT Press, Cambridge, 2016.
+
+[12] I. Gühring and M. Raslan, Approximation rates for neural networks with encodable weights in smoothness
+     spaces, Neural Netw. 134 (2021), 107–130.
+
+[13] G. B. Huang, H. Zhou, X. Ding, and R. Zhang, Extreme learning machine for regression and multiclass
+     classification, IEEE Trans. Syst., Man, Cybern. B, Cybern. 42 (2011), 513–529.
+
+[14] G. B. Huang, Q. Y. Zhu and C. K. Siew, Extreme learning machine: theory and applications, Neurocomputing
+     70 (2006), 489–501.
+
+[15] G. B. Huang, X. Ding and H. Zhou, Optimization method based extreme learning machine for classification,
+     Neurocomputing 74 (2010), 155–163.
+
+[16] C. Irrgang, N. Boers, M. Sonnewald and et al., Towards neural earth system modeling by integrating artificial
+     intelligence in earth system science, Nat. Mach. Intell. 3 (2021), 667–674.
+
+[17] B. Igelnik and Y. H. Pao. Stochastic choice of basis functions in adaptive function approximation and the
+     functional-link net, IEEE Trans. Neural Netw. 6 (1995), 1320-1329.
+
+
+                                                          25
+                       h                     2−1                    2−2                    2−3
+                            Norm
+                                       L2          H1          L2         H1          L2         H1
+                       DoFσ
+                       20           1.08E-01    2.34E-00     3.60E-02   1.36E-00   4.92E-02   3.11E-00
+                       40           2.06E-03    7.53E-02     6.79E-04   4.80E-02   1.14E-03   1.50E-01
+                       80           9.77E-06    6.08E-04     1.36E-05   1.45E-03   9.57E-06   2.01E-03
+           λ = 0.001
+                       160          6.57E-07    6.36E-05     6.33E-08   9.21E-06   3.39E-08   9.84E-06
+                       320          1.81E-07    1.59E-05     5.60E-08   9.98E-06   2.76E-08   8.80E-06
+                       640          1.16E-07    1.03E-05     3.03E-08   5.08E-06   2.24E-08   7.46E-06
+                       20           3.15E-02    6.51E-01     1.03E-02   3.87E-01   1.66E-02   1.16E-00
+                       40           1.46E-03    5.05E-02     2.63E-04   1.78E-02   5.20E-04   6.63E-02
+                       80           1.23E-05    6.84E-04     4.49E-06   5.37E-04   2.86E-06   7.14E-04
+           λ=1
+                       160          2.16E-07    1.70E-05     2.12E-08   3.88E-06   1.25E-08   4.15E-06
+                       320          1.30E-07    9.77E-06     1.90E-08   3.38E-06   9.82E-09   3.35E-06
+                       640          1.49E-07    1.10E-05     2.62E-08   4.51E-06   1.23E-08   4.31E-06
+
+     Table 9: Errors of the space-time LRNN-C 0 DG method for heat equation when t = 1 in Example 5.3.
+
+
+[18] B. Igelnik, Y. H. Pao, S. R. LeClair and C. Y. Shen, The ensemble approach to neural-network learning and
+     generalization, IEEE Trans. Neural Netw. 10 (1999), 19-30.
+
+[19] X. Jin, S. Cai, H. Li and G. E. Karniadakis, NSFnets (Navier-Stokes flow nets): Physics-informed neural
+     networks for the incompressible Navier-Stokes equations, J. Comput. Phys. 426 (2021), 109951.
+
+[20] Y. Jiao, Y. Lai, Y. Lo and et al., Error analysis of deep Ritz methods for elliptic equations, arXiv preprint
+     (2021), arXiv:2107.14478.
+
+[21] X. Jiang, D. Wang, Q. Fan and et al., Physics-informed neural network for nonlinear dynamics in fiber optics,
+     arXiv preprint (2021), arXiv:2109.00526.
+
+[22] Y. Kim, Convolutional neural networks for sentence classification, arXiv preprint (2014), arXiv:1408.5882.
+
+[23] A. Karpathy, G. Toderici, S. Shetty and et al., Large-scale video classification with convolutional neural
+     networks, Proceedings of the IEEE Conference on Computer Vision and Pattern Recognition, (2014), 1725–
+     1732.
+
+[24] Y. LeCun, Y. Bengio and G. Hinton, Deep learning, Nature 521 (2015), 436–444.
+
+[25] Z. Liu, Y. Chen, Y. Du and M. Tegmark, Physics-Augmented learning: a new paradigm beyond physics-
+     Informed learning, arXiv preprint (2021), arXiv:2109.13901.
+
+[26] Q. Liu, Q. He, and Z. Shi, Extreme support vector machine classifier, Pacific-Asia Conference on Knowledge
+     Discovery and Data Mining, Springer, Berlin, Heidelberg, 2008.
+
+[27] X. Liu, S. Lin, J. Fang and Z. Xu, Is extreme learning machine feasible? A theoretical assessment (part 1),
+     IEEE Trans. Neural Netw. Learn. Syst. 26 (2014), 7–20.
+
+[28] W. T. Leung, G. Lin and Z. Zhang, NH-PINN: Neural homogenization based physics-informed neural network
+     for multiscale problems, arXiv preprint (2021), arXiv:2108.12942.
+
+[29] Y. Liao and P. Ming, Deep Nitsche method: Deep Ritz method with essential boundary conditions, arXiv
+     preprint (2019), arXiv:1912.01309.
+
+[30] S. Lai, L. Xu and K. Liu and J. Zhao, Recurrent convolutional neural networks for text classification, Twenty-
+     Ninth AAAI Conference on Artificial Intelligence, 2015.
+
+
+                                                        26
+                         h                       2−1                           2−2                     2−3
+                             Norm
+                                         L2            H1               L2             H1         L2           H1
+                         DoFσ
+                         20           6.05E-02     9.28E-01         4.22E-02     1.06E-00       6.54E-02     2.73E-00
+                         40           3.05E-03     8.06E-02         1.21E-03     5.39E-02       1.20E-03     1.03E-01
+                         80           2.39E-05     9.89E-04         8.41E-06     6.43E-04       5.27E-06     7.91E-04
+           λ = 0.001
+                         160          5.87E-07     3.23E-05         1.03E-07     1.02E-05       6.13E-08     1.24E-05
+                         320          2.65E-07     1.50E-05         7.48E-08     8.36E-06       3.96E-08     8.99E-06
+                         640          1.54E-07     9.48E-06         7.24E-08     8.51E-06       5.21E-08     1.22E-05
+                         20           4.36E-02     8.14E-01         1.71E-02     5.36E-01       3.65E-02     1.87E-00
+                         40           2.26E-03     6.79E-02         7.93E-04     4.46E-02       1.24E-03     1.24E-01
+                         80           2.05E-05     1.12E-03         1.03E-05     1.09E-03       7.41E-06     1.57E-03
+           λ=1
+                         160          2.00E-07     1.64E-05         3.28E-08     5.33E-06       2.70E-08     7.33E-06
+                         320          1.14E-07     8.23E-06         2.23E-08     4.12E-06       1.54E-08     5.19E-06
+                         640          7.08E-08     6.86E-06         4.14E-08     7.21E-06       2.42E-08     8.28E-06
+
+     Table 10: Errors of the space-time LRNN-C 1 DG method for heat equation when t = 1 in Example 5.3.
+
+                           h, ∆t
+                                    2−5 , 2−10    2−6 , 2−12        2−7 , 2−14   2−8 , 2−16     2−9 , 2−18
+                       Norm
+                          L2        3.82E-03      9.56E-04          2.39E-04         5.97E-05    1.49E-05
+                          H1        3.84E-02      9.65E-03          2.41E-03         6.04E-04    1.51E-04
+
+  Table 11: Errors of the P2 FEM with back Euler for heat equation when λ = 0.001 and t = 1 in Example 5.3.
+
+
+[31] L. Lyu, Z. Zhang, M. Chen and J. Chen, MIM: A deep mixed residual method for solving high-order partial
+     differential equations, J. Comput. Phys. (2020), 110930.
+
+[32] T. Mathew, Domain decomposition methods for the numerical solution of partial differential equations,
+     Springer Science & Business Media, 2008.
+
+[33] Y. Miche, A. Sorjamaa and A. Lendasse, OP-ELM: theory, experiments and a toolbox, International Confer-
+     ence on Artificial Neural networks ICANN, Springer, Berlin, Heidelberg, 2008: 145-154.
+
+[34] A. M. Ncube, G. E. Harmsen and A. S. Cornell, Investigating a new approach to quasinormal modes: physics-
+     informed neural networks, arXiv preprint (2021), arXiv:2108.05867.
+
+[35] G. Pang, M. D’Elia, M. Parks and G. E. Karniadakis, nPINNs: nonlocal Physics-Informed Neural Networks
+     for a parametrized nonlocal universal Laplacian operator, Algorithms and Applications, J. Comput. Phys. 422
+     (2020), 109760.
+
+[36] G. Pang, L. Lu and G. E. Karniadakis, fPINNs: Fractional physics-informed neural networks, SIAM J. Sci.
+     Comput. 41 (2019), A2603–A2626.
+
+[37] E. Parviainen, J. Riihimäki, Y. Miche and A. Lendasse, Interpreting extreme learning machine as an approxi-
+     mation to an infinite neural network, KDIR. (2010), 65–73.
+
+[38] Y. H. Pao, G. H. Park and D. J. Sobajic, Learning and generalization characteristics of the random vector
+     functional-link net, Neurocomputing 6 (1994), 163–180.
+
+[39] Y. H. Pao and Y. Takefuji, Functional-link net computing: theory, system architecture, and functionalities,
+     Comput., 25 (1992), 76-79.
+
+
+
+                                                               27
+                                                        1e−6                                                        1e−7
+
+                   1.0                                         2.00            1.0
+                                                                                                                           2.0
+                                                               1.75
+                   0.8                                                         0.8
+                                                               1.50
+                                                                                                                           1.5
+                   0.6                                         1.25            0.6
+               x
+
+
+
+
+                                                                           x
+                                                               1.00                                                        1.0
+                   0.4                                                         0.4
+                                                               0.75
+                   0.2                                                         0.2
+                                                               0.50                                                        0.5
+
+                   0.0                                         0.25            0.0
+                      0.0   0.2   0.4       0.6   0.8   1.0                       0.0   0.2   0.4       0.6   0.8   1.0
+                                        t                                                           t                      0.0
+
+
+
+            (a) The absolute error for LRNN-DG method.                 (b) The absolute error for LRNN-C 0 DG method.
+
+                                                        1e−7                                                        1e−5
+
+                   1.0                                                         1.0                                         2.5
+                                                               3.5
+
+                   0.8                                         3.0             0.8                                         2.0
+                                                               2.5
+                   0.6                                                         0.6                                         1.5
+                                                               2.0
+               x
+
+
+
+
+                   0.4                                                     x   0.4
+                                                               1.5                                                         1.0
+
+                   0.2                                         1.0             0.2
+                                                                                                                           0.5
+                                                               0.5
+                   0.0                                                         0.0
+                      0.0   0.2   0.4       0.6   0.8   1.0                       0.0   0.2   0.4       0.6   0.8   1.0
+                                        t                                                           t                      0.0
+
+
+
+           (c) The absolute error for LRNN-C 1 DG method. (d) The absolute error for FEM with back Euler.
+
+       Figure 6: Absolute errors computed by proposed methods and FEM for λ = 0.001 in Example 5.3.
+
+
+[40] H. J. Rong, G. B. Huang and Y. S. Ong, Extreme learning machine for multi-categories classification applica-
+     tions, IEEE Int. Jt. Conf. Neural Networks (2008), 1709–1713.
+
+[41] M. Raissi, P. Perdikaris and G. E. Karniadakis, Physics-informed neural networks: A deep learning framework
+     for solving forward and inverse problems involving nonlinear partial differential equations, J. Comput. Phys.
+     378 (2019), 686–707.
+
+[42] A. A. Ramabathiran and P. Ramachandran, SPINN: Sparse, physics-based, and interpretable neural networks
+     for PDEs, J. Comput. Phys. 445 (2021), 110600.
+
+[43] M. Raissi, A. Yazdani and G. E. Karniadakis, Hidden fluid mechanics: Learning velocity and pressure fields
+     from flow visualizations, Science 367 (2020), 1026–1030.
+
+[44] H. Sun, M. Hou, Y. Yang and et al., Solving partial differential equations based on Bernstein neural network
+     and extreme learning machine algorithm, Neural Processi. Lett. 50 (2019), 1153–1172.
+
+[45] E. Shelhamer, J. Long and T. Darrell, Fully convolutional networks for semantic segmentation, IEEE T.
+     Pattern Anal. 39 (2016), 640–651.
+
+[46] K. Simonyan, A. Vedaldi and A. Zisserman, Deep inside convolutional networks: visualising image classification
+     models and saliency maps, arXiv preprint (2013), arXiv:1312.6034.
+
+
+
+                                                                      28
+[47] Y. Shang, F. Wang and J. Sun, Deep Petrov-Galerkin method for solving partial differential equations, arXiv
+     preprint (2022), arXiv:2201.12995.
+
+[48] J. Sirignano and K. Spiliopoulos, DGM: A deep learning algorithm for solving partial differential equations,
+     J. Comput. Phys. 375 (2018), 1339–1364.
+
+[49] H. Sheng and C. Yang, PFNN: A penalty-free neural network method for solving a class of second-order
+     boundary-value problems on complex geometries, J. Comput. Phys. 428 (2021), 110085.
+
+[50] F. Wang, M. Jiang, C. Qian and et al., Residual attention network for image classification, Proceedings of the
+     IEEE Conference on computer vision and pattern recognition (2017), 3156–3164.
+
+[51] J. C. Wong, C. Ooi, A. Gupta and Y. S. Ong, Learning in sinusoidal spaces with physics-informed neural
+     networks, arXiv preprint (2021), arXiv:2109.09338.
+
+[52] Y. Yang, M. Hou and J. Luo, A novel improved extreme learning machine algorithm in solving ordinary
+     differential equations by Legendre neural network methods, Adv. Differ. Equ. 2018 (2018), 1–24.
+
+[53] Y. Zang, G. Bao, X. Ye, and H. Zhou, Weak adversarial networks for high-dimensional partial dierential
+     equations, J. Comput. Phys. 411 (2020), 109409.
+
+[54] D. Zhang, L. Guo and G. E. Karniadakis, Learning in modal space: Solving time-dependent stochastic PDEs
+     using physics-informed neural networks, SIAM J. Sci. Comput. 42 (2020), A639–A665.
+
+[55] L. Zhang, J. Han, H. Wang and et al., Deep potential molecular dynamics: a scalable model with the accuracy
+     of quantum mechanics, Phys. Rev. Lett. 120 (2018), 143001.
+
+[56] Q. Y. Zhu, A. K. Qin, P. N. Suganthan and et al., Evolutionary extreme learning machine, Pattern Recognit.
+     38 (2005), 1759–1763.
+
+
+
+
+                                                        29
+

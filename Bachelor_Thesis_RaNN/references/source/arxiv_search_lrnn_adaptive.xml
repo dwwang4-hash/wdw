@@ -1,0 +1,393 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/l4knqytfcQGbWNGfY2v7yijCPBg</id>
+  <title>arXiv Query: search_query=all:"randomized" AND all:"neural" AND all:"adaptive"&amp;id_list=&amp;start=0&amp;max_results=15</title>
+  <updated>2026-10-13T00:54:53Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=all:%22randomized%22+AND+(all:%22neural%22+AND+all:%22adaptive%22)&amp;start=0&amp;max_results=15&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>15</opensearch:itemsPerPage>
+  <opensearch:totalResults>1309</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2610.12325v1</id>
+    <title>Prior or Feedback? What an LLM Uses When Adapting Neural Operators</title>
+    <updated>2026-10-08T17:06:23Z</updated>
+    <link href="https://arxiv.org/abs/2610.12325v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.12325v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Do LLM scientific agents rely only on their initial task context, or do they adapt their decisions in response to experimental feedback? We study this question in neural operator adaptation, where a large language model (LLM) selects fine-tuning configurations under a limited trial budget. Across transfers within and between partial differential equation (PDE) families, the LLM achieves lower held-out test nRMSE than random search and Bayesian optimisation in nearly every matched comparison. Endpoint performance alone cannot distinguish what happens, so we verify each attribution with controlled interventions. Before observing any validation score, the LLM's first configuration already ranks near the top of the corresponding random-search pool, indicating a useful initial bias. A complementary cold-start intervention shows that the selected base learning rate shifts with the PDE description. Once feedback becomes available, reassigning validation scores among evaluated configurations changes the next proposal in every case tested, whereas a value-preserving rewrite produces no comparable aggregate effect. These interventions establish that the LLM's decision-level actions respond to the given task and observed outcomes, showing that it combines a task-dependent prior with sensitivity to experimental feedback.</summary>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="physics.comp-ph" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-08T17:06:23Z</published>
+    <arxiv:comment>16 pages, 4 figures, 5 tables. Accepted at the NeurIPS 2026 Workshop on AI for Science: Verification in the Age of AI Scientists. Equal contribution</arxiv:comment>
+    <arxiv:primary_category term="cs.AI"/>
+    <author>
+      <name>Julian Chan</name>
+    </author>
+    <author>
+      <name>Javier Mora Jimenez</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.11475v1</id>
+    <title>Rare Gate Disagreements Can Limit Plasticity: When Gradient Flow Mispredicts Finite-Batch SGD</title>
+    <updated>2026-10-08T08:22:35Z</updated>
+    <link href="https://arxiv.org/abs/2610.11475v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.11475v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Population gradient flow is a common tool for reasoning about how neural networks adapt, including after pretraining. We show that it can mispredict finite-batch stochastic gradient descent (SGD) qualitatively, and we trace the discrepancy to a specific mechanism. In a two-unit ReLU regression, a source task drives the two neurons toward positive proportionality and a target task rewards separating them. After source training for time $T$, gradient flow recovers on the target in time linear in $T$. Online SGD with batch size $b$ and step size $η$ in both phases instead fails with high probability throughout a horizon of order $e^{c/η}$ once $T \gtrsim \log(b/η)$, uniformly on an explicit set of initializations with Gaussian probability above one percent. For each fixed $T$, small-step SGD still recovers, so the failure requires the joint limit of small steps and long pretraining. At the target clone, the population instability is carried entirely by inputs on which the two ReLU gates disagree. For units at angle $δ$ these inputs form a wedge of probability $δ/π$, and weight decay shrinks the angle exponentially during pretraining. On every other input both units receive the same random linear update, which contracts their separation in conditional expectation. Bounding the cumulative probability of sampling the wedge along the exact online recursion, without a diffusion approximation, shows that recovery with fixed probability from an identical source-gradient-flow checkpoint, within $e^{c/η}$ updates, requires $Nb \gtrsim e^{λT}$ target samples and batch size $b \gtrsim ηe^{λT}$, where $N$ counts updates and $λ$ is the weight decay. In simulations, recovery is approximately a function of the disagreement budget $bδ/η$ and saturates in the horizon.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="math.OC" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="stat.ML" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-08T08:22:35Z</published>
+    <arxiv:comment>25 pages, 5 figures. Tong Che leads the project</arxiv:comment>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Ruoyu Zhao</name>
+    </author>
+    <author>
+      <name>Mingxuan Zhang</name>
+    </author>
+    <author>
+      <name>Jianbo Dai</name>
+    </author>
+    <author>
+      <name>Jiaqi Wu</name>
+    </author>
+    <author>
+      <name>Chenyu Zhu</name>
+    </author>
+    <author>
+      <name>Tong Che</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.08739v2</id>
+    <title>BARE-AI: Bit-Flip Attack Resilience in AI Hardware through Built-in Performance Monitors</title>
+    <updated>2026-10-07T03:33:30Z</updated>
+    <link href="https://arxiv.org/abs/2610.08739v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.08739v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Deep Neural Networks (DNNs) are integral to many safety critical systems, yet they remain highly vulnerable to bit-flip attacks (BFAs), where a few memory level perturbations can drastically degrade accuracy. Existing defenses incur significant hardware overhead, depend on retraining, or fail against targeted flips. We propose BARE-AI, a runtime framework that detects, localizes, and mitigates BFAs during inference. BARE-AI introduces AI Performance Counters (APCs), lightweight hardware monitors in the accelerator datapath that capture per-layer activation statistics such as sparsity, entropy, kurtosis, and spectral shift. These are analyzed by the Predictive Unit for Layer Security Evaluation (PULSE), a compact detector trained offline as an ensemble of classifiers and realized on-chip as a small neural engine. For explainability and recovery, BARE-AI introduces an Activation Shift Index (ASI) for layer level fault localization and a z-score based repair that resets anomalous weights toward clean layer statistics. Across CNNs, Vision Transformers, and Large Language Models under random, targeted, adaptive, and magnitude based BFAs, BARE-AI achieves up to 98% detection accuracy on vision models and 74% to 95% on language models, restores near clean accuracy for CNNs and ViTs, and provides partial recovery for LLMs. Synthesized at 28nm, the monitoring infrastructure incurs under 3% energy, under 4% area, and about 10% latency overhead, with a configurable operating point that reduces latency overhead to about 6%. Unlike error correcting codes, whose redundancy grows with the number of tolerated flips, BARE-AI's overhead remains constant regardless of attack strength, making it attractive for resource constrained, safety critical edge applications such as autonomous systems, energy, and healthcare.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-06T17:38:24Z</published>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Habibur Rahaman</name>
+    </author>
+    <author>
+      <name>Swastik Bhattacharya</name>
+    </author>
+    <author>
+      <name>Sanjay Das</name>
+    </author>
+    <author>
+      <name>Kanad Basu</name>
+    </author>
+    <author>
+      <name>Swarup Bhunia</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.06816v1</id>
+    <title>Reconfigurable On-Chip AI for Particle Physics Detectors with Logic Neural Networks</title>
+    <updated>2026-10-05T17:55:54Z</updated>
+    <link href="https://arxiv.org/abs/2610.06816v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.06816v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>On-device machine learning is increasingly important in applications where extreme data rates or resource constraints make centralized processing infeasible. Logic neural networks (LNNs), which directly learn Boolean logic instead of conventional arithmetic operations, have recently emerged as a state-of-the-art approach for efficient inference and are particularly well suited for deployment in custom silicon. However, hard-wired solutions are typically optimized for narrowly defined tasks and lack the ability to adapt to changing data distributions. Next-generation pixel detectors in particle physics present a particularly challenging use case: their high granularity and readout frequency generate data rates that cannot be centrally processed, while stringent space and power constraints necessitate highly efficient on-chip inference. Moreover, radiation damage progressively alters detector response, requiring models that can be re-trained and reconfigured after deployment. In this work, we evaluate LNNs for on-chip inference in pixel detectors. We show that their superior resource efficiency may enable a step change in model capability, making more complex architectures feasible within the available hardware budget. LNNs also provide increased robustness against radiation-induced random bit flips. Finally, we present novel work on reconfigurable LNNs, enabling models to adapt to changing operating conditions after deployment.</summary>
+    <category term="hep-ex" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-05T17:55:54Z</published>
+    <arxiv:comment>8 pages, 3 figures. Accepted as a poster at the NeurIPS 2026 Workshop on On-Device Intelligence: Foundation Models under Real-World Constraints (ODI 2026)</arxiv:comment>
+    <arxiv:primary_category term="hep-ex"/>
+    <author>
+      <name>Mila Bileska</name>
+    </author>
+    <author>
+      <name>Lino Gerlach</name>
+    </author>
+    <author>
+      <name>Jennet Dickinson</name>
+    </author>
+    <author>
+      <name>Lindsey Gray</name>
+    </author>
+    <author>
+      <name>Giuseppe Di Guglielmo</name>
+    </author>
+    <author>
+      <name>Peter Elmer</name>
+    </author>
+    <author>
+      <name>Isobel Ojalvo</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.06701v1</id>
+    <title>A Solvable Model of Adaptive Learning Rate Rescaling: Acceleration, Stability &amp; Scaling</title>
+    <updated>2026-10-05T17:00:25Z</updated>
+    <link href="https://arxiv.org/abs/2610.06701v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.06701v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>A recurring design principle in modern optimizers is to decouple update magnitude from the raw gradient norm, yet its consequences for learning-curve and resource scaling remain unclear. We isolate this mechanism by studying normalized SGD in a random-feature model with power-law teacher and data covariance. Fixed-norm updates induce an effective learning rate that grows as gradients shrink. We derive a dynamical mean-field theory (DMFT) describing the joint dependence of the loss on training time, model width and batch size. Normalization initially accelerates SGD, mapping the power-law exponent $r_{\rm SGD}&lt;1$ to $2r_{\rm SGD}/(1-r_{\rm SGD})$, with exponential convergence at $r_{\rm SGD}=1$ and formal finite-time convergence for $r_{\rm SGD}&gt;1$. At finite step size, however, the same feedback ultimately breaks the acceleration and leads to marginal stability. The late-time theory yields width-limited, edge-of-stochastic-stability (EoSS), and deterministic edge-of-stability (EoS) regimes. These phases determine when larger batches or wider models reduce serial training time at comparable compute. We quantify in which of these phases increased batch size or width can compensate the excess compute use per step by fewer optimization steps to target loss. Linearized ResNet experiments on CIFAR-5M support the predicted acceleration, breakdown, and resource-scaling trends. Together, these results connect normalization-induced acceleration, EoS effects, and width--batch allocation within a solvable theory.</summary>
+    <category term="stat.ML" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cond-mat.dis-nn" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-05T17:00:25Z</published>
+    <arxiv:primary_category term="stat.ML"/>
+    <author>
+      <name>Itay Lavie</name>
+    </author>
+    <author>
+      <name>Clarissa Lauditi</name>
+    </author>
+    <author>
+      <name>Cengiz Pehlevan</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.06195v1</id>
+    <title>Loss-Invariant Projections as Passive Probes of Learned Representations</title>
+    <updated>2026-10-05T12:10:16Z</updated>
+    <link href="https://arxiv.org/abs/2610.06195v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.06195v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Learned feature representations in neural networks often contain structure beyond that directly used by the final task output. We study this structure using $\textit{passive probes}$ that apply fixed, untrained, property-independent projections to representations as they evolve during training. We motivate this approach through the task of prediction on $S^2$ where equivalent vector and Hermitian parameterizations reveal an additional loss-invariant trace coordinate. This motivates a general construction in which fixed random projections serve as observers of learned features. Because the observer is loss-invariant and independent of the property being studied, changes in accessibility reflect changes in the representation relative to the fixed observer rather than adaptation of the observer itself. We show that ensembles of passive probes can directly reflect task-relevant information such as target alignment. Under our constructions, the accessibility of eventual difficulty evolves differently across tasks. It increases during training in the regression tasks of surface-normal estimation and image inpainting but remains near its initial level in image classification. Comparisons with learned linear probes further show that recoverability and passive accessibility can evolve differently during training. Together, these results show how passive probes can separately characterize changes in representation geometry and the accessibility of eventual task difficulty.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CV" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-05T12:10:16Z</published>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Akshay Chandrasekhar</name>
+    </author>
+    <author>
+      <name>Pavlo Melnyk</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.05835v1</id>
+    <title>Adaptive-Shot Hybrid Quantum Anomaly Detection for Tactile Internet Security: Reliability-Aware Measurement Allocation Under Resource Constraints</title>
+    <updated>2026-10-05T05:38:18Z</updated>
+    <link href="https://arxiv.org/abs/2610.05835v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.05835v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Tactile Internet (TI) security analytics must balance reliable thresholded decisions with constrained computational and measurement resources. We study this tension for finite-shot hybrid quantum anomaly inference and introduce the Adaptive-Shot Variational Quantum Circuit (AS-VQC) policy. This validation-calibrated policy begins each record at 128 shots and cumulatively escalates through 256, 512, and 1024 shots only when the finite-shot anomaly score remains close to a validation-selected security threshold. The quantum scorer is evaluated as an off-path security analytics component rather than part of the haptic critical path. Using a 4,875-record CESNET-TimeSeries24-derived aggregate-flow benchmark, leakage-safe random, entity-group-disjoint, and temporal holdouts, and five trained quantum neural network (QNN) checkpoints per holdout, the primary AS-VQC-95 (beta = 0.95) policy averages 129.2, 276.9, and 131.2 shots per record, saving 87.4%, 73.0%, and 87.2% of the uniform 1024-shot baseline (Fixed-1024), respectively. The decision disagreement with analytic (exact-expectation) inference is 0.771%, 0.409%, and 0.635%, lower than both the uniform 128-shot baseline (Fixed-128) and a matched-budget shuffled-allocation control. Fixed-1024 remains more decision-stable, establishing a measurable reliability-resource trade-off rather than cost-free equivalence. A more conservative AS-VQC-99 (beta = 0.99) further reduces disagreement while using fewer than 512 average shots across all holdouts. These results show that finite quantum measurements can be treated as an inference resource and concentrated on boundary-sensitive TI-security decisions while exposing checkpoint-dependent escalation under unseen-entity conditions.</summary>
+    <category term="cs.CR" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.NI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-05T05:38:18Z</published>
+    <arxiv:comment>Accepted at the 40th Conference on Neural Information Processing Systems (NeurIPS 2026). Workshop: Secure and Trustworthy Quantum Machine Learning (SaTQuML). Presentation: Short Oral Presentation. Code: https://github.com/msudipto/AdaptiveShot_HybridQAD_Framework</arxiv:comment>
+    <arxiv:primary_category term="cs.CR"/>
+    <author>
+      <name>Mubassir Serneabat Sudipto</name>
+    </author>
+    <author>
+      <name>Shakil Ahmed</name>
+    </author>
+    <author>
+      <name>Ashfaq Khokhar</name>
+    </author>
+    <author>
+      <name>Samir M. Iqbal</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.04526v1</id>
+    <title>Diffusion-Based Stress Testing of Overload Monitoring for Resilient Emergency Cellular Networks Using Internet CDR Proxies</title>
+    <updated>2026-10-03T13:46:27Z</updated>
+    <link href="https://arxiv.org/abs/2610.04526v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.04526v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Disasters can overload cellular control-plane signaling within minutes, yet fine-grained Radio Resource Control (RRC) or Next Generation (NG) Application Protocol (NGAP) telemetry is privacy-sensitive and costly to collect for analytics. Many emergency monitoring pipelines therefore rely on coarse Call Detail Record (CDR) aggregates. We treat Internet activity in CDR grids as a practical proxy for hidden signaling stress under that constraint. We train a lightweight convolutional neural network (CNN) on stylized overload injections, stress-test it with diffusion-synthesized surges that preserve normal traffic structure, and adapt the detector by retraining on hard synthetic samples. Under stress-test conditions, the default alert threshold fails even though receiver operating characteristic (ROC) curves stay strong: the detector still assigns overloaded cells a larger overload probability than normal cells, but those probabilities fall below the default cutoff 0.5 and are labeled normal, so the F1-maximizing threshold -- selected post hoc on the same stress-test grids (oracle $τ^*$) -- shifts by $0.32 \pm 0.03$ (operating-point drift). Across three random seeds, hard-sample adaptation raises thresholded performance (F1) from 0% (no alerts at the default cutoff 0.5 on any seed) to $85.67 \pm 14.37$% and ranking from ROC-AUC $0.886 \pm 0.040$ to $0.99996 \pm 0.00007$. Diffusion-synthesized surges expose threshold fragility that matched-condition training -- training and testing on the same stylized injections -- hides, and hard-sample adaptation restores usable alerts at the default cutoff. Together, these steps define a reusable pre-deployment stress test for emergency monitors. Internet-only CDR input further supports lightweight AI-native workflows that combine monitoring, recalibration, and adaptation.</summary>
+    <category term="cs.NI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-03T13:46:27Z</published>
+    <arxiv:comment>6 pages, 5 figures. Accepted to the 5th Workshop on Next Generation Intelligent Wireless Emergency Communications, IEEE GLOBECOM 2026, Macau</arxiv:comment>
+    <arxiv:primary_category term="cs.NI"/>
+    <author>
+      <name>Bilal Hussain</name>
+    </author>
+    <author>
+      <name>Xiao Tang</name>
+    </author>
+    <author>
+      <name>Tan Li</name>
+    </author>
+    <author>
+      <name>Muhammad Azhar</name>
+    </author>
+    <author>
+      <name>Danista Khan</name>
+    </author>
+    <author>
+      <name>Fawad Ahmad</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.04219v1</id>
+    <title>Adaptive Operator Selection in Bilevel Large Neighborhood Search for Electric Autonomous Dial-a-Ride Problem under Uncertainty</title>
+    <updated>2026-10-03T02:18:56Z</updated>
+    <link href="https://arxiv.org/abs/2610.04219v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.04219v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The electric autonomous dial-a-ride problem (EADARP) extends the classical dial-a-ride problem by incorporating battery and charging constraints for electric vehicles. In practice, travel-time uncertainty can cause violations of time-window constraints. Large neighborhood search is effective for solving the EADARP, but its performance can depend on the choice of insertion operator during the repair phase. This paper investigates insertion-operator selection within a bilevel large neighborhood search framework for deterministic and chance-constrained variants of the EADARP. In the chance-constrained variant, arc travel times are modeled as independent normally distributed random variables, and upper time-window constraints are enforced probabilistically. We consider six selection methods, namely fixed greedy insertion, fixed regret-based insertion, random selection, a deterministic state-based rule, performance-adaptive ALNS selection, and LLM-based state-aware selection. Experimental results show comparable performance on smaller instances, while differences become more evident on larger and more constrained instances. There is no single strategy that performs best across all instances, and the relative performance of the LLM-based, rule-based, and ALNS strategies varies with the problem instance and experimental setting.</summary>
+    <category term="cs.NE" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-03T02:18:56Z</published>
+    <arxiv:primary_category term="cs.NE"/>
+    <author>
+      <name>Ishara Hewa Pathiranange</name>
+    </author>
+    <author>
+      <name>Aneta Neumann</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.03127v1</id>
+    <title>Coverage You Can Steer: Online Conformal Calibration for RL-Driven Hardware-Aware NAS</title>
+    <updated>2026-10-02T10:47:58Z</updated>
+    <link href="https://arxiv.org/abs/2610.03127v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.03127v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Hardware-aware neural architecture search (NAS) is dominated by evaluation cost: every architecture must be trained before its reward is known. Conformal-prediction filters cut this cost by pruning candidates whose predicted-reward upper bound misses a threshold, with a distribution-free guarantee that at most a fraction $δ$ are wrongly discarded. That guarantee assumes exchangeability between calibration and test candidates, which the surrounding reinforcement-learning (RL) loop violates: the policy's proposals improve as search proceeds and, in layer-by-layer construction, shift within every episode. We replace one-shot quantile estimation with online feedback control (Adaptive Conformal Inference, with tuning-free, locally-adaptive, and group-conditional variants), restoring steerable coverage: dialing the target delivers it, monotonically and reproducibly, for arbitrary sequences. Across three neural-network architecture families and both single-step and sequential search (three seeds), it tracks every requested level to within ${\sim}10^{-3}$ while pruning 25-50% of evaluations at no measured accuracy cost, whereas static calibration loses control of its coverage and a Gaussian-process baseline stays conservative regardless of the request. Finally, used as an acquisition function on one constrained testbed, the same optimistic bound beats random search, a gain that fixed optimism already carries and online calibration sharpens. The source code is available at https://github.com/Vicomtech/rl-hw-nas.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-02T10:47:58Z</published>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Pedro Brandimarte</name>
+    </author>
+    <author>
+      <name>Nerea Aranjuelo</name>
+    </author>
+    <author>
+      <name>Marcos Nieto</name>
+    </author>
+    <author>
+      <name>Oihana Otaegui</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.02771v1</id>
+    <title>Nearly Optimal Fixed-Confidence Best-Arm Identification with 1-Bit Feedback</title>
+    <updated>2026-10-02T03:56:28Z</updated>
+    <link href="https://arxiv.org/abs/2610.02771v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.02771v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>We study fixed-confidence best-arm identification under strict 1-bit feedback constraints. At each round, the learner selects an arm and a query set, and receives only a single bit indicating whether the sampled reward belongs to that set. We consider a distribution-free finite-variance setting with arm-wise localization, where direct empirical mean estimation is no longer available and clipping becomes unavoidable. We first formulate a time-uniform 1-bit mean-estimation primitive based on randomized threshold queries and a clipped tail-integral identity. We then embed this primitive into candidate-challenger best-arm identification algorithms. A fixed-clipping algorithm gives a simple anytime $(ε,δ)$-PAC guarantee, while a phased adaptive-clipping algorithm matches the clipping level to the current resolution and yields a gap-adaptive sample complexity. We also prove a $K$-arm worst-case information-theoretic lower bound showing that the logarithmic penalty caused by finite-variance 1-bit feedback is intrinsic. This bound matches the leading dependence of the phased algorithm up to lower-order $\log\log$ factors.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="stat.ML" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-02T03:56:28Z</published>
+    <arxiv:comment>To appear in Advances in Neural Information Processing Systems 39 (NeurIPS 2026, Spotlight)</arxiv:comment>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Khang Luong</name>
+    </author>
+    <author>
+      <name>Dinh Thai Son</name>
+    </author>
+    <author>
+      <name>Hoang Ta</name>
+    </author>
+    <author>
+      <name>Hung The Tran</name>
+    </author>
+    <author>
+      <name>Tuan Quang Dam</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2609.39871v3</id>
+    <title>A PyTorch Library for Hyperspectral Image Models: Technical Report</title>
+    <updated>2026-10-07T12:35:45Z</updated>
+    <link href="https://arxiv.org/abs/2609.39871v3" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.39871v3" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Hyperspectral remote sensing has advanced across diverse deep learning paradigms, including spectral spatial CNNs, Vision Transformers, Mamba, graph neural networks, Kolmogorov Arnold networks, and self supervised masked autoencoding. Yet progress remains hindered by fragmented repositories, incompatible tensor conventions, and non standardized evaluation. Hyperspectral Image Models addresses these challenges through a modular framework unifying 55 representative models across six paradigms with a common registry, automatic 4D/5D tensor adaptation, and standardized constructors. It integrates 24 benchmark scenes from Airborne, Spaceborne, UAV, and Mars CRISM sensors, with caching, label remapping, PCA, explicit band selection or raw spectra, optional spatial max pooling, and arbitrary PxP patch extraction. To prevent inflated accuracy from overlapping windows, it supports class balanced random partitioning and spatially disjoint regional blocking with Chebyshev guard bands that eliminate train test pixel overlap. Experiments use a single config with deterministic seeds and complete provenance, generating LaTeX benchmark tables and classification maps. Across 1,320 model scene evaluations and 6,600 seeded runs, scene difficulty dominates architecture, with mean accuracy ranging from 96.40% on Botswana to 56.70% on Houston 2018, versus a 15 point spread across paradigm means. No paradigm universally dominates, while sub 1 M parameter models can match architectures two orders of magnitude larger. Code is publicly available at https://github.com/Tanishq251/Hyperspectral-Image-Models.</summary>
+    <category term="cs.CV" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-09-30T14:50:21Z</published>
+    <arxiv:comment>Documentation and benchmark library for hyperspectral image models</arxiv:comment>
+    <arxiv:primary_category term="cs.CV"/>
+    <author>
+      <name>Tanishq Rachamalla</name>
+    </author>
+    <author>
+      <name>Aryan Das</name>
+    </author>
+    <author>
+      <name>Srishti Kaushik</name>
+    </author>
+    <author>
+      <name>Swalpa Kumar Roy</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2609.39125v1</id>
+    <title>LBDU-VIO: Learned Bias Dynamics and Uncertainty for Visual-Inertial Odometry with Unreliable Vision</title>
+    <updated>2026-09-30T06:57:26Z</updated>
+    <link href="https://arxiv.org/abs/2609.39125v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.39125v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Visual-inertial odometry (VIO) for aerial robots relies on high rate inertial measurement unit (IMU) propagation between visual updates. However, conventional multi state constraint Kalman filters (MSCKFs) use random walk bias assumptions and fixed noise parameters, which can limit robustness when visual information is unreliable. To address this problem, we propose LBDU-VIO, a learning-augmented MSCKF with learned continuous time bias dynamics and an IMU uncertainty model. A neural ordinary differential equation (ODE) models continuous time bias dynamics to propagate the filter's bias states, replacing their random walk model. The IMU uncertainty model predicts motion adaptive measurement noise covariances for covariance propagation. Both models are trained with pose supervision without direct labels. Experiments on real world EuRoC and TUM-VI benchmarks show lower errors than representative visual-inertial baselines, including a 25.1% reduction in mean relative position error compared with S-MSCKF on EuRoC sequences with 10s visual outage.</summary>
+    <category term="cs.RO" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-09-30T06:57:26Z</published>
+    <arxiv:comment>12 pages, 8 figures</arxiv:comment>
+    <arxiv:primary_category term="cs.RO"/>
+    <author>
+      <name>Qizhi Guo</name>
+    </author>
+    <author>
+      <name>Junning Lyu</name>
+    </author>
+    <author>
+      <name>Defu Lin</name>
+    </author>
+    <author>
+      <name>Shaoming He</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2609.38401v1</id>
+    <title>Memorize, Adapt, Ignore: Diagnosing Robot Learning Mechanisms under Training Data Variation</title>
+    <updated>2026-09-29T18:57:43Z</updated>
+    <link href="https://arxiv.org/abs/2609.38401v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.38401v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Training data variation, whether through designing a domain randomization (DR) scheme in simulation or curating demonstrations for imitation learning, is a primary lever for improving the robustness of robotic manipulation policies. Yet its underlying mechanisms remain poorly understood, and practitioners typically select randomization parameters through expensive trial and error. We investigate these mechanisms through a series of case studies, randomizing object size, color, and type as well as scene lighting and linguistic prompts across settings including pick-and-place RL in ManiSkill and fine-tuning of vision-language-action (VLA) models on LIBERO and RoboTwin. We examine both model behavior and internal representations, using the empirical neural tangent kernel (NTK) as our primary diagnostic tool. We show that the NTK distinguishes a shift in the internal learning mechanism from \textit{memorizing} different situations with insufficient variation (e.g.\ learning what to do for a large cube, and what to do for a small cube) to \textit{adapting} to the situation at hand with sufficient variation. An NTK-based signal-to-noise ratio also helps distinguish when policies have learned to \emph{ignore} task-irrelevant factors (e.g.\ treating blue and red cubes identically, instead of learning a blue sub-policy and a red sub-policy). We use these diagnostics to develop practical guidance for designing DR schemes, selecting models, and detecting shortcut learning. We further compare different kinds of representations and validate our findings with real-world hardware experiments using ACT-based imitation learning.</summary>
+    <category term="cs.RO" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-09-29T18:57:43Z</published>
+    <arxiv:primary_category term="cs.RO"/>
+    <author>
+      <name>Ke Zhang</name>
+    </author>
+    <author>
+      <name>Danica J. Sutherland</name>
+    </author>
+    <author>
+      <name>Chao Liu</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2609.37328v1</id>
+    <title>CASR: Content-Adaptive Neural Super-Resolution Post-Filter for Versatile Video Coding via Low-Rank Overfitting</title>
+    <updated>2026-09-29T12:05:33Z</updated>
+    <link href="https://arxiv.org/abs/2609.37328v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.37328v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>The use of super-resolution as a post-processing step following a video codec allows videos to be encoded at reduced spatial resolution at the encoder side and to be reconstructed and upsampled to the original resolution at the decoder side. In this way, the required bitrate is reduced and the quality of the reconstructed frames is improved without modifying the core coding architecture. However, generic SR models are typically trained offline and lack sufficient adaptability to the diverse content characteristics and compression artifacts produced by video codecs, which limits their effectiveness during test time. To address the limitation, this paper proposes CASR (Content-Adaptive Super-Resolution), a content-adaptive SR post-filter framework for Versatile Video Coding (VVC), based on encoder-side overfitting on each input sequence. In order to limit the bitrate overhead required for signalling the content adaptation signal, i.e. the weight-update, Low-Rank Adaptation (LoRA) is leveraged. The method freezes the convolution kernels of a pretrained SR network and fine-tunes only lightweight rank-r matrices attached to selected convolution layers, using VVC decoded frames and quantization-parameter (QP) maps of test sequences as supervision. The resulting low-rank update is compressed with the MPEG Neural Network Compression and Representation (NNR) standard. Experiments on the JVET common test conditions (CTC) class A1 and A2 sequences indicate that LoRA-based content adaptation provides bitrate savings over a non-adapted SR post-filter at a small signalling cost. Compared with the VVC Test Model (VTM21), the proposed method achieves BD-rate savings of -10.93% (Y), -15.39% (U), -24.41% (V) under random access and -13.43% (Y), -5.75% (U), -22.94% (V) under all-intra. An ablation of the LoRA rank r further shows that r=4 provides the best trade-off between coding gain and signalling cost.</summary>
+    <category term="eess.IV" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-09-29T12:05:33Z</published>
+    <arxiv:comment>Accepted to the 2026 IEEE 28th International Workshop on Multimedia Signal Processing (MMSP 2026), Best Student Paper Award</arxiv:comment>
+    <arxiv:primary_category term="eess.IV"/>
+    <author>
+      <name>Khoa Pham-Dinh</name>
+    </author>
+    <author>
+      <name>Francesco Cricri</name>
+    </author>
+    <author>
+      <name>Maria Santamaria</name>
+    </author>
+    <author>
+      <name>Honglei Zhang</name>
+    </author>
+    <author>
+      <name>Hamed R. Tavakoli</name>
+    </author>
+    <author>
+      <name>Moncef Gabbouj</name>
+    </author>
+    <author>
+      <name>Juho Kannala</name>
+    </author>
+    <author>
+      <name>Miska M. Hannuksela</name>
+    </author>
+  </entry>
+</feed>

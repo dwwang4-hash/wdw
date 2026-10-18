@@ -1,0 +1,8 @@
+{
+  "runs": 150,
+  "failed": 0,
+  "balanced_worst_relative_l2": 0.000152097038826931,
+  "balanced_worst_value_rms": 0.00014683863823451409,
+  "balanced_worst_boundary_rms": 0.00019511823523204745,
+  "baseline_passed": true
+}

@@ -1,0 +1,3 @@
+# Keep archived research bytes unchanged on Windows checkouts.
+Bachelor_Thesis_RaNN/** -text
+migration-transfer/** -text

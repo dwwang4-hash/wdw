@@ -1,0 +1,9 @@
+{
+  "files_scanned": 537,
+  "historical_zip_entries_scanned": 0,
+  "historical_archives": {},
+  "findings": [],
+  "errors": [],
+  "passed": true,
+  "method": "sensitive filenames and common credential patterns; no matching values logged; not an exhaustive guarantee for arbitrary custom secrets"
+}

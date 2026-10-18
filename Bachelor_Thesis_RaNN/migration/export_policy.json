@@ -1,0 +1,14 @@
+{
+  "date_china": "2026-10-18",
+  "project_root": "Bachelor_Thesis_RaNN",
+  "include": ["all research source, raw data, reports, literature, thesis versions and build evidence", "new migration docs and tools", "original README/gitignore byte backups"],
+  "exclude_components": [".venv", ".cache", "__pycache__", ".git"],
+  "exclude_extensions": [".pyc"],
+  "never_export_platform_directories": ["/workspace/.aws", "/workspace/.codex", "/workspace/.agents", "/workspace/.git"],
+  "historical_zips": "all six original workspace ZIP files, preserved byte-for-byte in full backup only",
+  "manifest_self_reference": "migration/manifest_sha256.csv excludes itself; its hash is recorded in the external release JSON",
+  "scientific_experiments_run_this_task": false,
+  "github_commit_or_push": false,
+  "linux_virtualenv_portable_to_windows": false,
+  "windows_execution_tested": false
+}

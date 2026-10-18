@@ -1,0 +1,401 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/rnJ0aQzMGbyTWtrH/emygbpJgps</id>
+  <title>arXiv Query: search_query=all:"interface" AND all:"adaptive" AND all:"sampling"&amp;id_list=&amp;start=0&amp;max_results=15</title>
+  <updated>2026-10-13T00:54:50Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=all:%22interface%22+AND+(all:%22adaptive%22+AND+all:%22sampling%22)&amp;start=0&amp;max_results=15&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>15</opensearch:itemsPerPage>
+  <opensearch:totalResults>306</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2610.13573v1</id>
+    <title>MatQuery: Execution-Grounded Natural-Language Querying over Heterogeneous Materials Databases</title>
+    <updated>2026-10-09T13:27:20Z</updated>
+    <link href="https://arxiv.org/abs/2610.13573v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.13573v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Materials scientists increasingly combine information from several public databases, each with its own interface, schema, units and calculation conventions. MatQuery is a prototype and experimental infrastructure for studying how a natural-language request can be turned into queries over such databases and how the returned values can be interpreted. This report describes what has been built and the preliminary results obtained so far. The prototype holds frozen, self-verifying local copies of six public materials databases (about 10,000 records each), a catalog of declared fields derived from them, a database-independent query representation with an adapter for each database, and an eight-step pipeline in which a language model proposes and deterministic program steps check, execute and assemble. A benchmark generator produces questions whose reference queries are verified by execution on the frozen copies and whose wording is checked by back-translation and review. An evaluation harness runs direct prompting, CHESS and Alpha-SQL on the same frozen basis. Preliminary experiments on an 800-question development set show that direct generation with three demonstrations reaches 82.4% strict execution accuracy (56.5% without demonstrations), that a low-cost scorer selects the exact set of databases for 85.0% of complete requests with well-calibrated probabilities, and that band gaps differ by more than 0.5 eV in 31.6% of composition-matched cross-database clusters. Two pilots show the limits of the current approach: a probe-then-ask policy gave answers rated valid by both reviewers in only 11 of 50 sessions, and only 115 of 300 sampled record pairs could be compared by structure. The complete pipeline is in smoke testing and has not yet been evaluated at scale.</summary>
+    <category term="cs.DB" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-09T13:27:20Z</published>
+    <arxiv:comment>15 pages, 2 figures. Technical report</arxiv:comment>
+    <arxiv:primary_category term="cs.DB"/>
+    <author>
+      <name>Chen Jason Zhang</name>
+    </author>
+    <author>
+      <name>Qi Chen</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.12185v1</id>
+    <title>RESETTLE: Robotic Recovery through Disagreement-Triggered Retrieval and Efficient Corrective Control</title>
+    <updated>2026-10-08T15:49:03Z</updated>
+    <link href="https://arxiv.org/abs/2610.12185v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.12185v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Reliable robotic manipulation requires timely intervention to correct emerging deviations and restore progress after execution errors. However, recovery methods based on repeated vision-language reasoning or iterative online optimization can incur substantial latency, delaying intervention. To address these challenges, we introduce RESETTLE(Robotic rEcovery through diSagrEement-Triggered reTrievaL and Efficient Corrective Control), a model-agnostic framework that provides computationally efficient recovery at the action-execution interface of frozen robot policies. RESETTLE triggers recovery when two action proposals independently sampled under identical conditioning persistently disagree. It retrieves a same-task demonstration reference using an adapted V-JEPA encoder and combines a state-servo prior with a guarded visual residual to execute one corrective action without online trajectory optimization or additional vision-language reasoning, then returns control to the base policy. Across six base policies in simulation, RESETTLE achieves up to 8.70%, 6.28%, and 6.83% absolute success-rate gains on LIBERO-Plus, Meta-World, and RoboCasa Tabletop, respectively, with further improvements on four real-world tasks using two policies. In QwenPI-based comparisons, its monitoring-and-recovery computation latency is 74.04%--93.57% lower than VoLoAgent's monitoring-and-planning latency for grasp and place tool calls. It also raises Harness VLA's LIBERO-Pro Swap success from 42% to 50%, demonstrating compatibility with high-level agentic planning. Code available at: https://github.com/JIA-Lab-research/RESETTLE</summary>
+    <category term="cs.RO" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-08T15:49:03Z</published>
+    <arxiv:primary_category term="cs.RO"/>
+    <author>
+      <name>Yuxin Chen</name>
+    </author>
+    <author>
+      <name>Senqiao Yang</name>
+    </author>
+    <author>
+      <name>Zixuan Wang</name>
+    </author>
+    <author>
+      <name>Jinhui Ye</name>
+    </author>
+    <author>
+      <name>Changsheng Lu</name>
+    </author>
+    <author>
+      <name>Pengguang Chen</name>
+    </author>
+    <author>
+      <name>Shu Liu</name>
+    </author>
+    <author>
+      <name>Zhuotao Tian</name>
+    </author>
+    <author>
+      <name>Jiaya Jia</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.12107v1</id>
+    <title>ContourVLA: A Closed-Loop Perception-Action Contour Policy for Generalized Referring Expression Segmentation</title>
+    <updated>2026-10-08T15:06:00Z</updated>
+    <link href="https://arxiv.org/abs/2610.12107v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.12107v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Generalized referring expression segmentation (GRES) requires dynamically balancing high-level semantics for identifying a variable number of language-specified referents with fine-grained visual evidence for precise boundary delineation. This requirement challenges existing cascaded vision-language architectures, which typically rely on static feature interfaces and single-pass mask prediction, limiting adaptive perception and geometric correction. We introduce ContourVLA, a vision-language-action policy that recasts GRES as a closed-loop visuomotor process, in which editable contours serve as explicit policy states that condition multimodal perception and are updated by geometric action chunks. Evolution-Aware Semantic Scheduling (EASS) couples contour-guided bidirectional boundary sampling with state-conditioned routing of multilevel multimodal features, adapting perception to each contour state. Following supervised initialization, Dustbin-Augmented Entropic Credit Transport GRPO (DECT-GRPO) jointly optimizes discrete grounding and continuous contour actions with instance-level credits. Its rollout rewards and credits are derived from soft prediction-target correspondences that account for false positives and missed targets. ContourVLA improves gIoU over the strongest evaluated baselines by 8.7, 2.8, and 2.7 points on gRefCOCO val, testA, and testB, respectively, and achieves the highest mIoU across all eight RefCOCO, RefCOCO+, and RefCOCOg splits.</summary>
+    <category term="cs.CV" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-08T15:06:00Z</published>
+    <arxiv:primary_category term="cs.CV"/>
+    <author>
+      <name>Ruicheng Zhang</name>
+    </author>
+    <author>
+      <name>Kaiwen Shen</name>
+    </author>
+    <author>
+      <name>Jiaqi Hou</name>
+    </author>
+    <author>
+      <name>Shuhan Yang</name>
+    </author>
+    <author>
+      <name>Junchao Huang</name>
+    </author>
+    <author>
+      <name>Kewei Zhang</name>
+    </author>
+    <author>
+      <name>Jun Zhou</name>
+    </author>
+    <author>
+      <name>Li Jiang</name>
+    </author>
+    <author>
+      <name>Shen Zhao</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.11752v1</id>
+    <title>2DGS-Planner: Rasterization-based Path Planning in 2D Gaussian Splatting Map</title>
+    <updated>2026-10-08T11:41:38Z</updated>
+    <link href="https://arxiv.org/abs/2610.11752v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.11752v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Gaussian splatting provides an explicit and efficiently rasterizable scene representation for robot navigation. However, individual Gaussian primitives may not reliably represent obstacles as they are jointly optimized through alpha-composited rendering from a finite set of reconstruction views. We propose 2DGS-Planner, a path planner for ground robots that reads planning-relevant geometry from a 2D Gaussian splatting (2DGS) map through rasterization, rather than treating individual Gaussian primitives as obstacles. During offline roadmap construction, multi-view attribution converts rendered normal dispersion into structural scores for non-ground disks supported by the reconstruction views. These scores guide adaptive node sampling on the ground. Path-aligned orthographic queries validate candidate edges, while cylindrical queries estimate local clearance fields that are cached on the edges. During online planning, graph search initializes a route, and path refinement reuses the cached fields while accounting for the robot's dimensions and ground constraints. Experiments demonstrate improved roadmap connectivity, more accurate clearance estimation, and higher planning success compared with the tested baselines. These results support rasterization as an effective geometric query interface for planning directly on Gaussian maps. Code and data are available at https://2dgs-planner.github.io/</summary>
+    <category term="cs.RO" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-08T11:41:38Z</published>
+    <arxiv:primary_category term="cs.RO"/>
+    <author>
+      <name>Jiwon Park</name>
+    </author>
+    <author>
+      <name>Dong-Uk Seo</name>
+    </author>
+    <author>
+      <name>Hyun Myung</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.06831v1</id>
+    <title>UniSlider: Perceptually Uniform Sliders for Continuous Image Editing</title>
+    <updated>2026-10-05T17:58:11Z</updated>
+    <link href="https://arxiv.org/abs/2610.06831v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.06831v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Sliders provide an intuitive interface for continuous image editing. In current generative approaches, however, the slider is simply a rescaling of the method's strength parameter, such as an adapter coefficient, a prompt weight, or an interpolation factor. This strength relates poorly to perceptual change. The image can partially revert as the slider moves, long stretches of the range produce no visible difference, and short intervals transform the image abruptly. Remapping the strength could fix this uneven pace, but only if the trajectory is monotone, which current methods do not enforce. We therefore distinguish the slider from the strength, and require perceptual distance from the input to grow linearly with the slider value. We introduce UniSlider, a lightweight LoRA trained on a few-step editing backbone so that its strength approximates this ideal slider. Few-step sampling lets us impose this objective in pixel space without intermediate ground truth, and the backbone's output is preserved at full strength. However, a low-rank adapter cannot make the strength fully uniform. Our slider is thus an inference-time remapping of the strength, obtained by adaptive sampling. Since training optmizes to make the trajectory monotone, this remapping closes the remaining gap without extra training or parameters. On a new benchmark of 300 continuous edits evaluating uniformity, monotonicity, edit fidelity, and identity preservation, UniSlider outperforms all prior methods and is preferred in a user study.</summary>
+    <category term="cs.CV" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.GR" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-05T17:58:11Z</published>
+    <arxiv:comment>Project page: https://color.cvc.uab.cat/unislider</arxiv:comment>
+    <arxiv:primary_category term="cs.CV"/>
+    <author>
+      <name>David Serrano-Lozano</name>
+    </author>
+    <author>
+      <name>Duygu Ceylan</name>
+    </author>
+    <author>
+      <name>Yannick Hold-Geoffroy</name>
+    </author>
+    <author>
+      <name>Iliyan Georgiev</name>
+    </author>
+    <author>
+      <name>Javier Vazquez-Corral</name>
+    </author>
+    <author>
+      <name>Anna Frühstück</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.05277v1</id>
+    <title>Mind the Gaps: From Failure Attribution to Closed-Form Repair of Code Language Models</title>
+    <updated>2026-10-04T14:55:02Z</updated>
+    <link href="https://arxiv.org/abs/2610.05277v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.05277v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Code language models must be maintained like the software around them: when a library evolves, a model keeps writing the interface that it saw during training. Repairing the model itself lets one correction reach all downstream uses. Existing repair methods attribute a failure to neurons, select the highest-ranked ones, and apply a generic update. This pipeline assumes that the attributed neurons are the ones to patch and that a generic update fits every failure, and neither assumption has been examined. We examine both on executable API evolution tasks in Python and Rust with three code models and identify two gaps. The targeting gap separates the neurons that failure attribution targets from the neurons that can carry a patch: their top sets have a Jaccard overlap of only 0.15 to 0.20. The tailoring gap separates a generic update from a patch built for the failure: the patches that different carrier neurons need are nearly orthogonal. To address both gaps, we propose ASTRA. It targets neurons by contrastive semantics, an attribution that scores a neuron by its contribution to the logit contrast between the target token and the produced token. It then tailors the patch by solving one small linear system in closed form, which corrects all failing tokens of a sample jointly and needs neither an optimizer nor a backward pass. Contrastive semantics selects significantly better carrier neurons than gradient-based attributions in 3 of 6 settings and comparable ones in the others. On average, ASTRA reaches 66.7 percent Pass@1, against 48.4 percent for the best of AlphaEdit, STAR and low-rank adaptation, and repairs a sample in 2.7 seconds. It is the best method in all 6 settings and for every type of API change, and this advantage persists under an unseen phrasing of the test prompt. Its side effects on unrelated code are small on the large models and larger on the small one.</summary>
+    <category term="cs.SE" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CL" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-04T14:55:02Z</published>
+    <arxiv:primary_category term="cs.SE"/>
+    <author>
+      <name>Jian Gu</name>
+    </author>
+    <author>
+      <name>Hongyu Zhang</name>
+    </author>
+    <author>
+      <name>Chunyang Chen</name>
+    </author>
+    <author>
+      <name>Aldeida Aleti</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.03335v1</id>
+    <title>Randomization Beyond Deterministic Adaptivity in Parallel Sampling</title>
+    <updated>2026-10-02T14:07:05Z</updated>
+    <link href="https://arxiv.org/abs/2610.03335v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.03335v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>We study parallel samplers that reveal each coordinate once and draw the coordinates of each batch independently from their exact conditional marginals. Under the same sampling interface and a hard three-round cap, randomization can improve accuracy beyond every deterministic policy that adapts its batches to previously observed values. For an explicit full-support binary family, the optimal deterministic adaptive forward Kullback-Leibler divergence grows linearly with the dimension, while a uniform mixture of four fixed schedules has exponentially small divergence. Only two independent fair bits are needed to select the schedule. We determine the asymptotic additive constant in the deterministic optimum and show that its optimal total variation tends to one quarter. An outward-rounded finite-sum certificate establishes divergence separation at dimension 389. The mechanism combines an irreversible first-batch dependence loss with posterior concentration in the randomized components. A density-coverage lemma describes how their mixture restores the target. A complementary noisy-matching family exhibits a growing round gap for nonadaptive schedules, although uniform random coordinate order still has linear mixture error. These results concern known finite structures and exact conditional marginals.</summary>
+    <category term="cs.IT" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-02T14:07:05Z</published>
+    <arxiv:comment>19 pages</arxiv:comment>
+    <arxiv:primary_category term="cs.IT"/>
+    <author>
+      <name>Da Li</name>
+    </author>
+    <author>
+      <name>Bo Jin</name>
+    </author>
+    <author>
+      <name>Xiaopeng Wei</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2610.01260v1</id>
+    <title>PROMO: Preference-conditioned Multi-Objective Reinforcement Learning for Quadrupedal Robots</title>
+    <updated>2026-10-01T07:52:33Z</updated>
+    <link href="https://arxiv.org/abs/2610.01260v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2610.01260v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Quadrupedal locomotion requires balancing conflicting objectives such as command tracking, stability, and energy efficiency, yet conventional reinforcement learning (RL) hardcodes these priorities into a fixed scalar reward at training time. We present PROMO (Preference-Conditioned Multi-Objective Reinforcement Learning), a semantic multi-objective approach that makes this trade-off an explicit runtime input to a single locomotion policy. PROMO conditions the policy on deployment facing preferences while keeping embodiment-specific locomotion priors fixed, thereby separating operator intent from reward shaping terms required for viable gait generation. Compared with fixed-objective controllers, multi-objective baselines, and independently trained specialists, PROMO achieves objective specialization and robustness from a single deployable policy. Across 100 sampled preferences in simulation, 67 behaviors are non-dominated under exact Pareto dominance, with a mean preference-objective correlation of 0.843, demonstrating broad Pareto coverage and predictable preference response. The same policy transfers zero-shot to a Unitree Go2, where preference changes alone reduce specific energy by up to 30.4%, position error by 38.7%, and peak body-attitude deviation by 59.0% relative to the balanced preference. These results establish preference-conditioned multi-objective RL as a practical runtime interface for adaptive legged locomotion, extending its role beyond offline Pareto-set construction. Open-source code and videos are available at https://amrmousa.com/promo/.</summary>
+    <category term="cs.RO" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.HC" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="eess.SY" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-10-01T07:52:33Z</published>
+    <arxiv:comment>Submitted to IEEE Transactions on Robotics. Project website, code, and videos: https://amrmousa.com/promo/</arxiv:comment>
+    <arxiv:primary_category term="cs.RO"/>
+    <author>
+      <name>Amr Mousa</name>
+    </author>
+    <author>
+      <name>Rifny Rachman</name>
+    </author>
+    <author>
+      <name>Neil Karavis</name>
+    </author>
+    <author>
+      <name>Michele Caprio</name>
+    </author>
+    <author>
+      <name>Richard Allmendinger</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2609.39421v1</id>
+    <title>IDEAL: A Multimodal Domain Adaptation Framework for EEG-Eye Emotion Recognition</title>
+    <updated>2026-09-30T10:02:11Z</updated>
+    <link href="https://arxiv.org/abs/2609.39421v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.39421v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Electroencephalography (EEG) emotion recognition serves as a pivotal interface for human-computer interaction, yet the physiological variability across individuals complicates the already challenging task of fusing heterogeneous physiological signals (e.g., EEG and eye movements). However, most prevalent domain adaptation paradigms are tailored for unimodal scenarios, failing to address the heterogeneity of multimodal signals. Furthermore, they predominantly rely on feature-level alignment, overlooking the fundamental data-level discrepancy, which risks compromising fine-grained discriminative information during aggressive adaptation. To bridge these coupled gaps, we propose Instance-based Domain Expansion and Adversarial Learning (IDEAL), a unified framework that synergizes instance-level curriculum expansion with feature-level hierarchical adversarial alignment. IDEAL first introduces a multi-model collaborative screening mechanism, which propagates high-confidence target samples to explicitly bridge the distributional gap at the data level via a quantity-quality equilibrium strategy. We provide a theoretical analysis that this instance expansion strategy strictly tightens the upper bound of the target risk. Subsequently, a hierarchical adversarial network, augmented with the angular-contrastive constraints, progressively aligns representations from low-level statistics to high-level semantics while preserving class separability. Extensive experiments on four benchmark datasets demonstrate that IDEAL significantly outperforms state-of-the-art methods. To facilitate reproducibility and future research, our source code is publicly available at https://github.com/WY-BCI-Club/IDEAL.</summary>
+    <category term="cs.HC" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-09-30T10:02:11Z</published>
+    <arxiv:primary_category term="cs.HC"/>
+    <author>
+      <name>Yang Wu</name>
+    </author>
+    <author>
+      <name>Jinpeng Li</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2609.36755v1</id>
+    <title>Drag as Evidence: Motion-Grounded Latent Recomposition for Drag-Based Editing</title>
+    <updated>2026-09-29T05:25:38Z</updated>
+    <link href="https://arxiv.org/abs/2609.36755v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.36755v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Modern image editors excel at semantic manipulation and visual synthesis, yet remain limited in precise spatial control, motivating the development of drag-based editing. However, existing drag-based methods often struggle to balance drag accuracy with natural, plausible, and intent-aligned generation. We propose MoRe-Drag, a motion-grounded drag-based editing method. Our key insight is to treat pixel-space warping as coarse motion evidence, and to inject this evidence into the generative sampling trajectory. Specifically, MoRe-Drag performs region-aware latent recomposition over refinement, inpainting, and anchor regions, coupled with stage-adaptive conditioning that progressively shifts from motion-grounded structure formation to semantic refinement. We further support an instruction-free interface by adapting the MLLM-based text encoder for drag-aware instruction inference. Experiments on DragBench-SR and DragBench-DR show that MoRe-Drag substantially improves drag precision over strong base editors and achieves superior drag accuracy among SOTA drag-based methods, while delivering strong semantic consistency and visually realistic results. Code and dataset will be publicly released.</summary>
+    <category term="cs.CV" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-09-29T05:25:38Z</published>
+    <arxiv:primary_category term="cs.CV"/>
+    <author>
+      <name>Xinyu Pu</name>
+    </author>
+    <author>
+      <name>Hongsong Wang</name>
+    </author>
+    <author>
+      <name>Jie Gui</name>
+    </author>
+    <author>
+      <name>Pan Zhou</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2609.36710v1</id>
+    <title>Block-Wise Variational Quantum Algorithms for PDEs with Interface Penalty Constraints</title>
+    <updated>2026-09-29T04:48:41Z</updated>
+    <link href="https://arxiv.org/abs/2609.36710v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.36710v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Global variational quantum algorithm (VQA) frameworks for solving partial differential equations (PDEs) often rely on a single expressive ansatz over a uniform grid, which becomes structurally inefficient when solutions exhibit spatially heterogeneous complexity such as localized singularities or thin boundary layers. A localized nonsmooth feature can degrade the convergence of the entire global quantum representation, imposing unnecessary circuit depth and amplifying the risk of vanishing gradients in barren plateaus.
+  To overcome this limitation, we propose a block-wise VQA framework for PDEs characterized by spatially heterogeneous solution complexity. The computational domain is decomposed into locally represented quantum subproblems, where grid budgets and ansatz families are dynamically assigned based on a computable difficulty indicator. Artificial block interfaces are coupled through unified jump penalties for state values, derivatives, and physical fluxes, while adaptive reblocking tracks moving rough regions to maintain local accuracy without excessive global qubit overhead. The error analysis rigorously separates spatial discretization, ansatz expressivity, optimization convergence, finite-shot sampling noise, transfer errors from reblocking, and interface-coupling contributions. Reproducible residual-based simulations on representative elliptic, advection--diffusion, and Burgers problems demonstrate lower approximation errors and reduced peak local circuit width compared to global VQA approaches. These results substantiate block-wise quantum resource localization, confirming that high-fidelity PDE solutions can be achieved on near-term quantum devices without requiring a single globally expressive ansatz.</summary>
+    <category term="quant-ph" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-09-29T04:48:41Z</published>
+    <arxiv:comment>25 pages, 5 figures, 3 tables</arxiv:comment>
+    <arxiv:primary_category term="quant-ph"/>
+    <author>
+      <name>Hangran Jie</name>
+    </author>
+    <author>
+      <name>Yuntao Cui</name>
+    </author>
+    <author>
+      <name>Sunho Kim</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2609.33765v1</id>
+    <title>Principal Steering Subspaces for Online Adaptation of Frozen Generative Robot Policies</title>
+    <updated>2026-09-27T17:04:16Z</updated>
+    <link href="https://arxiv.org/abs/2609.33765v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.33765v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Generative robot policies provide expressive behavior priors, but updating a large diffusion or flow-matching model through online interaction is costly. Latent-space reinforcement learning avoids updating the pretrained generator by controlling its initial sampling noise, yet high-dimensional noise can have strongly anisotropic effects on decoded actions. We introduce Principal Steering Subspaces (PSS), a forward-query interface that constructs a fixed low-dimensional control basis from finite-difference decoder responses. Soft Actor-Critic controls the leading response directions, while the orthogonal complement is independently resampled from the Gaussian prior at each query. On three RoboMimic tasks with diffusion and flow-matching policies, response spectra reveal substantial concentration. Across five matched task-generator pairs, the training curves indicate that PSS generally converges faster and exhibits more stable late-training behavior than full-latent control, while achieving stronger final performance overall. Controlled Diffusion-Square ablations further show that leading-response directions outperform random and least-responsive subspaces of equal dimension. We further integrate PSS with a frozen, closed-source 3B-parameter vision-language-action (VLA) policy in a humanoid learning system with synchronous transition collection, reset-time optimization, and latency-aware asynchronous deployment. In an exploratory screwdriver-placement evaluation, success is observed in 2/10 trials for the frozen VLA policy and 6/10 after SAC+PSS adaptation. These results support decoder-response geometry as a practical basis for online adaptation of frozen generative robot policies.</summary>
+    <category term="cs.RO" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-09-27T17:04:16Z</published>
+    <arxiv:comment>8 pages, 9 figures</arxiv:comment>
+    <arxiv:primary_category term="cs.RO"/>
+    <author>
+      <name>Jialeng Ni</name>
+    </author>
+    <author>
+      <name>Nathan Zhao</name>
+    </author>
+    <author>
+      <name>Kunpeng Song</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2609.30698v1</id>
+    <title>MM-VeriAgent: Learning to Use Extensive Tools to Verify Multimodal Misinformation with Reinforcement Learning</title>
+    <updated>2026-09-25T02:12:16Z</updated>
+    <link href="https://arxiv.org/abs/2609.30698v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.30698v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Real-world multimodal misinformation often involves mixed forgery sources, requiring sample-specific detection strategies. Existing tool-augmented methods rely on predefined workflows or inference-time planning, limiting adaptability or increasing inference cost. To address this issue, we introduce \textbf{MM-VeriAgent}, which learns to verify mixed-source multimodal misinformation with tools. We first build \textbf{MM-VeriTools}, a specialized toolkit for misinformation detection agents. By benchmarking various candidate models and methods on the sub-tasks required by mixed-source detection, we select the strongest for textual, visual, and cross-modal forgery analysis and encapsulate them as callable tools with a unified interface. On top of this toolkit, we train the LVLM agent with reinforcement learning to teach it how to use these tools to better solve mixed-source detection. Since many of the tools are specialized models whose online execution at every rollout severely limits RL efficiency, we further introduce \textbf{Tool-Execution Cache}, which pre-executes candidate tool calls and reuses their cached outputs during training. This preserves multi-step rollouts while reducing online tool execution, largely improving the training efficiency.Experiments on MMFakeBench demonstrate substantial accuracy gains over the base model without explicit tool search at inference time. Ablation and efficiency analyses further validate the learned tool-use policy and show that Tool-Execution Cache reduces online tool executions during training.</summary>
+    <category term="cs.CV" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-09-25T02:12:16Z</published>
+    <arxiv:primary_category term="cs.CV"/>
+    <author>
+      <name>Peipei Li</name>
+    </author>
+    <author>
+      <name>Shuhan Xia</name>
+    </author>
+    <author>
+      <name>Shengyang Liu</name>
+    </author>
+    <author>
+      <name>Zekun Li</name>
+    </author>
+    <author>
+      <name>Ran He</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2609.25489v1</id>
+    <title>High-Order Variable-Scaled Energetic Variational Neural Networks for Phase-Field Gradient Flows</title>
+    <updated>2026-09-21T23:37:48Z</updated>
+    <link href="https://arxiv.org/abs/2609.25489v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.25489v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>In this paper, we develop a high-order variable-scaled energetic variational neural network (VS-EVNN) method for phase-field gradient flows. Each discretization stage uses an updated-state network whose spatial inputs are centered and divided by the interface scale, while the sampled energy and movement penalties remain unchanged relative to the baseline EVNN formulation. This rescaling is motivated by a coordinate change in the energy that normalizes the gradient coefficient of the transformed functional. We combine the scaled representation with high-order, multi-stage variational extrapolation schemes and a heuristic adaptive time-stepping controller. Each stage is solved as a network minimization problem, in which the earlier stages serve as fixed anchors on the quadrature grid, yielding a neural realization of these multi-stage variational schemes, including a mobility-weighted, mass-conserving version for Cahn--Hilliard flows. The method is tested on one- and two-dimensional Allen--Cahn and Cahn--Hilliard flows, the latter in the mass-conserving metric. Under the reported optimization settings, the scaled networks yield lower solution errors than the unscaled EVNN baseline, and the higher-order schemes improve the accuracy in the test examples.</summary>
+    <category term="math.NA" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-09-21T23:37:48Z</published>
+    <arxiv:primary_category term="math.NA"/>
+    <author>
+      <name>Xiaobo Jing</name>
+    </author>
+    <author>
+      <name>Leiyi Dong</name>
+    </author>
+    <author>
+      <name>Jia Zhao</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2609.19666v1</id>
+    <title>Towards High-DoF Dexterous Manipulation through VLA Post-Training</title>
+    <updated>2026-09-17T04:12:21Z</updated>
+    <link href="https://arxiv.org/abs/2609.19666v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.19666v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Imitation-learned vision--language--action (VLA) foundation models acquire broad manipulation capabilities by scaling robot data across tasks and embodiments, but reliable deployment on a specific downstream task and hardware platform still requires post-training. Dexterous hands make this adaptation particularly difficult: their broad behavioural repertoire and high degree of freedom create a large and structured action space. Three obstacles are central: open-source VLAs do not natively provide an action interface for high-DoF hands; gesture mismatch during human-gated DAgger takeover creates command discontinuities and contaminates corrective trajectories; and reinforcement learning in the raw joint space is sample-inefficient. We present a unified four-step post-training pipeline comprising a learned temporal hand-action codec, supervised fine-tuning, DAgger, and real-world residual reinforcement learning. The codec adapts a pretrained VLA to absolute dexterous-hand commands. Buffered rollback, pose alignment, and smooth command blending enable continuous, task-relevant DAgger corrections, while latent residual RL confines exploration to coordinated hand motions captured by the codec. We evaluate the pipeline on five diverse real-world tasks spanning bimanual transfer, in-hand reorientation, and tool use. Within the reported post-training budgets, the resulting policies achieve 100\% success on every evaluated task over 20 trials per task. These results provide a practical path for adapting VLA foundation models to reliable real-world dexterous manipulation.</summary>
+    <category term="cs.RO" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-09-17T04:12:21Z</published>
+    <arxiv:comment>29pages, 10 figures</arxiv:comment>
+    <arxiv:primary_category term="cs.RO"/>
+    <author>
+      <name>Junlei Zhu</name>
+    </author>
+    <author>
+      <name>Shenzhe Yao</name>
+    </author>
+    <author>
+      <name>Chaogui Huang</name>
+    </author>
+    <author>
+      <name>Wenkai Zhu</name>
+    </author>
+    <author>
+      <name>Jingwei Peng</name>
+    </author>
+    <author>
+      <name>Guanqi He</name>
+    </author>
+    <author>
+      <name>Soren Schwertfeger</name>
+    </author>
+    <author>
+      <name>Jiahao Chen</name>
+    </author>
+    <author>
+      <name>Yide Liu</name>
+    </author>
+  </entry>
+</feed>

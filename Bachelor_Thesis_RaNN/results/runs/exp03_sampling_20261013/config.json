@@ -1,0 +1,75 @@
+{
+  "experiment": "exp03_sampling",
+  "seeds": [
+    11,
+    23,
+    37,
+    51,
+    71
+  ],
+  "betas": [
+    [
+      1,
+      1
+    ],
+    [
+      1000,
+      1
+    ],
+    [
+      1,
+      1000
+    ]
+  ],
+  "methods": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "D_minus_pde",
+    "D_minus_interface"
+  ],
+  "budget_modes": [
+    "points",
+    "equations"
+  ],
+  "variant": "jumps",
+  "neurons_per_side": 64,
+  "scale": 2,
+  "rounds": 3,
+  "exploration": 0.2,
+  "scaling": "balanced",
+  "initial_counts": [
+    128,
+    128,
+    32
+  ],
+  "fixed_add_counts": [
+    80,
+    80,
+    32
+  ],
+  "point_budget_per_round": 192,
+  "equation_budget_per_round": 224,
+  "minimum_add_counts": [
+    16,
+    16,
+    8
+  ],
+  "candidate_counts": [
+    2048,
+    2048,
+    1024
+  ],
+  "boundary_points": 240,
+  "validation": "83x83 midpoint per side;257 interface;83 per boundary segment",
+  "random_streams": "features=[seed,side,200]; point groups=[seed,100,group]; candidate=[seed,300]; selection=[seed,400]",
+  "objective": "block empirical RMS with fixed physical scales; no inverse-density weights",
+  "timing": "all point generation,candidate residuals,allocations,assembly,SVD solves and diagnostics; excludes final validation/plot",
+  "python": "3.12.14",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "numpy": "2.2.6",
+  "scipy": "1.15.3",
+  "matplotlib": "3.10.3",
+  "blas_threads": 1
+}

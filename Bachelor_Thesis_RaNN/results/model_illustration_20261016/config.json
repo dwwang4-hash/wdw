@@ -1,0 +1,11 @@
+{
+  "kind": "manufactured model illustration, not a numerical solve",
+  "beta": [
+    1000,
+    1
+  ],
+  "variant": "jumps",
+  "profile_y": 0.5,
+  "source": "src/pde_models.py StraightInterfaceProblem",
+  "points_per_side": 201
+}

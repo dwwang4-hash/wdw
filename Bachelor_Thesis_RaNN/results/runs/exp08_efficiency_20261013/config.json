@@ -1,0 +1,33 @@
+{
+  "experiment": "exp08_sequential_efficiency",
+  "methods": [
+    "A",
+    "B",
+    "C",
+    "D",
+    "D_unused"
+  ],
+  "seeds": [
+    11,
+    23,
+    37,
+    51,
+    71
+  ],
+  "width": 0.06,
+  "beta": [
+    1000,
+    1
+  ],
+  "scale": 4,
+  "neurons_per_side": 128,
+  "rounds": 6,
+  "equation_budget": 1904,
+  "scope": "single predetermined case; execute after exp06/exp07; exact same method/seed, coefficients compared",
+  "python": "3.12.14",
+  "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+  "numpy": "2.2.6",
+  "scipy": "1.15.3",
+  "matplotlib": "3.10.3",
+  "blas_threads": 1
+}

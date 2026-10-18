@@ -1,0 +1,9 @@
+﻿thesis_figure,source
+fdm_convergence.pdf,results/figures/poisson_fdm_convergence.pdf
+interface_contrast.pdf,results/runs/exp02_interface_20261013/figures/interface_contrast.pdf
+sampling.pdf,results/runs/exp03_sampling_20261013/figures/sampling_errors_points.pdf
+width.pdf,results/runs/exp04_sensitivity_20261013/figures/width_sensitivity.pdf
+peaks.pdf,results/runs/exp06_peaks_20261013/figures/peaks_budget_scale4.pdf
+perturbation.pdf,results/runs/exp07_stability_20261013/figures/rhs_perturbation.pdf
+reproduction.pdf,results/runs/exp09_literal_20261013/figures/flower_reproduction.pdf
+model_geometry.pdf,results/model_illustration_20261016/model_geometry.pdf

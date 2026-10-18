@@ -1,0 +1,72 @@
+{
+  "research_files_before": 500,
+  "research_bytes": 72816213,
+  "runtime_files_excluded": 6567,
+  "file_extensions": {
+    "[no_extension]": 1,
+    ".md": 37,
+    ".txt": 14,
+    ".py": 34,
+    ".csv": 63,
+    ".tex": 108,
+    ".pdf": 76,
+    ".bib": 1,
+    ".json": 65,
+    ".log": 39,
+    ".aux": 8,
+    ".out": 1,
+    ".toc": 1,
+    ".png": 23,
+    ".html": 19,
+    ".xml": 3,
+    ".npz": 7
+  },
+  "csv_files": 63,
+  "npz_files": 7,
+  "npz_arrays": 1365,
+  "run_directories": 8,
+  "largest_research_files": [
+    {
+      "path": "references/source/2207.10289.pdf",
+      "bytes": 14924593
+    },
+    {
+      "path": "references/source/2408.17225.pdf",
+      "bytes": 6224997
+    },
+    {
+      "path": "references/source/2206.05577.pdf",
+      "bytes": 3687790
+    },
+    {
+      "path": "references/source/2412.19207.pdf",
+      "bytes": 2606841
+    },
+    {
+      "path": "results/runs/exp06_peaks_20261013/raw/representative_grid.csv",
+      "bytes": 2321476
+    },
+    {
+      "path": "references/source/2308.03087.pdf",
+      "bytes": 2127780
+    },
+    {
+      "path": "references/dlut/management_public.pdf",
+      "bytes": 1954445
+    },
+    {
+      "path": "references/source/2308.03088.pdf",
+      "bytes": 1865701
+    },
+    {
+      "path": "references/source/2409.01949.pdf",
+      "bytes": 1735507
+    },
+    {
+      "path": "results/runs/exp06_peaks_20261013/raw/manufactured_width0.06_beta1.csv",
+      "bytes": 1550885
+    }
+  ],
+  "windows_invalid_paths": [],
+  "longest_research_relative_path": 79
+}

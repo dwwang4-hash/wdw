@@ -1,0 +1,10 @@
+{
+  "run": "exp08_efficiency_20261013",
+  "observations": 25,
+  "csv_unchanged_after_redraw": true,
+  "existing_run_protected": true,
+  "raw_sha256": {
+    "efficiency.csv": "09c4a6f1481f4c62837c67d164d2b39213922297f0b36e0112759f645f40b044"
+  },
+  "all_25_coefficients_agree_with_main": true
+}

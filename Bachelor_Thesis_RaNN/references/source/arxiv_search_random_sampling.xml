@@ -1,0 +1,318 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<feed xmlns:opensearch="http://a9.com/-/spec/opensearch/1.1/" xmlns:arxiv="http://arxiv.org/schemas/atom" xmlns="http://www.w3.org/2005/Atom">
+  <id>https://arxiv.org/api/x7HEsm8bEtRZ8amqbyS/Sq0osgU</id>
+  <title>arXiv Query: search_query=all:"random" AND all:"feature" AND all:"sampling" AND all:"PDE"&amp;id_list=&amp;start=0&amp;max_results=15</title>
+  <updated>2026-10-13T00:54:51Z</updated>
+  <link href="https://arxiv.org/api/query?search_query=all:%22random%22+AND+(all:%22feature%22+AND+(all:%22sampling%22+AND+all:%22PDE%22))&amp;start=0&amp;max_results=15&amp;id_list=" type="application/atom+xml"/>
+  <opensearch:itemsPerPage>15</opensearch:itemsPerPage>
+  <opensearch:totalResults>26</opensearch:totalResults>
+  <opensearch:startIndex>0</opensearch:startIndex>
+  <entry>
+    <id>http://arxiv.org/abs/2609.31909v1</id>
+    <title>Mapped Multi-Patch Spectral Extreme Learning Machine for Partial Differential Equations</title>
+    <updated>2026-09-25T18:54:03Z</updated>
+    <link href="https://arxiv.org/abs/2609.31909v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2609.31909v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>We study a fixed-feature solver, referred to as Spectral-ELM, in which Chebyshev--Gauss--Lobatto (CGL) differentiation matrices are applied to the nodal values of an extreme learning machine (ELM) trial function. Curved domains are treated using a mapped multi-patch formulation. Each curved quadrilateral patch is represented as the image of a reference square, physical derivatives are computed from the associated metric terms, and adjacent patches are coupled by enforcing continuity of the solution and its normal flux. Local QR orthogonalization is used to reduce near-linear dependence among the discrete features. The numerical study includes comparisons with direct CGL collocation, an analytically differentiated ELM, a global Random Feature Method, and a TransNet sampling strategy. It also includes a matched KdV test, a small three-dimensional example, and a Poisson problem on a curved domain containing a hole. For a smooth elliptic problem on a square, direct CGL collocation gives the smallest error. When applied to the same fixed-feature trial space, spectral and analytic differentiation produce comparable errors. For the curved-domain problem, mapped direct CGL collocation and mapped Spectral-ELM achieve similar accuracy with comparable numbers of unknowns. The present formulation is particularly well suited to smooth PDEs in one to three dimensions, where tensor-product grids enable accurate high-order discretizations, while sparse-grid and dimension-adaptive strategies offer promising directions for extension to higher-dimensional problems.</summary>
+    <category term="math.NA" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-09-25T18:54:03Z</published>
+    <arxiv:primary_category term="math.NA"/>
+    <author>
+      <name>Yiran Wang</name>
+    </author>
+    <author>
+      <name>Suchuan Dong</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2608.14914v1</id>
+    <title>Random blob methods for diffusion</title>
+    <updated>2026-08-14T21:55:21Z</updated>
+    <link href="https://arxiv.org/abs/2608.14914v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2608.14914v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Linear and nonlinear diffusion equations arise in a range of phenomena of mathematical interest, including slow and fast diffusion, sandpile dynamics, height-constrained transport, the two-dimensional Navier-Stokes equation, and dynamics for sampling probability measures. In recent years, blob methods have attracted significant interest as an approach for numerically simulating these types of PDEs. To address the $O(N^2)$ computational bottleneck of blob methods, we consider stochastic discretizations of space and time. We compare the random batch method with a new approach, which we call the random multirate method. Both of these methods build on classical stochastic methods in the optimization literature, with many similarities to stochastic gradient descent and random coordinate descent. We find that, for linear and nonlinear diffusion equations, in the tradeoff between computational complexity and accuracy, the random multirate method has the best performance. On one hand, we prove that the random multirate method converges to the underlying ODE system at a rate of $O(k Δt)$, matching forward Euler, and show by example that this rate is theoretically sharp. On the other hand, we observe even better rates of convergence for the random multirate method when applied to ODEs arising from blob methods for diffusive PDEs. Finally, due to its ability to simulate a wide range of nonlinear diffusion equations, including height-constrained transport and sandpile dynamics, our method succeeds in capturing key features of PDEs for which few numerical approaches exist.</summary>
+    <category term="math.NA" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="math.AP" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-08-14T21:55:21Z</published>
+    <arxiv:primary_category term="math.NA"/>
+    <author>
+      <name>Katy Craig</name>
+    </author>
+    <author>
+      <name>Claire Murphy</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2607.19786v1</id>
+    <title>A Structure-Adaptive Random Feature Method for High-Dimensional Elliptic PDEs</title>
+    <updated>2026-07-22T06:10:49Z</updated>
+    <link href="https://arxiv.org/abs/2607.19786v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2607.19786v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Random-feature methods reduce high-dimensional elliptic PDE collocation to linear coefficient problems, but full-dimensional trial spaces overlook lower-dimensional structure. We introduce the Hierarchical Analysis-of-Variance Random Feature Method (HA-RFM), which selects coordinate blocks using closed Sobol indices of the PDE residual, identifies oblique low-rank features from fitted-predictor gradients, and couples all retained features in one regularized least-squares solve. Under structural and stability hypotheses, we establish an $L^2$ error bound that links solution and residual truncation to finite-width approximation and regularized finite-sample fitting, and we derive guarantees for width and structure recovery. The resulting width is polynomial in the dimension at fixed interaction order, with dimension-independent higher-order contributions under uniform structural control. Residual screening achieves exact recovery of the prescribed three-pair support, while fitted-predictor gradients recover oblique directions through dimension $50$. In random-ridge tests, less than $1\%$ additional width reduces errors by factors of $14$-$39$ over coordinate blocks and $34$-$100$ over equal-width full-dimensional RFM. Semilinear computations extend HA-RFM through dimension $100$, while dense and distributed interactions delineate the coordinate families required for broader structure.</summary>
+    <category term="math.NA" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-07-22T06:10:49Z</published>
+    <arxiv:primary_category term="math.NA"/>
+    <author>
+      <name>Jiale Linghu</name>
+    </author>
+    <author>
+      <name>Hao Dong</name>
+    </author>
+    <author>
+      <name>Yangshuai Wang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2607.13382v1</id>
+    <title>Residual-Christoffel Sampling for Random Feature Collocation of Linear PDEs</title>
+    <updated>2026-07-15T02:21:24Z</updated>
+    <link href="https://arxiv.org/abs/2607.13382v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2607.13382v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Random feature collocation fixes a randomly generated trial space and determines its coefficients from a linear least-squares system. Stability then depends on whether the sampled residual equations represent the geometry induced by the differential operator. We construct an operator-aware discretization in which the operator-applied features determine both the collocation measure and a coefficient whitening map. The randomized scheme combines a residual-Christoffel density with inverse-density weights, while a deterministic scalar-row alternative maximizes successive regularized log-determinant increments. Conditional on the realized trial space, the sampled whitened interior Gram is a spectral approximation to the reference Gram on the retained residual space, with sample complexity linear in the retained dimension up to a logarithmic factor. For uniformly analytic residual kernels, the associated operator has stretched-exponentially decaying eigenvalues and ridge effective dimension that is polylogarithmic in the inverse ridge scale. Experiments on scalar and vector equations, varied geometries, and one to three spatial dimensions show that residual-space sampling and whitening produce numerically full-rank transformed systems with substantially smaller condition numbers and iteration counts. The deterministic construction attains the lowest errors at the smallest scalar sample sizes. Residual-space geometry therefore yields a principled design for stable strong-form random feature collocation.</summary>
+    <category term="math.NA" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="physics.comp-ph" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-07-15T02:21:24Z</published>
+    <arxiv:primary_category term="math.NA"/>
+    <author>
+      <name>Jiale Linghu</name>
+    </author>
+    <author>
+      <name>Yangshuai Wang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2606.15571v1</id>
+    <title>Liquid Random Feature Methods for Time-Dependent Partial Differential Equations</title>
+    <updated>2026-06-14T03:27:51Z</updated>
+    <link href="https://arxiv.org/abs/2606.15571v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2606.15571v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>A central challenge in mesh-free space--time approximation for time-dependent partial differential equations is to represent evolving temporal scales while keeping residual minimization computationally tractable. Random feature methods simplify this algebraic problem by freezing nonlinear trial functions and fitting only a linear readout, but standard static space--time activations provide no explicit relaxation-scale mechanism, making temporal-scale resolution a finite-dimensional bottleneck in stiff, dispersive, or multi-scale regimes. We introduce liquid random feature methods (L-RFM), which replace static temporal activations by closed-form liquid time-constant responses with sampled relaxation scales. The resulting frozen features form temporally structured local or global trial spaces with analytic space--time derivatives for residual least-squares assembly. A density theorem proves density of the deterministic trial spaces in the continuous space--time function class, and a temporal-rank calculation clarifies the role of sampled relaxation scales. Ablation and finite-feature tests identify the liquid temporal response as the primary source of the observed accuracy improvement. Across stiff reaction--diffusion, nonlinear transport, dispersive, complex-valued, and multidimensional benchmarks, L-RFM improves finite-feature accuracy in regimes where temporal-scale representation controls the approximation. By embedding relaxation scales directly into frozen trial functions, L-RFM provides a route to high-accuracy continuous space--time surrogates for evolutionary PDEs while preserving the simplicity of linear least-squares solvers.</summary>
+    <category term="physics.comp-ph" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="math.NA" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-06-14T03:27:51Z</published>
+    <arxiv:primary_category term="physics.comp-ph"/>
+    <author>
+      <name>Jiale Linghu</name>
+    </author>
+    <author>
+      <name>Yangshuai Wang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2604.23999v1</id>
+    <title>Adaptive-Distribution Randomized Neural Networks for PDEs: A Low-Dimensional Distribution-Learning Framework</title>
+    <updated>2026-04-27T03:25:48Z</updated>
+    <link href="https://arxiv.org/abs/2604.23999v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2604.23999v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Randomized neural networks (RaNNs) are attractive for partial differential equations (PDEs) because they replace expensive end-to-end training with a linear least-squares solve over randomized hidden features. Their practical performance, however, depends strongly on the sampling distribution of the hidden-layer parameters, which is usually chosen heuristically and problem by problem. This distribution sensitivity is a central bottleneck in randomized neural PDE solvers. In this work, we propose Adaptive-Distribution Randomized Neural Networks (AD-RaNN), a framework that promotes randomized feature generation from a fixed heuristic choice to a low-dimensional adaptive optimization problem. Instead of training all hidden weights and biases, AD-RaNN parameterizes the hidden-feature sampling distribution by a low-dimensional vector p and optimizes only p, thereby preserving the least-squares structure of RaNNs while reducing manual distribution tuning. The method uses a two-stage strategy: ridge-regularized reduced training for stable distribution-parameter optimization, followed by an unregularized least-squares refit for final solution recovery. We develop two adaptive mechanisms, PDE-Driven Adaptive Distribution (PDAD) and Data-Driven Adaptive Distribution (DDAD), and deploy them in space-time solvers, discrete-time solvers, and operator-learning models. We also incorporate an adaptive layer-growth enhancement for localized structures. For the reduced optimization problem, we establish well-posedness of the reduced objectives, consistency of ridge-regularized minimizers, an efficient gradient formula, and a practical lower-bound estimate for the ridge parameter. Numerical experiments on benchmark problems show that AD-RaNN provides an effective distribution-level adaptation mechanism, reduces reliance on hand-crafted hidden-feature distributions, and achieves strong empirical accuracy.</summary>
+    <category term="math.NA" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-04-27T03:25:48Z</published>
+    <arxiv:primary_category term="math.NA"/>
+    <author>
+      <name>You Yang</name>
+    </author>
+    <author>
+      <name>Fei Wang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2604.08869v2</id>
+    <title>Adaptive Randomized Neural Networks with Locally Activation Function: Theory and Algorithm for Solving PDEs</title>
+    <updated>2026-08-15T05:34:57Z</updated>
+    <link href="https://arxiv.org/abs/2604.08869v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2604.08869v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>This paper establishes an approximation theory and develop an adaptive computational framework for randomized neural networks (RaNNs). For RaNNs of the form $\sum_{i=1}^{N} W_i σ(A_i\cdot x+B_i)$ with hidden parameters uniformly sampled from a bounded set of scale $M$, we show that the choice $M \asymp N^{p/[2((p-1)(d+1)+pη)]}$ yields an expected $W^{k,p}$-approximation error of order $\mathcal{O}\left(N^{-pη/[2((p-1)(d+1)+pη)]}\right)$, where $η$ is associated with the regularity of the target function in a generalized Barron spectral space. This theoretical result demonstrates that lower regularity requires a larger sampling range for the hidden parameters. Motivated by the relationship between $M$ and $η$, we introduce an adaptive physics-informed RaNN (PIRaNN) method that which couples parameter sampling with an adaptive partition of unity via local affine scaling. Residual-based a posteriori error indicators and Dörfler marking are used to drive local refinement. Numerical experiments, including the 1D viscous Burgers' equation and 2D/3D problems with localized peaks and L-shaped corner singularities, demonstrate that our method preferentially refines regions exhibiting large gradients and singularities. Compared to standard non-adaptive RaNNs, the adaptive PIRaNN effectively captures complex local features with significantly enhanced accuracy and efficiency.</summary>
+    <category term="math.NA" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-04-10T02:07:07Z</published>
+    <arxiv:primary_category term="math.NA"/>
+    <author>
+      <name>Ran Bi</name>
+    </author>
+    <author>
+      <name>Weibing Deng</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2603.01093v1</id>
+    <title>Adaptive-Growth Randomized Neural Networks for Level-Set Computation of Multivalued Nonlinear First-Order PDEs with Hyperbolic Characteristics</title>
+    <updated>2026-03-01T13:16:25Z</updated>
+    <link href="https://arxiv.org/abs/2603.01093v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2603.01093v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>This paper proposes an Adaptive-Growth Randomized Neural Network (AG-RaNN) method for computing multivalued solutions of nonlinear first-order PDEs with hyperbolic characteristics, including quasilinear hyperbolic balance laws and Hamilton--Jacobi equations. Such solutions arise in geometric optics, seismic waves, semiclassical limit of quantum dynamics and high frequency limit of linear waves, and differ markedly from the viscosity or entropic solutions. The main computational challenges lie in that the solutions are no longer functions, and become union of multiple branches, after the formation of singularities. Level-set formulations offer a systematic alternative by embedding the nonlinear dynamics into linear transport equations posed in an augmented phase space, at the price of substantially increased dimensionality. To alleviate this computational burden, we combine AG-RaNN with an adaptive collocation strategy that concentrates samples in a tubular neighborhood of the zero level set, together with a layer-growth mechanism that progressively enriches the randomized feature space. Under standard regularity assumptions on the transport field and the characteristic flow, we establish a convergence result for the AG-RaNN approximation of the level-set equations. Numerical experiments demonstrate that the proposed method can efficiently recover multivalued structures and resolve nonsmooth features in high-dimensional settings.</summary>
+    <category term="math.NA" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-03-01T13:16:25Z</published>
+    <arxiv:primary_category term="math.NA"/>
+    <author>
+      <name>Haoning Dang</name>
+    </author>
+    <author>
+      <name>Shi Jin</name>
+    </author>
+    <author>
+      <name>Fei Wang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2601.11771v1</id>
+    <title>Solving High-Dimensional PDEs Using Linearized Neural Networks</title>
+    <updated>2026-01-16T20:55:52Z</updated>
+    <link href="https://arxiv.org/abs/2601.11771v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2601.11771v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Linearized shallow neural networks that are constructed by fixing the hidden-layer parameters have recently shown strong performance in solving partial differential equations (PDEs). Such models, widely used in the random feature method (RFM) and extreme learning machines (ELM), transform network training into a linear least-squares problem. In this paper, we conduct a numerical study of the variational (Galerkin) and collocation formulations for these linearized networks. Our numerical results reveal that, in the variational formulation, the associated linear systems are severely ill-conditioned, forming the primary computational bottleneck in scaling the neural network size, even when direct solvers are employed. In contrast, collocation methods combined with robust least-squares solvers exhibit better numerical stability and achieve higher accuracy as we increase neuron numbers. This behavior is consistently observed for both ReLU$^k$ and $\tanh$ activations, with $\tanh$ networks exhibiting even worse conditioning. Furthermore, we demonstrate that random sampling of the hidden layer parameters, commonly used in RFM and ELM, is not necessary for achieving high accuracy. For ReLU$^k$ activations, this follows from existing theory and is verified numerically in this paper, while for $\tanh$ activations, we introduce two deterministic schemes that achieve comparable accuracy.</summary>
+    <category term="math.NA" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-01-16T20:55:52Z</published>
+    <arxiv:primary_category term="math.NA"/>
+    <author>
+      <name>Tong Mao</name>
+    </author>
+    <author>
+      <name>Jinchao Xu</name>
+    </author>
+    <author>
+      <name>Xiaofeng Xu</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2601.08719v1</id>
+    <title>Soft Partition-based KAPI-ELM for Multi-Scale PDEs</title>
+    <updated>2026-01-13T16:43:38Z</updated>
+    <link href="https://arxiv.org/abs/2601.08719v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2601.08719v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Physics-informed machine learning holds great promise for solving differential equations, yet existing methods struggle with highly oscillatory, multiscale, or singularly perturbed PDEs due to spectral bias, costly backpropagation, and manually tuned kernel or Fourier frequencies. This work introduces a soft partition--based Kernel-Adaptive Physics-Informed Extreme Learning Machine (KAPI-ELM), a deterministic low-dimensional parameterization in which smooth partition lengths jointly control collocation centers and Gaussian kernel widths, enabling continuous coarse-to-fine resolution without Fourier features, random sampling, or hard domain interfaces. A signed-distance-based weighting further stabilizes least-squares learning on irregular geometries. Across eight benchmarks--including oscillatory ODEs, high-frequency Poisson equations, irregular-shaped domains, and stiff singularly perturbed convection-diffusion problems-the proposed method matches or exceeds the accuracy of state-of-the-art Physics-Informed Neural Network (PINN) and Theory of Functional Connections (TFC) variants while using only a single linear solve. Although demonstrated on steady linear PDEs, the results show that soft-partition kernel adaptation provides a fast, architecture-free approach for multiscale PDEs with broad potential for future physics-informed modeling. For reproducibility, the reference codes are available at https://github.com/vikas-dwivedi-2022/soft_kapi</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2026-01-13T16:43:38Z</published>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Vikas Dwivedi</name>
+    </author>
+    <author>
+      <name>Monica Sigovan</name>
+    </author>
+    <author>
+      <name>Bruno Sixou</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2512.17884v1</id>
+    <title>Regularized Random Fourier Features and Finite Element Reconstruction for Operator Learning in Sobolev Space</title>
+    <updated>2025-12-19T18:36:24Z</updated>
+    <link href="https://arxiv.org/abs/2512.17884v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2512.17884v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Operator learning is a data-driven approximation of mappings between infinite-dimensional function spaces, such as the solution operators of partial differential equations. Kernel-based operator learning can offer accurate, theoretically justified approximations that require less training than standard methods. However, they can become computationally prohibitive for large training sets and can be sensitive to noise. We propose a regularized random Fourier feature (RRFF) approach, coupled with a finite element reconstruction map (RRFF-FEM), for learning operators from noisy data. The method uses random features drawn from multivariate Student's $t$ distributions, together with frequency-weighted Tikhonov regularization that suppresses high-frequency noise. We establish high-probability bounds on the extreme singular values of the associated random feature matrix and show that when the number of features $N$ scales like $m \log m$ with the number of training samples $m$, the system is well-conditioned, which yields estimation and generalization guarantees. Detailed numerical experiments on benchmark PDE problems, including advection, Burgers', Darcy flow, Helmholtz, Navier-Stokes, and structural mechanics, demonstrate that RRFF and RRFF-FEM are robust to noise and achieve improved performance with reduced training time compared to the unregularized random feature model, while maintaining competitive accuracy relative to kernel and neural operator tests.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="math.NA" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="stat.ML" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-12-19T18:36:24Z</published>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Xinyue Yu</name>
+    </author>
+    <author>
+      <name>Hayden Schaeffer</name>
+    </author>
+    <arxiv:doi>10.1615/JMachLearnModelComput.2026063451</arxiv:doi>
+    <link rel="related" href="https://doi.org/10.1615/JMachLearnModelComput.2026063451" title="doi"/>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2511.00886v1</id>
+    <title>HEATNETs: Explainable Random Feature Neural Networks for High-Dimensional Parabolic PDEs</title>
+    <updated>2025-11-02T10:50:11Z</updated>
+    <link href="https://arxiv.org/abs/2511.00886v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2511.00886v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>We deal with the solution of the forward problem for high-dimensional parabolic PDEs with random feature (projection) neural networks (RFNNs). We first prove that there exists a single-hidden layer neural network with randomized heat-kernels arising from the fundamental solution (Green's functions) of the heat operator, that we call HEATNET, that provides an unbiased universal approximator to the solution of parabolic PDEs in arbitrary (high) dimensions, with the rate of convergence being analogous to the ${O}(N^{-1/2})$, where $N$ is the size of HEATNET. Thus, HEATNETs are explainable schemes, based on the analytical framework of parabolic PDEs, exploiting insights from physics-informed neural networks aided by numerical and functional analysis, and the structure of the corresponding solution operators. Importantly, we show how HEATNETs can be scaled up for the efficient numerical solution of arbitrary high-dimensional parabolic PDEs using suitable transformations and importance Monte Carlo sampling of the integral representation of the solution, in order to deal with the singularities of the heat kernel around the collocation points. We evaluate the performance of HEATNETs through benchmark linear parabolic problems up to 2,000 dimensions. We show that HEATNETs result in remarkable accuracy with the order of the approximation error ranging from $1.0E-05$ to $1.0E-07$ for problems up to 500 dimensions, and of the order of $1.0E-04$ to $1.0E-03$ for 1,000 to 2,000 dimensions, with a relatively low number (up to 15,000) of features.</summary>
+    <category term="math.NA" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-11-02T10:50:11Z</published>
+    <arxiv:primary_category term="math.NA"/>
+    <author>
+      <name>Kyriakos Georgiou</name>
+    </author>
+    <author>
+      <name>Gianluca Fabiani</name>
+    </author>
+    <author>
+      <name>Constantinos Siettos</name>
+    </author>
+    <author>
+      <name>Athanasios N. Yannacopoulos</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2510.10350v3</id>
+    <title>Prescribed-Basis Coefficient-to-Coefficient Neural Operator for Partial Differential Equations</title>
+    <updated>2026-08-01T14:37:36Z</updated>
+    <link href="https://arxiv.org/abs/2510.10350v3" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2510.10350v3" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Operator learning provides a data-driven approach to approximating solution operators of partial differential equations, but its effectiveness depends strongly on how input and output functions are represented. Point-value representations can make the trainable map mesh-dependent and high-dimensional; snapshot-based POD/PCA reductions require aligned data and basis construction, while learned representations introduce additional trainable encoders, decoders, or neural bases. We propose the Fixed-Basis Coefficient-to-Coefficient Network (FB-C2CNet), which learns PDE solution maps in fixed, data-independent approximation spaces using prescribed bases as function encoders and decoders. Input observations are encoded by regularized least-squares projection onto bases such as finite element, random-feature, or radial-basis-function bases. A neural network maps the resulting input coefficients to output coefficients, and the fixed decoder reconstructs the solution at arbitrary target locations. This separation of basis selection from network training avoids neural basis learning and snapshot-based basis extraction, reduces the dimension of the trainable map, and lowers training cost. With suitable prescribed bases, FB-C2CNet also accommodates scattered, non-aligned, and sample-dependent observations. We analyze the stability--bias trade-off of regularized coefficient encoding and the intrinsic projection error determined by the output space. Experiments on elliptic, nonlinear time-dependent, weak-solution, high-dimensional, and inverse Stokes boundary-recovery problems demonstrate competitive accuracy with reduced trainable dimension and training cost, including for high-resolution and irregularly sampled data.</summary>
+    <category term="math.NA" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-10-11T21:47:48Z</published>
+    <arxiv:primary_category term="math.NA"/>
+    <author>
+      <name>Chuqi Chen</name>
+    </author>
+    <author>
+      <name>Yang Xiang</name>
+    </author>
+    <author>
+      <name>Weihong Zhang</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2508.17902v1</id>
+    <title>Spectral-Prior Guided Multistage Physics-Informed Neural Networks for Highly Accurate PDE Solutions</title>
+    <updated>2025-08-25T11:17:05Z</updated>
+    <link href="https://arxiv.org/abs/2508.17902v1" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2508.17902v1" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Physics-Informed Neural Networks (PINNs) are becoming a popular method for solving PDEs, due to their mesh-free nature and their ability to handle high-dimensional problems where traditional numerical solvers often struggle. Despite their promise, the practical application of PINNs is still constrained by several fac- tors, a primary one being their often-limited accuracy. This paper is dedicated to enhancing the accuracy of PINNs by introducing spectral-prior guided multistage strategy. We propose two methods: Spectrum- Informed Multistage Physics-Informed Neural Networks (SI-MSPINNs) and Multistage Physics-Informed Neural Networks with Spectrum Weighted Random Fourier Features (RFF-MSPINNs). The SI-MSPINNs integrate the core mechanism of Spectrum-Informed Multistage Neural Network (SI-MSNNs) and PINNs, in which we extract the Dominant Spectral Pattern (DSP) of residuals by the discrete Fourier transform. This DSP guides the network initialization to alleviate spectral bias, and gradually optimizes the resolution accuracy using a multistage strategy. The RFF-MSPINNs combines random Fourier features with spectral weighting methods, dynamically adjusting the frequency sampling distribution based on the residual power spectral density, allowing the network to prioritize learning high-energy physical modes. Through experimental verification of the Burgers equation and the Helmholtz equation, we show that both models significantly improve the accuracy of the original PINNs.</summary>
+    <category term="math.NA" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CE" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2025-08-25T11:17:05Z</published>
+    <arxiv:comment>17 pages, 9 figures</arxiv:comment>
+    <arxiv:primary_category term="math.NA"/>
+    <author>
+      <name>Yuzhen Li</name>
+    </author>
+    <author>
+      <name>Liang Li</name>
+    </author>
+    <author>
+      <name>Stéphane Lanteri</name>
+    </author>
+    <author>
+      <name>Bin Li</name>
+    </author>
+  </entry>
+  <entry>
+    <id>http://arxiv.org/abs/2408.01536v2</id>
+    <title>Active Learning for Neural PDE Solvers</title>
+    <updated>2025-03-24T10:31:44Z</updated>
+    <link href="https://arxiv.org/abs/2408.01536v2" rel="alternate" type="text/html"/>
+    <link href="https://arxiv.org/pdf/2408.01536v2" rel="related" type="application/pdf" title="pdf"/>
+    <summary>Solving partial differential equations (PDEs) is a fundamental problem in science and engineering. While neural PDE solvers can be more efficient than established numerical solvers, they often require large amounts of training data that is costly to obtain. Active learning (AL) could help surrogate models reach the same accuracy with smaller training sets by querying classical solvers with more informative initial conditions and PDE parameters. While AL is more common in other domains, it has yet to be studied extensively for neural PDE solvers. To bridge this gap, we introduce AL4PDE, a modular and extensible active learning benchmark. It provides multiple parametric PDEs and state-of-the-art surrogate models for the solver-in-the-loop setting, enabling the evaluation of existing and the development of new AL methods for neural PDE solving. We use the benchmark to evaluate batch active learning algorithms such as uncertainty- and feature-based methods. We show that AL reduces the average error by up to 71% compared to random sampling and significantly reduces worst-case errors. Moreover, AL generates similar datasets across repeated runs, with consistent distributions over the PDE parameters and initial conditions. The acquired datasets are reusable, providing benefits for surrogate models not involved in the data generation.</summary>
+    <category term="cs.LG" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.AI" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.CE" scheme="http://arxiv.org/schemas/atom"/>
+    <category term="cs.NE" scheme="http://arxiv.org/schemas/atom"/>
+    <published>2024-08-02T18:48:58Z</published>
+    <arxiv:primary_category term="cs.LG"/>
+    <author>
+      <name>Daniel Musekamp</name>
+    </author>
+    <author>
+      <name>Marimuthu Kalimuthu</name>
+    </author>
+    <author>
+      <name>David Holzmüller</name>
+    </author>
+    <author>
+      <name>Makoto Takamoto</name>
+    </author>
+    <author>
+      <name>Mathias Niepert</name>
+    </author>
+  </entry>
+</feed>
