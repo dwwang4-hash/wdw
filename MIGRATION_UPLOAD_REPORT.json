@@ -1,0 +1,24 @@
+{
+  "repository": "dwwang4-hash/wdw",
+  "verified_commit": "d70bd7183c057c94da5fe1d8329fdfb0abe3ba18",
+  "download_url": "https://github.com/dwwang4-hash/wdw/archive/d70bd7183c057c94da5fe1d8329fdfb0abe3ba18.zip",
+  "download_bytes": 68079101,
+  "project_files_git_hash_verified": 537,
+  "sha256_manifest_records_verified": 536,
+  "errors": [],
+  "passed": true,
+  "scientific_experiments_rerun": false,
+  "cloud_original_files_changed": false,
+  "date_china": "2026-10-18",
+  "source_snapshot_sha256": "e07e734e3574358ed4691d4c8e2fcfd439b63751a2e8a31d5c5d13da369c7ec0",
+  "project_directory": "Bachelor_Thesis_RaNN",
+  "visibility": "public, explicitly confirmed by the user",
+  "migration_only_workflow": "https://github.com/dwwang4-hash/wdw/actions/runs/39134561894",
+  "not_in_this_repository": [
+    "six older standalone ZIP archives",
+    "Linux virtualenv and caches",
+    "credentials",
+    "complete verbatim chat history"
+  ],
+  "note": "The 536 SHA256 records exclude the manifest itself; all 537 project files were independently compared against the original snapshot. The direct commit ZIP was actually downloaded and verified. No PDE solve or scientific test rerun occurred."
+}
